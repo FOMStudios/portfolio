@@ -678,7 +678,7 @@ footer.site-footer{
     </div>
     <div class="menu-social">
         <a href="https://instagram.com/fom_studios_" target="_blank">Instagram</a>
-        <a href="mailto:fomxstudios@gmail.com">Email</a>
+        <a href="mailto:info@fomstudios.co.za">Email</a>
     </div>
 </div>
 
@@ -944,7 +944,7 @@ footer.site-footer{
             <div class="footer-col">
                 <h4>Contact</h4>
                 <ul>
-                    <li><a href="mailto:fomxstudios@gmail.com">fomxstudios@gmail.com</a></li>
+                    <li><a href="mailto:info@fomstudios.co.za">info@fomstudios.co.za</a></li>
                     <li><a href="tel:0737553136">073 755 3136</a></li>
                     <li><a href="https://instagram.com/fom_studios_" target="_blank">@fom_studios_</a></li>
                     <li><a href="https://whatsapp.com/channel/0029VbCfflP4SpkNXLDI3b0i" target="_blank">WhatsApp Channel</a></li>
@@ -1014,7 +1014,7 @@ const WHATSAPP_NUMBER = '27737553136';
 /* ---- Brevo "Book a Shoot" form — submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
    URL come directly from the embed code generated in Brevo. ---- */
-const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
+const BREVO_ACTION_URL = 'https://96e55b7d.sibforms.com/serve/MUIFAOGZYJ5npzv65-wsmw0rzGzlvVrsLtrpQKJJSW_0bptJOWl-2SNXPFv5mujZ6ow-7ZYMDTKyZSVbp-bmpc8OtJSwj6iXVyRfu-lFfDTwAS08ru9flWlLPXeqMj_po4yqus2W7JW-QOujQUpqkvxcm8k_8taFHN8Ib1HtA4JT2jS72FKllyMvkQiYu2B0z9xXfzU_BMLz3pfuvw==';
 
 /* Submits a form to Brevo via a hidden iframe so the visitor's page
    never navigates away and no mail app or new tab opens. Forms (unlike
@@ -1159,7 +1159,7 @@ bookingEmailBtn.addEventListener('click', async () => {
     bookingEmailBtn.disabled = true;
     bookingEmailBtnLabel.textContent = 'Sending…';
 
-    await submitToBrevo({ NAME: name, EMAIL: email, MESSAGE: message });
+    await submitToBrevo({ EMAIL: email, MESSAGE: `From ${name}: ${message}` });
 
     bookingEmailBtn.classList.add('sent');
     bookingEmailBtnLabel.textContent = 'Sent ✓';
