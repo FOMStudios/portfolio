@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOM Studios | Policy</title>
+<meta name="description" content="FOM Studios booking, payment, cancellation and usage policy.">
+
+<style>
+/* Tokens match index.html exactly — see that file for the full
+   comment explaining the palette choices. */
+:root{
+    --bg: #f1f0ec;
+    --bg-pill: #fafaf9;
+    --bg-dark: #2a2b2c;
+    --ink: #2a2b2c;
+    --ink-soft: #6f6f6d;
+    --ink-on-dark: #f1f0ec;
+    --line: #dcdad3;
+    --accent: #02367B;
+    --accent-hover: #022a5f;
+    --accent-on-dark: #5B9AE0;
+    --container: 1320px;
+    --gutter: clamp(20px, 5vw, 64px);
+    --radius-pill: 999px;
+    --radius-card: 20px;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior: smooth; }
+
+body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family: inherit; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.wrap{ max-width: var(--container); margin:0 auto; padding: 0 var(--gutter); }
+
+.eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+    display:block;
+    margin-bottom: 12px;
+}
+
+/* PILL HEADER — identical system to index.html */
+.nav-shell{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 18px var(--gutter) 0;
+    background: linear-gradient(180deg, var(--bg) 60%, transparent 100%);
+    pointer-events: none;
+}
+nav.pill{
+    pointer-events: auto;
+    max-width: var(--container);
+    margin: 0 auto;
+    background: var(--bg-pill);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.nav-toggle{
+    display:flex; align-items:center; justify-content:center;
+    width: 38px; height: 38px; background: none; border: none; cursor: pointer;
+    flex-direction:column; gap: 5px;
+}
+.nav-toggle span{ width:18px; height:2px; background: var(--ink); display:block; border-radius: 2px; }
+.brand-mark{ font-weight: 800; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; }
+.nav-right{ display:flex; align-items:center; gap: 18px; }
+nav.pill .nav-links{ display:flex; gap: 26px; list-style: none; }
+nav.pill .nav-links a{ font-size: 14px; font-weight: 500; color: var(--ink); transition: color 0.2s ease; }
+nav.pill .nav-links a:hover{ color: var(--ink-soft); }
+.nav-cta{ border: 1px solid var(--ink); border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+/* mobile slide-out menu — identical system to index.html */
+.mobile-menu{
+    position: fixed; top: 0; left: 0; height: 100%;
+    width: min(340px, 86vw);
+    background: var(--bg-pill);
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    padding: 28px 28px;
+    display:flex; flex-direction:column;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.mobile-menu.open{ transform: translateX(0); }
+.mobile-menu .close-menu{ align-self:flex-end; background:none; border:none; font-size:28px; cursor:pointer; color:var(--ink); line-height:1; margin-bottom: 20px; }
+.mobile-menu ul{ list-style:none; display:flex; flex-direction:column; }
+.mobile-menu ul li{ border-bottom: 1px solid var(--line); }
+.mobile-menu ul li a{ display:block; padding: 18px 4px; font-size: 19px; font-weight:600; color: var(--ink); }
+.mobile-menu .menu-media{ margin-top: 28px; display:flex; align-items:center; justify-content:center; }
+.mobile-menu .menu-media img{ width:100%; max-width: 140px; height:auto; object-fit:contain; margin: 0 auto; }
+.mobile-menu .menu-social{ margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); display:flex; gap: 20px; flex-shrink: 0; }
+.mobile-menu .menu-social a{ font-size: 13px; font-weight:600; color: var(--ink-soft); }
+
+.scrim{ position: fixed; inset:0; background: rgba(0,0,0,0.25); z-index: 1050; opacity:0; pointer-events:none; transition: opacity 0.3s ease; }
+.scrim.show{ opacity:1; pointer-events:auto; }
+
+/* PAGE HEADER */
+.policy-hero{ padding: 56px 0 40px; }
+.policy-hero h1{ font-size: clamp(40px, 7vw, 68px); font-weight: 800; letter-spacing: -0.01em; }
+.policy-hero p{ color: var(--ink-soft); max-width: 52ch; margin-top: 16px; font-size: 16px; }
+
+/* POLICY BODY */
+.policy-body{ padding: 16px 0 88px; }
+.policy-layout{ display:grid; grid-template-columns: 260px 1fr; gap: 56px; }
+
+.policy-toc{
+    position: sticky;
+    top: 110px;
+    align-self: start;
+    background: var(--bg-pill);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 24px;
+}
+.policy-toc h4{ font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 16px; }
+.policy-toc ul{ list-style:none; display:flex; flex-direction:column; gap:12px; }
+.policy-toc a{ color: var(--ink); text-decoration:none; font-size: 14px; font-weight: 500; transition: color 0.2s ease; }
+.policy-toc a:hover{ color: var(--ink-soft); }
+
+.policy-section{ padding-bottom: 36px; margin-bottom: 36px; border-bottom: 1px solid var(--line); }
+.policy-section:last-child{ border-bottom:none; margin-bottom:0; }
+.policy-section .step-num{ font-size: 13px; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; display:block; margin-bottom: 8px; }
+.policy-section h2{ font-size: clamp(22px, 3vw, 28px); margin-bottom: 14px; font-weight: 800; }
+.policy-section p, .policy-section li{ line-height: 1.75; color: var(--ink-soft); font-size: 15px; }
+.policy-section ul{ padding-left: 20px; display:flex; flex-direction:column; gap:8px; }
+
+.download-row{ margin-top: 36px; display:flex; align-items:center; justify-content:center; gap: 20px; flex-wrap: wrap; }
+
+.btn-pill{
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-pill);
+    padding: 14px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+.btn-pill:hover{ background: var(--ink); color: var(--bg-pill); }
+.btn-pill.filled{ background: var(--accent); border-color: var(--accent); color: var(--ink-on-dark); }
+.btn-pill.filled:hover{ background: var(--accent-hover); border-color: var(--accent-hover); color: var(--ink-on-dark); }
+
+.policy-mascot{ text-align:center; margin: 28px 0 0; }
+.policy-mascot img{ width: 150px; max-width: 55%; margin: 0 auto; }
+
+/* FOOTER — identical system to index.html */
+footer.site-footer{
+    background: var(--bg-dark);
+    color: var(--ink-on-dark);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    margin-top: 24px;
+    padding: 64px 0 0;
+}
+.footer-grid{ display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(241,240,236,0.12); }
+.footer-brand p{ color: #b9b8b5; max-width: 32ch; font-size:14px; margin-top: 14px; }
+.footer-col h4{ font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color: var(--accent-on-dark); margin-bottom:16px; }
+.footer-col ul{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-col a{ color: #b9b8b5; font-size:14px; transition: color 0.2s ease; }
+.footer-col a:hover{ color: var(--ink-on-dark); }
+.footer-bottom{ display:flex; justify-content:space-between; align-items:center; padding:22px 0 28px; flex-wrap:wrap; gap:10px; }
+.footer-bottom p{ font-size:12px; color:#8a8986; }
+
+/* RESPONSIVE */
+@media (max-width: 900px){
+    .policy-layout{ grid-template-columns: 1fr; gap: 28px; }
+    .policy-toc{ position:static; }
+    /* turn each link into its own pill chip — plain wrapped text
+       links looked messy once they stopped being a vertical list */
+    .policy-toc ul{ flex-direction:row; flex-wrap:wrap; gap: 8px; }
+    .policy-toc a{
+        display:inline-flex;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        border-radius: var(--radius-pill);
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .policy-toc a:hover{ background: var(--ink); color: var(--bg-pill); border-color: var(--ink); }
+    .footer-grid{ grid-template-columns: 1.2fr 1fr 1fr; }
+}
+
+@media (max-width: 860px){
+    nav.pill .nav-links{ display:none; }
+    .nav-shell{ padding: 14px var(--gutter) 0; }
+}
+
+@media (max-width: 600px){
+    .policy-hero{ padding: 40px 0 28px; }
+    .policy-body{ padding: 8px 0 64px; }
+    .footer-grid{ grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+    .footer-brand{ grid-column: span 2; }
+    .footer-bottom{ flex-direction:column; align-items:flex-start; }
+}
+
+/* ============= BOOKING POPUP (ported from index.html) ============= */
+.booking-overlay{
+    display:none;
+    position: fixed; inset:0;
+    z-index: 2100;
+    background: rgba(20,20,18,0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.booking-overlay.show{ display:flex; }
+
+.booking-modal{
+    background: var(--bg-pill);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+}
+
+.booking-close{
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg-pill);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--ink);
+}
+.booking-close:hover{ background: var(--ink); color: var(--bg-pill); border-color: var(--ink); }
+
+.booking-modal h3{ font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.booking-modal .booking-sub{ color: var(--ink-soft); font-size: 14px; margin-bottom: 22px; }
+
+.booking-field{ margin-bottom: 16px; }
+.booking-field label{
+    display:block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+}
+.booking-field input,
+.booking-field textarea{
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+    resize: vertical;
+}
+.booking-field input:focus,
+.booking-field textarea:focus{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.booking-actions{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.booking-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    border-radius: var(--radius-pill);
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
+}
+
+.booking-btn.email{
+    background: var(--accent);
+    color: var(--ink-on-dark);
+}
+.booking-btn.email:hover{ background: var(--accent-hover); }
+
+.booking-btn.whatsapp{
+    background: #25D366;
+    color: #0b1f12;
+}
+.booking-btn.whatsapp:hover{ background: #1ebc59; }
+
+.booking-btn svg{ width: 18px; height: 18px; flex-shrink: 0; }
+
+.booking-note{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    text-align: center;
+}
+.booking-field-err{ font-size: 12.5px; color: #c0392b; margin: -8px 0 14px; min-height: 16px; text-align: left; }
+.booking-btn.email.sent{ background: #27ae60; cursor: default; }
+.booking-btn.email:disabled{ opacity: 0.75; cursor: default; }
+</style>
+</head>
+
+<body>
+
+<!-- SCRIM (mobile menu backdrop) -->
+<div class="scrim" id="scrim"></div>
+
+<!-- MOBILE SLIDE-OUT MENU -->
+<div class="mobile-menu" id="mobileMenu">
+    <button class="close-menu" id="closeMenu" aria-label="Close menu">&times;</button>
+    <ul>
+        <li><a href="index.html#about" data-menu-link>About</a></li>
+        <li><a href="index.html#work" data-menu-link>Work</a></li>
+        <li><a href="gallery.html" data-menu-link>Gallery</a></li>
+        <li><a href="prices.html" data-menu-link>Prices</a></li>
+        <li><a href="policy.html" data-menu-link>Policy</a></li>
+        <li><a href="index.html#contact" data-menu-link>Contact</a></li>
+    </ul>
+    <div class="menu-media">
+        <img src="assets/mascot-head-color.png" alt="FOM Studios mascot">
+    </div>
+    <div class="menu-social">
+        <a href="https://instagram.com/fom_studios_" target="_blank">Instagram</a>
+        <a href="mailto:fomxstudios@gmail.com">Email</a>
+    </div>
+</div>
+
+<!-- PILL HEADER -->
+<div class="nav-shell">
+    <nav class="pill">
+        <button class="nav-toggle" id="navToggle" aria-label="Open menu">
+            <span></span><span></span>
+        </button>
+        <a href="index.html" class="brand-mark">FOM STUDIOS</a>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#work">Work</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="prices.html">Prices</a></li>
+                <li><a href="policy.html">Policy</a></li>
+            </ul>
+            <a href="#" class="nav-cta" data-open-booking>Book a shoot</a>
+        </div>
+    </nav>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="policy-hero">
+    <div class="wrap">
+        <span class="eyebrow">Booking Terms</span>
+        <h1>Our Policy</h1>
+        <p>Everything you need to know before booking. Payment, cancellations, rescheduling, delivery and usage rights.</p>
+    </div>
+</div>
+
+<!-- POLICY BODY -->
+<div class="policy-body">
+    <div class="wrap policy-layout">
+
+        <aside class="policy-toc">
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#booking">Booking &amp; Payment</a></li>
+                <li><a href="#cancellation">Cancellation</a></li>
+                <li><a href="#rescheduling">Rescheduling</a></li>
+                <li><a href="#delivery">Content Delivery</a></li>
+                <li><a href="#usage">Creative Control &amp; Usage</a></li>
+                <li><a href="#liability">Liability</a></li>
+            </ul>
+        </aside>
+
+        <div class="policy-main">
+
+            <div class="policy-section" id="services">
+                <span class="step-num">01</span>
+                <h2>Services</h2>
+                <p>FOM Studios provides photography and videography services including shooting, editing and delivery of final media.</p>
+            </div>
+
+            <div class="policy-section" id="booking">
+                <span class="step-num">02</span>
+                <h2>Booking &amp; Payment Terms</h2>
+                <ul>
+                    <li>50% non-refundable deposit required.</li>
+                    <li>Remaining balance payable before the shoot date.</li>
+                    <li>No services rendered without full payment.</li>
+                    <li>Payment confirms acceptance of this agreement.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section" id="cancellation">
+                <span class="step-num">03</span>
+                <h2>Cancellation Policy</h2>
+                <ul>
+                    <li>Deposit is non-refundable.</li>
+                    <li>Cancellations more than 10 days before the shoot incur no additional payment.</li>
+                    <li>Cancellations less than 10 days before the shoot incur an additional fee equal to 20% of the outstanding balance.</li>
+                    <li>Cancellations must be submitted in writing.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section" id="rescheduling">
+                <span class="step-num">04</span>
+                <h2>Rescheduling</h2>
+                <ul>
+                    <li>One reschedule permitted per booking.</li>
+                    <li>Payments transfer to the new date.</li>
+                    <li>Subject to availability.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section" id="delivery">
+                <span class="step-num">05</span>
+                <h2>Content Delivery</h2>
+                <ul>
+                    <li>Delivery timelines communicated before booking.</li>
+                    <li>Rush delivery incurs a 20% fee.</li>
+                    <li>Raw files are not included unless agreed.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section" id="usage">
+                <span class="step-num">06</span>
+                <h2>Creative Control &amp; Usage Rights</h2>
+                <ul>
+                    <li>FOM Studios retains creative control.</li>
+                    <li>Content may be used for portfolio and marketing purposes unless confidentiality is agreed in writing.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section" id="liability">
+                <span class="step-num">07</span>
+                <h2>Liability</h2>
+                <ul>
+                    <li>FOM Studios is not liable for circumstances beyond reasonable control.</li>
+                    <li>Force majeure provisions apply.</li>
+                </ul>
+            </div>
+
+            <div class="download-row">
+                <a href="assets/FOM_Studios_Policy.pdf" class="btn-pill filled" target="_blank">Download Full Policy</a>
+            </div>
+
+            <div class="policy-mascot">
+                <img src="assets/mascot-head-black.png" alt="FOM Studios mascot">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer id="contact" class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="brand-mark">FOM STUDIOS</div>
+                <p>Photography, videography and creative storytelling based in Johannesburg, South Africa.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Site</h4>
+                <ul>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#work">Work</a></li>
+                    <li><a href="gallery.html">Gallery</a></li>
+                    <li><a href="prices.html">Prices</a></li>
+                    <li><a href="policy.html">Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:fomxstudios@gmail.com">fomxstudios@gmail.com</a></li>
+                    <li><a href="tel:0737553136">073 755 3136</a></li>
+                    <li><a href="https://instagram.com/fom_studios_" target="_blank">@fom_studios_</a></li>
+                    <li><a href="https://whatsapp.com/channel/0029VbCfflP4SpkNXLDI3b0i" target="_blank">WhatsApp Channel</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Location</h4>
+                <ul>
+                    <li><span>Johannesburg, South Africa</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 FOM Studios. All rights reserved.</p>
+            <p>Johannesburg, South Africa</p>
+        </div>
+    </div>
+</footer>
+
+<div class="booking-overlay" id="bookingOverlay">
+    <div class="booking-modal">
+        <button class="booking-close" id="bookingClose" aria-label="Close">&times;</button>
+        <h3>Book a shoot</h3>
+        <p class="booking-sub">Tell us a bit about what you need, then send it however suits you.</p>
+
+        <div class="booking-field">
+            <label for="bookingName">Your name</label>
+            <input type="text" id="bookingName" placeholder="Jane Doe" autocomplete="name">
+        </div>
+        <div class="booking-field">
+            <label for="bookingEmail">Your email</label>
+            <input type="email" id="bookingEmail" placeholder="jane@email.com" autocomplete="email">
+        </div>
+        <div class="booking-field">
+            <label for="bookingMessage">Message</label>
+            <textarea id="bookingMessage" rows="4" placeholder="Date, location, and what you'd like covered..."></textarea>
+        </div>
+        <p class="booking-field-err" id="bookingErr"></p>
+
+        <div class="booking-actions">
+            <button class="booking-btn email" id="bookingEmailBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l9 7 9-7" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+                <span id="bookingEmailBtnLabel">Send Message</span>
+            </button>
+            <button class="booking-btn whatsapp" id="bookingWhatsappBtn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.3A8.8 8.8 0 0 0 12 4a8.8 8.8 0 0 0-7.6 13.2L3 21l3.9-1.3A8.8 8.8 0 0 0 12 20a8.8 8.8 0 0 0 5.6-15.7zM12 18.3c-1.4 0-2.7-.4-3.9-1.1l-.3-.2-2.7.9.9-2.6-.2-.3A6.9 6.9 0 0 1 12 5.7a6.9 6.9 0 0 1 0 12.6zm3.8-5.2c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.5.1-.1.2-.5.7-.7.8-.1.2-.3.2-.5.1-.6-.3-1.2-.7-1.7-1.2-.4-.4-.8-1-1.1-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.2.2-.3.1-.5l-.6-1.4c-.2-.4-.4-.3-.5-.3h-.5c-.2 0-.4.1-.5.2-.2.2-.7.7-.7 1.6 0 .9.7 1.9.8 2 .1.1 1.4 2.1 3.3 2.9 1.9.8 1.9.5 2.3.5.3 0 1.1-.4 1.2-.9.2-.4.2-.8.1-.9-.1-.1-.2-.2-.4-.3z"/></svg>
+                Message on WhatsApp
+            </button>
+        </div>
+        <p class="booking-note">Sending your message adds you to our mailing list for booking updates and promos. WhatsApp opens a chat with FOM Studios.</p>
+    </div>
+</div>
+<script>
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const closeMenu = document.getElementById('closeMenu');
+const scrim = document.getElementById('scrim');
+
+function openMenu(){ mobileMenu.classList.add('open'); scrim.classList.add('show'); }
+function closeMenuFn(){ mobileMenu.classList.remove('open'); scrim.classList.remove('show'); }
+navToggle.addEventListener('click', openMenu);
+closeMenu.addEventListener('click', closeMenuFn);
+scrim.addEventListener('click', closeMenuFn);
+document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('click', closeMenuFn));
+
+
+/* WHATSAPP_NUMBER must be in international format, digits only,
+   no leading 0 or +. FOM's site phone is 073 755 3136 — assuming
+   this is the WhatsApp number, the SA country code (27) replaces
+   the leading 0: 27737553136. Double check this is correct and
+   WhatsApp-enabled before going live. */
+const WHATSAPP_NUMBER = '27737553136';
+
+/* ---- Brevo "Book a Shoot" form — submits silently in the background,
+   no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
+   URL come directly from the embed code generated in Brevo. ---- */
+const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
+
+/* Submits a form to Brevo via a hidden iframe so the visitor's page
+   never navigates away and no mail app or new tab opens. Forms (unlike
+   fetch/XHR) aren't blocked by CORS when posting cross-origin, and
+   targeting a hidden iframe keeps the response off-screen. */
+function submitToBrevo(fields){
+    return new Promise((resolve) => {
+        const iframeName = 'brevo-submit-' + Date.now();
+        const iframe = document.createElement('iframe');
+        iframe.name = iframeName;
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = BREVO_ACTION_URL;
+        form.target = iframeName;
+        form.style.display = 'none';
+
+        const data = { ...fields, email_address_check: '', locale: 'en' };
+        Object.keys(data).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+
+        setTimeout(() => {
+            resolve();
+            form.remove();
+            iframe.remove();
+        }, 900);
+    });
+}
+
+/* ---- booking popup: open/close + send via email or WhatsApp ---- */
+const bookingOverlay = document.getElementById('bookingOverlay');
+const bookingClose = document.getElementById('bookingClose');
+const bookingName = document.getElementById('bookingName');
+const bookingEmail = document.getElementById('bookingEmail');
+const bookingMessage = document.getElementById('bookingMessage');
+const bookingErr = document.getElementById('bookingErr');
+const bookingEmailBtn = document.getElementById('bookingEmailBtn');
+const bookingEmailBtnLabel = document.getElementById('bookingEmailBtnLabel');
+const bookingWhatsappBtn = document.getElementById('bookingWhatsappBtn');
+
+function openBooking(){
+    bookingOverlay.classList.add('show');
+    bookingName.focus();
+}
+function closeBooking(){
+    bookingOverlay.classList.remove('show');
+}
+
+document.querySelectorAll('[data-open-booking]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault(); // these are <a> tags with #contact fallback hrefs
+        openBooking();
+    });
+});
+bookingClose.addEventListener('click', closeBooking);
+bookingOverlay.addEventListener('click', (e) => {
+    if (e.target === bookingOverlay) closeBooking();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBooking();
+});
+
+function buildMessage(){
+    const name = bookingName.value.trim();
+    const msg = bookingMessage.value.trim();
+    let text = msg || "Hi FOM Studios, I'd like to book a shoot.";
+    if (name) text = `Hi FOM Studios, I'm ${name}. ${msg || "I'd like to book a shoot."}`;
+    return text;
+}
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+bookingEmailBtn.addEventListener('click', async () => {
+    const name = bookingName.value.trim();
+    const email = bookingEmail.value.trim();
+    const message = bookingMessage.value.trim();
+
+    bookingErr.textContent = '';
+    if (!name){ bookingErr.textContent = 'Please enter your name.'; bookingName.focus(); return; }
+    if (!email || !isValidEmail(email)){ bookingErr.textContent = 'Please enter a valid email address.'; bookingEmail.focus(); return; }
+    if (!message){ bookingErr.textContent = 'Let us know a bit about what you need.'; bookingMessage.focus(); return; }
+
+    bookingEmailBtn.disabled = true;
+    bookingEmailBtnLabel.textContent = 'Sending…';
+
+    await submitToBrevo({ NAME: name, EMAIL: email, MESSAGE: message });
+
+    bookingEmailBtn.classList.add('sent');
+    bookingEmailBtnLabel.textContent = 'Sent ✓';
+
+    setTimeout(() => {
+        bookingEmailBtn.disabled = false;
+        bookingEmailBtn.classList.remove('sent');
+        bookingEmailBtnLabel.textContent = 'Send Message';
+        bookingName.value = '';
+        bookingEmail.value = '';
+        bookingMessage.value = '';
+        closeBooking();
+    }, 1800);
+});
+
+bookingWhatsappBtn.addEventListener('click', () => {
+    const text = buildMessage();
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+});
+</script>
+
+</body>
+</html>

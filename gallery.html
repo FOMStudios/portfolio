@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOM Studios | Gallery</title>
+<meta name="description" content="Full gallery of FOM Studios photography and videography work — Johannesburg, South Africa.">
+
+<style>
+/* Tokens match index.html / policy.html exactly — see index.html
+   for the full comment explaining the palette choices. */
+:root{
+    --bg: #f1f0ec;
+    --bg-pill: #fafaf9;
+    --bg-dark: #2a2b2c;
+    --ink: #2a2b2c;
+    --ink-soft: #6f6f6d;
+    --ink-on-dark: #f1f0ec;
+    --line: #dcdad3;
+    --accent: #02367B;
+    --accent-hover: #022a5f;
+    --accent-on-dark: #5B9AE0;
+    --container: 1320px;
+    --gutter: clamp(20px, 5vw, 64px);
+    --radius-pill: 999px;
+    --radius-card: 20px;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior: smooth; }
+
+body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family: inherit; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.wrap{ max-width: var(--container); margin:0 auto; padding: 0 var(--gutter); }
+
+.eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+    display:block;
+    margin-bottom: 12px;
+}
+
+/* PILL HEADER — identical system to index.html */
+.nav-shell{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 18px var(--gutter) 0;
+    pointer-events: none;
+}
+nav.pill{
+    pointer-events: auto;
+    max-width: var(--container);
+    margin: 0 auto;
+    background: var(--bg-pill);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.nav-toggle{
+    display:flex; align-items:center; justify-content:center;
+    width: 38px; height: 38px; background: none; border: none; cursor: pointer;
+    flex-direction:column; gap: 5px;
+}
+.nav-toggle span{ width:18px; height:2px; background: var(--ink); display:block; border-radius: 2px; }
+.brand-mark{ font-weight: 800; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; }
+.nav-right{ display:flex; align-items:center; gap: 18px; }
+nav.pill .nav-links{ display:flex; gap: 26px; list-style: none; }
+nav.pill .nav-links a{ font-size: 14px; font-weight: 500; color: var(--ink); transition: color 0.2s ease; }
+nav.pill .nav-links a:hover{ color: var(--ink-soft); }
+nav.pill .nav-links a.active{ color: var(--accent); font-weight: 700; }
+.nav-cta{ border: 1px solid var(--ink); border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+/* mobile slide-out menu — identical system to index.html */
+.mobile-menu{
+    position: fixed; top: 0; left: 0; height: 100%;
+    width: min(340px, 86vw);
+    background: var(--bg-pill);
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    padding: 28px 28px;
+    display:flex; flex-direction:column;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.mobile-menu.open{ transform: translateX(0); }
+.mobile-menu .close-menu{ align-self:flex-end; background:none; border:none; font-size:28px; cursor:pointer; color:var(--ink); line-height:1; margin-bottom: 20px; }
+.mobile-menu ul{ list-style:none; display:flex; flex-direction:column; }
+.mobile-menu ul li{ border-bottom: 1px solid var(--line); }
+.mobile-menu ul li a{ display:block; padding: 18px 4px; font-size: 19px; font-weight:600; color: var(--ink); }
+.mobile-menu ul li a.active{ color: var(--accent); }
+.mobile-menu .menu-media{ margin-top: 28px; display:flex; align-items:center; justify-content:center; }
+.mobile-menu .menu-media img{ width:100%; max-width: 140px; height:auto; object-fit:contain; margin: 0 auto; }
+.mobile-menu .menu-social{ margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); display:flex; gap: 20px; flex-shrink: 0; }
+.mobile-menu .menu-social a{ font-size: 13px; font-weight:600; color: var(--ink-soft); }
+
+.scrim{ position: fixed; inset:0; background: rgba(0,0,0,0.25); z-index: 1050; opacity:0; pointer-events:none; transition: opacity 0.3s ease; }
+.scrim.show{ opacity:1; pointer-events:auto; }
+
+/* PAGE HEADER */
+.gallery-hero{ padding: 56px 0 8px; }
+.gallery-hero h1{ font-size: clamp(40px, 7vw, 68px); font-weight: 800; letter-spacing: -0.01em; }
+.gallery-hero p{ color: var(--ink-soft); max-width: 56ch; margin-top: 16px; font-size: 16px; }
+
+/* =========================================================
+   BENTO GALLERY GRID
+   A 4-column base grid on desktop. Each cell is assigned one of
+   four shapes (big / wide / tall / square) which cycle in a
+   repeating pattern, so the mosaic stays balanced no matter how
+   many images get added later — new shoots just continue the
+   work-N.jpg numbering and slot into the next position.
+   ========================================================= */
+.bento{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 220px;
+    grid-auto-flow: dense;
+    gap: 18px;
+    padding: 40px 0 96px;
+}
+
+.b-card{
+    position: relative;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--bg-pill);
+    cursor: pointer;
+}
+.b-card img{
+    width:100%; height:100%; object-fit:cover;
+    transition: transform 0.45s ease;
+}
+.b-card:hover img{ transform: scale(1.05); }
+
+.b-card .b-caption{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    padding: 18px 18px 16px;
+    background: linear-gradient(180deg, transparent 0%, rgba(20,20,18,0.55) 100%);
+    color: var(--ink-on-dark);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: 0.25s ease;
+}
+.b-card:hover .b-caption{ opacity: 1; transform: translateY(0); }
+
+/* shapes — span sizes within the 4-col / 220px-row base grid */
+.b-big{ grid-column: span 2; grid-row: span 2; }
+.b-wide{ grid-column: span 2; grid-row: span 1; }
+.b-tall{ grid-column: span 1; grid-row: span 2; }
+.b-square{ grid-column: span 1; grid-row: span 1; }
+
+/* =========================================================
+   LOAD MORE — placeholder control for when there are more
+   shoots than fit on one screen. Currently shows everything,
+   but the button is wired and ready: once there are enough
+   work-N.jpg images to paginate, this can hide extras by
+   default and reveal them on click.
+   ========================================================= */
+.gallery-footer-action{
+    display:flex;
+    justify-content:center;
+    padding-bottom: 40px;
+}
+
+/* =========================== LIGHTBOX =========================== */
+.lightbox{
+    display:none;
+    position: fixed; inset:0;
+    z-index: 2000;
+    background-color: rgba(20,20,18,0.94);
+    padding: 60px 20px;
+    align-items: center;
+    justify-content: center;
+}
+.lightbox.show{ display:flex; }
+.lightbox-content{ max-width: 92vw; max-height: 85vh; border-radius: 14px; }
+.close{
+    position: absolute; top: 22px; right: 28px;
+    color: #fff; font-size: 36px; cursor: pointer; line-height:1; background:none; border:none;
+}
+
+.btn-pill{
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-pill);
+    padding: 14px 26px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+    cursor: pointer;
+    background: none;
+}
+.btn-pill:hover{ background: var(--ink); color: var(--bg-pill); }
+
+/* =========================== FOOTER =========================== */
+footer.site-footer{
+    background: var(--bg-dark);
+    color: var(--ink-on-dark);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    margin-top: 24px;
+    padding: 64px 0 0;
+}
+.footer-grid{ display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(241,240,236,0.12); }
+.footer-brand p{ color: #b9b8b5; max-width: 32ch; font-size:14px; margin-top: 14px; }
+.footer-col h4{ font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color: var(--accent-on-dark); margin-bottom:16px; }
+.footer-col ul{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-col a{ color: #b9b8b5; font-size:14px; transition: color 0.2s ease; }
+.footer-col a:hover{ color: var(--ink-on-dark); }
+.footer-bottom{ display:flex; justify-content:space-between; align-items:center; padding:22px 0 28px; flex-wrap:wrap; gap:10px; }
+.footer-bottom p{ font-size:12px; color:#8a8986; }
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1024px){
+    .bento{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: 200px; }
+    .b-big{ grid-column: span 2; grid-row: span 2; }
+    /* wide (2x1) doesn't divide cleanly into 3 columns alongside
+       a 2x2 + 1x2 mix, so it collapses to a square here — the
+       image still shows, just without the extra-wide treatment */
+    .b-wide{ grid-column: span 1; grid-row: span 1; }
+    .footer-grid{ grid-template-columns: 1.2fr 1fr 1fr; }
+}
+
+@media (max-width: 860px){
+    nav.pill .nav-links{ display:none; }
+    .nav-shell{ padding: 14px var(--gutter) 0; }
+}
+
+@media (max-width: 700px){
+    /* real bento on mobile too, just at a smaller scale: 2 columns
+       instead of 4, shorter row height. The same shape classes
+       (b-big / b-wide / b-tall / b-square) tile perfectly at 2
+       columns with zero gaps — big and wide both become full-width,
+       tall and square both become a single column.
+       b-wide is explicitly restored here because the 1024px breakpoint
+       collapses it to a square for the 3-column layout — we need it
+       back to full-width (span 2) for the 2-column mobile grid. */
+    .bento{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 10px; }
+    .b-wide{ grid-column: span 2; grid-row: span 1; }
+    .b-card .b-caption{ opacity: 1; transform: none; padding: 10px 12px 8px; font-size: 12px; }
+    .gallery-hero{ padding: 40px 0 4px; }
+    .footer-grid{ grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+    .footer-brand{ grid-column: span 2; }
+    .footer-bottom{ flex-direction:column; align-items:flex-start; }
+}
+
+@media (max-width: 420px){
+    /* on very small phones, shrink the row height a bit further
+       so b-big (2x2) doesn't get uncomfortably tall */
+    .bento{ grid-auto-rows: 130px; gap: 8px; }
+}
+
+/* ============= BOOKING POPUP (ported from index.html) ============= */
+.booking-overlay{
+    display:none;
+    position: fixed; inset:0;
+    z-index: 2100;
+    background: rgba(20,20,18,0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.booking-overlay.show{ display:flex; }
+
+.booking-modal{
+    background: var(--bg-pill);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+}
+
+.booking-close{
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg-pill);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--ink);
+}
+.booking-close:hover{ background: var(--ink); color: var(--bg-pill); border-color: var(--ink); }
+
+.booking-modal h3{ font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.booking-modal .booking-sub{ color: var(--ink-soft); font-size: 14px; margin-bottom: 22px; }
+
+.booking-field{ margin-bottom: 16px; }
+.booking-field label{
+    display:block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+}
+.booking-field input,
+.booking-field textarea{
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+    resize: vertical;
+}
+.booking-field input:focus,
+.booking-field textarea:focus{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.booking-actions{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.booking-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+    border-radius: var(--radius-pill);
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
+}
+
+.booking-btn.email{
+    background: var(--accent);
+    color: var(--ink-on-dark);
+}
+.booking-btn.email:hover{ background: var(--accent-hover); }
+
+.booking-btn.whatsapp{
+    background: #25D366;
+    color: #0b1f12;
+}
+.booking-btn.whatsapp:hover{ background: #1ebc59; }
+
+.booking-btn svg{ width: 18px; height: 18px; flex-shrink: 0; }
+
+.booking-note{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    text-align: center;
+}
+.booking-field-err{ font-size: 12.5px; color: #c0392b; margin: -8px 0 14px; min-height: 16px; text-align: left; }
+.booking-btn.email.sent{ background: #27ae60; cursor: default; }
+.booking-btn.email:disabled{ opacity: 0.75; cursor: default; }
+</style>
+</head>
+
+<body>
+
+<!-- SCRIM (mobile menu backdrop) -->
+<div class="scrim" id="scrim"></div>
+
+<!-- MOBILE SLIDE-OUT MENU -->
+<div class="mobile-menu" id="mobileMenu">
+    <button class="close-menu" id="closeMenu" aria-label="Close menu">&times;</button>
+    <ul>
+        <li><a href="index.html#about" data-menu-link>About</a></li>
+        <li><a href="index.html#work" data-menu-link>Work</a></li>
+        <li><a href="gallery.html" class="active" data-menu-link>Gallery</a></li>
+        <li><a href="prices.html" data-menu-link>Prices</a></li>
+        <li><a href="policy.html" data-menu-link>Policy</a></li>
+        <li><a href="index.html#contact" data-menu-link>Contact</a></li>
+    </ul>
+    <div class="menu-media">
+        <img src="assets/mascot-head-color.png" alt="FOM Studios mascot">
+    </div>
+    <div class="menu-social">
+        <a href="https://instagram.com/fom_studios_" target="_blank">Instagram</a>
+        <a href="mailto:fomxstudios@gmail.com">Email</a>
+    </div>
+</div>
+
+<!-- PILL HEADER -->
+<div class="nav-shell">
+    <nav class="pill">
+        <button class="nav-toggle" id="navToggle" aria-label="Open menu">
+            <span></span><span></span>
+        </button>
+        <a href="index.html" class="brand-mark">FOM STUDIOS</a>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#work">Work</a></li>
+                <li><a href="gallery.html" class="active">Gallery</a></li>
+                <li><a href="prices.html">Prices</a></li>
+                <li><a href="policy.html">Policy</a></li>
+            </ul>
+            <a href="#" class="nav-cta" data-open-booking>Book a shoot</a>
+        </div>
+    </nav>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="gallery-hero">
+    <div class="wrap">
+        <span class="eyebrow">Full Gallery</span>
+        <h1>Our Work</h1>
+        <p>Every shoot, all in one place. Tap any image to view it larger.</p>
+    </div>
+</div>
+
+<!-- =========================================================
+     BENTO GALLERY
+     Naming convention continues from the homepage: work1.jpg
+     through work10.jpg are the same shoots shown there, and
+     work11.jpg onward are gallery-only — just keep adding
+     workN.jpg to assets/ and a new card below using the next
+     number, picking whichever shape (b-big / b-wide / b-tall /
+     b-square) keeps the mosaic balanced.
+     ========================================================= -->
+<section>
+    <div class="wrap">
+        <div class="bento" id="bentoGrid">
+            <div class="b-card b-big" data-full="assets/work1.jpg"><img src="assets/work1.jpg" alt="Work 1"><div class="b-caption">Match Day</div></div>
+            <div class="b-card b-square" data-full="assets/work2.jpg"><img src="assets/work2.jpg" alt="Work 2"><div class="b-caption">Action Shots</div></div>
+            <div class="b-card b-square" data-full="assets/work3.jpg"><img src="assets/work3.jpg" alt="Work 3"><div class="b-caption">Interviews</div></div>
+            <div class="b-card b-wide" data-full="assets/work4.jpg"><img src="assets/work4.jpg" alt="Work 4"><div class="b-caption">Event Coverage</div></div>
+            <div class="b-card b-square" data-full="assets/work5.jpg"><img src="assets/work5.jpg" alt="Work 5"><div class="b-caption">Aerial Shot</div></div>
+            <div class="b-card b-square" data-full="assets/work6.jpg"><img src="assets/work6.jpg" alt="Work 6"><div class="b-caption">Motorbikes</div></div>
+            <div class="b-card b-tall" data-full="assets/work7.jpg"><img src="assets/work7.jpg" alt="Work 7"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-wide" data-full="assets/work8.jpg"><img src="assets/work8.jpg" alt="Work 8"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-square" data-full="assets/work9.jpg"><img src="assets/work9.jpg" alt="Work 9"><div class="b-caption">Car Meets</div></div>
+            <div class="b-card b-square" data-full="assets/work10.jpg"><img src="assets/work10.jpg" alt="Work 10"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-square" data-full="assets/work11.jpg"><img src="assets/work11.jpg" alt="Work 11"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-full="assets/work12.jpg"><img src="assets/work12.jpg" alt="Work 12"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-full="assets/work13.jpg"><img src="assets/work13.jpg" alt="Work 13"><div class="b-caption">Kyle Oliver</div></div>
+            <div class="b-card b-square" data-full="assets/work14.jpg"><img src="assets/work14.jpg" alt="Work 14"><div class="b-caption">Motion Blur</div></div>
+            <div class="b-card b-wide" data-full="assets/work15.jpg"><img src="assets/work15.jpg" alt="Work 15"><div class="b-caption">Team Spirit</div></div>
+            <div class="b-card b-square" data-full="assets/work16.jpg"><img src="assets/work16.jpg" alt="Work 16"><div class="b-caption">Details</div></div>
+            <div class="b-card b-square" data-full="assets/work17.jpg"><img src="assets/work17.jpg" alt="Work 17"><div class="b-caption">Pixel Stretch</div></div>
+            <div class="b-card b-wide" data-full="assets/work18.jpg"><img src="assets/work18.jpg" alt="Work 18"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-wide" data-full="assets/work19.jpg"><img src="assets/work19.jpg" alt="Work 19"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-tall" data-full="assets/work20.jpg"><img src="assets/work20.jpg" alt="Work 20"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-square" data-full="assets/work21.jpg"><img src="assets/work21.jpg" alt="Work 21"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-square" data-full="assets/work22.jpg"><img src="assets/work22.jpg" alt="Work 22"><div class="b-caption">Soccer</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact" class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="brand-mark">FOM STUDIOS</div>
+                <p>Photography, videography and creative storytelling based in Johannesburg, South Africa.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Site</h4>
+                <ul>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#work">Work</a></li>
+                    <li><a href="gallery.html">Gallery</a></li>
+                    <li><a href="prices.html">Prices</a></li>
+                    <li><a href="policy.html">Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:fomxstudios@gmail.com">fomxstudios@gmail.com</a></li>
+                    <li><a href="tel:0737553136">073 755 3136</a></li>
+                    <li><a href="https://instagram.com/fom_studios_" target="_blank">@fom_studios_</a></li>
+                    <li><a href="https://whatsapp.com/channel/0029VbCfflP4SpkNXLDI3b0i" target="_blank">WhatsApp Channel</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Location</h4>
+                <ul>
+                    <li><span>Johannesburg, South Africa</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 FOM Studios. All rights reserved.</p>
+            <p>Johannesburg, South Africa</p>
+        </div>
+    </div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox">
+    <button class="close" id="lightboxClose" aria-label="Close">&times;</button>
+    <img class="lightbox-content" id="lightbox-img" alt="">
+</div>
+
+<div class="booking-overlay" id="bookingOverlay">
+    <div class="booking-modal">
+        <button class="booking-close" id="bookingClose" aria-label="Close">&times;</button>
+        <h3>Book a shoot</h3>
+        <p class="booking-sub">Tell us a bit about what you need, then send it however suits you.</p>
+
+        <div class="booking-field">
+            <label for="bookingName">Your name</label>
+            <input type="text" id="bookingName" placeholder="Jane Doe" autocomplete="name">
+        </div>
+        <div class="booking-field">
+            <label for="bookingEmail">Your email</label>
+            <input type="email" id="bookingEmail" placeholder="jane@email.com" autocomplete="email">
+        </div>
+        <div class="booking-field">
+            <label for="bookingMessage">Message</label>
+            <textarea id="bookingMessage" rows="4" placeholder="Date, location, and what you'd like covered..."></textarea>
+        </div>
+        <p class="booking-field-err" id="bookingErr"></p>
+
+        <div class="booking-actions">
+            <button class="booking-btn email" id="bookingEmailBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l9 7 9-7" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+                <span id="bookingEmailBtnLabel">Send Message</span>
+            </button>
+            <button class="booking-btn whatsapp" id="bookingWhatsappBtn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.3A8.8 8.8 0 0 0 12 4a8.8 8.8 0 0 0-7.6 13.2L3 21l3.9-1.3A8.8 8.8 0 0 0 12 20a8.8 8.8 0 0 0 5.6-15.7zM12 18.3c-1.4 0-2.7-.4-3.9-1.1l-.3-.2-2.7.9.9-2.6-.2-.3A6.9 6.9 0 0 1 12 5.7a6.9 6.9 0 0 1 0 12.6zm3.8-5.2c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.5.1-.1.2-.5.7-.7.8-.1.2-.3.2-.5.1-.6-.3-1.2-.7-1.7-1.2-.4-.4-.8-1-1.1-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.2.2-.3.1-.5l-.6-1.4c-.2-.4-.4-.3-.5-.3h-.5c-.2 0-.4.1-.5.2-.2.2-.7.7-.7 1.6 0 .9.7 1.9.8 2 .1.1 1.4 2.1 3.3 2.9 1.9.8 1.9.5 2.3.5.3 0 1.1-.4 1.2-.9.2-.4.2-.8.1-.9-.1-.1-.2-.2-.4-.3z"/></svg>
+                Message on WhatsApp
+            </button>
+        </div>
+        <p class="booking-note">Sending your message adds you to our mailing list for booking updates and promos. WhatsApp opens a chat with FOM Studios.</p>
+    </div>
+</div>
+<script>
+/* ---- mobile slide-out menu ---- */
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const closeMenu = document.getElementById('closeMenu');
+const scrim = document.getElementById('scrim');
+
+function openMenu(){ mobileMenu.classList.add('open'); scrim.classList.add('show'); }
+function closeMenuFn(){ mobileMenu.classList.remove('open'); scrim.classList.remove('show'); }
+navToggle.addEventListener('click', openMenu);
+closeMenu.addEventListener('click', closeMenuFn);
+scrim.addEventListener('click', closeMenuFn);
+document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('click', closeMenuFn));
+
+/* ---- tap/click any bento image to open it large ---- */
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxClose = document.getElementById('lightboxClose');
+
+document.querySelectorAll('.b-card').forEach(card => {
+    card.addEventListener('click', () => {
+        lightboxImg.src = card.dataset.full;
+        lightbox.classList.add('show');
+    });
+});
+lightboxClose.addEventListener('click', () => lightbox.classList.remove('show'));
+lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) lightbox.classList.remove('show');
+});
+
+
+/* WHATSAPP_NUMBER must be in international format, digits only,
+   no leading 0 or +. FOM's site phone is 073 755 3136 — assuming
+   this is the WhatsApp number, the SA country code (27) replaces
+   the leading 0: 27737553136. Double check this is correct and
+   WhatsApp-enabled before going live. */
+const WHATSAPP_NUMBER = '27737553136';
+
+/* ---- Brevo "Book a Shoot" form — submits silently in the background,
+   no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
+   URL come directly from the embed code generated in Brevo. ---- */
+const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
+
+/* Submits a form to Brevo via a hidden iframe so the visitor's page
+   never navigates away and no mail app or new tab opens. Forms (unlike
+   fetch/XHR) aren't blocked by CORS when posting cross-origin, and
+   targeting a hidden iframe keeps the response off-screen. */
+function submitToBrevo(fields){
+    return new Promise((resolve) => {
+        const iframeName = 'brevo-submit-' + Date.now();
+        const iframe = document.createElement('iframe');
+        iframe.name = iframeName;
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = BREVO_ACTION_URL;
+        form.target = iframeName;
+        form.style.display = 'none';
+
+        const data = { ...fields, email_address_check: '', locale: 'en' };
+        Object.keys(data).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+
+        setTimeout(() => {
+            resolve();
+            form.remove();
+            iframe.remove();
+        }, 900);
+    });
+}
+
+/* ---- booking popup: open/close + send via email or WhatsApp ---- */
+const bookingOverlay = document.getElementById('bookingOverlay');
+const bookingClose = document.getElementById('bookingClose');
+const bookingName = document.getElementById('bookingName');
+const bookingEmail = document.getElementById('bookingEmail');
+const bookingMessage = document.getElementById('bookingMessage');
+const bookingErr = document.getElementById('bookingErr');
+const bookingEmailBtn = document.getElementById('bookingEmailBtn');
+const bookingEmailBtnLabel = document.getElementById('bookingEmailBtnLabel');
+const bookingWhatsappBtn = document.getElementById('bookingWhatsappBtn');
+
+function openBooking(){
+    bookingOverlay.classList.add('show');
+    bookingName.focus();
+}
+function closeBooking(){
+    bookingOverlay.classList.remove('show');
+}
+
+document.querySelectorAll('[data-open-booking]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault(); // these are <a> tags with #contact fallback hrefs
+        openBooking();
+    });
+});
+bookingClose.addEventListener('click', closeBooking);
+bookingOverlay.addEventListener('click', (e) => {
+    if (e.target === bookingOverlay) closeBooking();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBooking();
+});
+
+function buildMessage(){
+    const name = bookingName.value.trim();
+    const msg = bookingMessage.value.trim();
+    let text = msg || "Hi FOM Studios, I'd like to book a shoot.";
+    if (name) text = `Hi FOM Studios, I'm ${name}. ${msg || "I'd like to book a shoot."}`;
+    return text;
+}
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+bookingEmailBtn.addEventListener('click', async () => {
+    const name = bookingName.value.trim();
+    const email = bookingEmail.value.trim();
+    const message = bookingMessage.value.trim();
+
+    bookingErr.textContent = '';
+    if (!name){ bookingErr.textContent = 'Please enter your name.'; bookingName.focus(); return; }
+    if (!email || !isValidEmail(email)){ bookingErr.textContent = 'Please enter a valid email address.'; bookingEmail.focus(); return; }
+    if (!message){ bookingErr.textContent = 'Let us know a bit about what you need.'; bookingMessage.focus(); return; }
+
+    bookingEmailBtn.disabled = true;
+    bookingEmailBtnLabel.textContent = 'Sending…';
+
+    await submitToBrevo({ NAME: name, EMAIL: email, MESSAGE: message });
+
+    bookingEmailBtn.classList.add('sent');
+    bookingEmailBtnLabel.textContent = 'Sent ✓';
+
+    setTimeout(() => {
+        bookingEmailBtn.disabled = false;
+        bookingEmailBtn.classList.remove('sent');
+        bookingEmailBtnLabel.textContent = 'Send Message';
+        bookingName.value = '';
+        bookingEmail.value = '';
+        bookingMessage.value = '';
+        closeBooking();
+    }, 1800);
+});
+
+bookingWhatsappBtn.addEventListener('click', () => {
+    const text = buildMessage();
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+});
+</script>
+
+</body>
+</html>

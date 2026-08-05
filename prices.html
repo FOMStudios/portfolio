@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOM Studios | Prices</title>
+<link rel="icon" type="image/png" href="assets/mascot-head-color.png">
+<link rel="apple-touch-icon" href="assets/mascot-head-color.png">
+<meta name="description" content="FOM Studios photography and videography package prices — Johannesburg, South Africa.">
+
+<style>
+/* Tokens match index.html / policy.html / gallery.html exactly —
+   see index.html for the full comment explaining the palette. */
+:root{
+    --bg: #f1f0ec;
+    --bg-pill: #fafaf9;
+    --bg-dark: #2a2b2c;
+    --ink: #2a2b2c;
+    --ink-soft: #6f6f6d;
+    --ink-on-dark: #f1f0ec;
+    --line: #dcdad3;
+    --accent: #02367B;
+    --accent-hover: #022a5f;
+    --accent-on-dark: #5B9AE0;
+    --container: 1320px;
+    --gutter: clamp(20px, 5vw, 64px);
+    --radius-pill: 999px;
+    --radius-card: 20px;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior: smooth; }
+
+body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family: inherit; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.wrap{ max-width: var(--container); margin:0 auto; padding: 0 var(--gutter); }
+
+.eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+    display:block;
+    margin-bottom: 12px;
+}
+
+/* PILL HEADER — identical system to index.html */
+.nav-shell{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 18px var(--gutter) 0;
+    pointer-events: none;
+}
+nav.pill{
+    pointer-events: auto;
+    max-width: var(--container);
+    margin: 0 auto;
+    background: var(--bg-pill);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.nav-toggle{
+    display:flex; align-items:center; justify-content:center;
+    width: 38px; height: 38px; background: none; border: none; cursor: pointer;
+    flex-direction:column; gap: 5px;
+}
+.nav-toggle span{ width:18px; height:2px; background: var(--ink); display:block; border-radius: 2px; }
+.brand-mark{ font-weight: 800; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; }
+.nav-right{ display:flex; align-items:center; gap: 18px; }
+nav.pill .nav-links{ display:flex; gap: 26px; list-style: none; }
+nav.pill .nav-links a{ font-size: 14px; font-weight: 500; color: var(--ink); transition: color 0.2s ease; }
+nav.pill .nav-links a:hover{ color: var(--ink-soft); }
+nav.pill .nav-links a.active{ color: var(--accent); font-weight: 700; }
+.nav-cta{ border: 1px solid var(--ink); border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; background: none; }
+
+/* mobile slide-out menu — identical system to index.html */
+.mobile-menu{
+    position: fixed; top: 0; left: 0; height: 100%;
+    width: min(340px, 86vw);
+    background: var(--bg-pill);
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    padding: 28px 28px;
+    display:flex; flex-direction:column;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.mobile-menu.open{ transform: translateX(0); }
+.mobile-menu .close-menu{ align-self:flex-end; background:none; border:none; font-size:28px; cursor:pointer; color:var(--ink); line-height:1; margin-bottom: 20px; }
+.mobile-menu ul{ list-style:none; display:flex; flex-direction:column; }
+.mobile-menu ul li{ border-bottom: 1px solid var(--line); }
+.mobile-menu ul li a{ display:block; padding: 18px 4px; font-size: 19px; font-weight:600; color: var(--ink); }
+.mobile-menu ul li a.active{ color: var(--accent); }
+.mobile-menu .menu-media{ margin-top: 28px; display:flex; align-items:center; justify-content:center; }
+.mobile-menu .menu-media img{ width:100%; max-width: 140px; height:auto; object-fit:contain; margin: 0 auto; }
+.mobile-menu .menu-social{ margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); display:flex; gap: 20px; flex-shrink: 0; }
+.mobile-menu .menu-social a{ font-size: 13px; font-weight:600; color: var(--ink-soft); }
+
+.scrim{ position: fixed; inset:0; background: rgba(0,0,0,0.25); z-index: 1050; opacity:0; pointer-events:none; transition: opacity 0.3s ease; }
+.scrim.show{ opacity:1; pointer-events:auto; }
+
+/* PAGE HEADER + SHARED NOTE */
+.prices-hero{ padding: 56px 0 8px; }
+.prices-hero h1{ font-size: clamp(40px, 7vw, 68px); font-weight: 800; letter-spacing: -0.01em; }
+
+/* the one shared "Note" line, shown once at the top instead of
+   repeated under every package image like the original graphics */
+.prices-note{
+    background: var(--bg-pill);
+    border: 1.5px solid var(--ink-soft);
+    border-radius: var(--radius-card);
+    padding: 18px 24px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-align: center;
+}
+.prices-note strong{ color: var(--ink); }
+
+/* =========================================================
+   PRICES TOC — sticky jump-to-section strip, same pill-chip
+   pattern as the policy page TOC but laid out horizontally
+   since there are only 5 sections and they fit in a row.
+   On mobile it wraps to multiple lines of chips.
+   ========================================================= */
+.prices-toc{
+    margin-top: 24px;
+    background: var(--bg-pill);
+    border: 1.5px solid var(--ink-soft);
+    border-radius: var(--radius-card);
+    padding: 18px 24px;
+}
+.prices-toc p{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.prices-toc ul{
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.prices-toc a{
+    display: inline-flex;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    border-radius: var(--radius-pill);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+.prices-toc a:hover{ background: var(--ink); color: var(--bg-pill); border-color: var(--ink); }
+
+/* =========================== CATEGORY BLOCK =========================== */
+.price-category{ padding: 56px 0; border-bottom: 1px solid var(--line); }
+.price-category:last-of-type{ border-bottom: none; }
+
+.category-head{ text-align: center; margin-bottom: 32px; }
+.category-head h2{
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+.category-head p{ color: var(--ink-soft); font-size: 15px; margin-top: 8px; }
+
+/* =========================================================
+   TIER CARDS — Bronze / Silver / Gold
+   Collapsed by default: just the white pill header (mascot icon
+   + tier name) sitting on top of a dark card with ~0 height body.
+   Clicking the header expands the dark "pill" downward to reveal
+   the feature list and price, animated via grid-template-rows
+   (animatable, unlike height:auto, and doesn't need JS to measure
+   content height).
+   ========================================================= */
+.tier-row{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.tier-card{
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    /* transparent when closed — the stretched empty space below
+       the white pill is invisible, so cards look independent */
+    background: transparent;
+    border: 2px solid transparent;
+    padding: 6px;
+    transition: background 0.35s ease, border-color 0.35s ease;
+}
+/* dark background only appears once the card is open */
+.tier-card.open{
+    background: var(--bg-dark);
+    border-color: var(--bg-dark);
+}
+
+.tier-toggle{
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-pill);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-pill);
+    margin: 0;
+    padding: 8px 18px 8px 8px;
+    cursor: pointer;
+    text-align: left;
+}
+/* when card is open the dark background frames the pill, so drop
+   the border back to avoid a double-edge look */
+.tier-card.open .tier-toggle{ border-color: transparent; }
+.tier-toggle:focus-visible{ outline-offset: -3px; }
+
+.tier-icon{
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 4px;
+    box-sizing: border-box;
+}
+.tier-icon img{ width:100%; height:100%; object-fit:contain; }
+
+.tier-toggle .tier-name{
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    flex: 1 1 auto;
+    color: var(--ink);
+}
+
+.tier-toggle .tier-chevron{
+    font-size: 14px;
+    color: var(--ink-soft);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+.tier-card.open .tier-chevron{ transform: rotate(180deg); }
+
+.tier-body{
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s ease;
+}
+.tier-card.open .tier-body{ grid-template-rows: 1fr; }
+
+.tier-body-inner{
+    overflow: hidden;
+    min-height: 0;
+}
+
+.tier-features{
+    list-style: none;
+    padding: 18px 22px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.tier-features li{
+    font-size: 14px;
+    color: var(--ink-on-dark);
+    opacity: 0.9;
+    padding-left: 16px;
+    position: relative;
+}
+.tier-features li::before{
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-on-dark);
+}
+
+.tier-price{
+    margin: 14px 22px 22px;
+}
+.tier-price .price-pill{
+    display: block;
+    text-align: center;
+    background: var(--bg-pill);
+    color: var(--ink);
+    border-radius: var(--radius-pill);
+    padding: 14px;
+    font-size: 22px;
+    font-weight: 800;
+}
+.tier-price .price-note{
+    text-align: center;
+    font-size: 11px;
+    color: #9a9895;
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   ADD-ON STRIP — sits below the tier row for each category
+   ========================================================= */
+.addon-strip{
+    margin-top: 24px;
+    background: var(--bg-dark);
+    border-radius: var(--radius-card);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 8px 28px 8px 8px;
+    flex-wrap: wrap;
+}
+.addon-badge{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-pill);
+    border-radius: var(--radius-pill);
+    padding: 8px 20px 8px 8px;
+    margin: 8px 0;
+    flex-shrink: 0;
+}
+.addon-badge .tier-icon{ width: 44px; height: 44px; }
+.addon-badge span{ font-size: 16px; font-weight: 800; color: var(--ink); white-space: nowrap; }
+
+.addon-list{
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    flex: 1 1 auto;
+    padding: 10px 0;
+}
+.addon-list li{
+    font-size: 13.5px;
+    color: var(--ink-on-dark);
+    opacity: 0.9;
+    padding-left: 14px;
+    position: relative;
+}
+.addon-list li::before{
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-on-dark);
+}
+
+/* =========================================================
+   PADEL LEAGUE — single wide card instead of 3 tiers
+   ========================================================= */
+.padel-card{
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--bg-dark);
+    border: 2px solid var(--bg-dark);
+    padding: 6px;
+}
+.padel-header{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-pill);
+    border-radius: var(--radius-pill);
+    margin: 0;
+    padding: 10px 22px 10px 8px;
+}
+.padel-header .tier-icon{ width: 56px; height: 56px; }
+.padel-header .tier-name{ font-size: 22px; font-weight: 800; color: var(--ink); }
+
+.padel-features{
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 28px;
+    padding: 26px 28px 10px;
+}
+.padel-features li{
+    font-size: 14.5px;
+    color: var(--ink-on-dark);
+    opacity: 0.92;
+    padding-left: 16px;
+    position: relative;
+}
+.padel-features li::before{
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-on-dark);
+}
+
+.padel-price{
+    margin: 8px 22px 24px;
+    background: var(--bg-pill);
+    border-radius: var(--radius-pill);
+    padding: 16px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+}
+.padel-price span{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-left: 8px;
+}
+
+/* =========================== CTA BAND =========================== */
+.cta-band{ background: var(--bg-pill); border: 1px solid var(--line); border-radius: var(--radius-card); }
+.cta-inner{ display:flex; justify-content:space-between; align-items:center; gap: 28px; flex-wrap: wrap; padding: 44px 40px; }
+.cta-inner h3{ font-size: clamp(24px, 3.6vw, 34px); max-width: 22ch; font-weight: 800; }
+.cta-inner p{ color: var(--ink-soft); max-width: 44ch; margin-top: 8px; font-size: 15px; }
+
+.btn-pill{
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-pill);
+    padding: 15px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+    cursor: pointer;
+    background: none;
+}
+.btn-pill:hover{ background: var(--ink); color: var(--bg-pill); }
+.btn-pill.filled{ background: var(--accent); border-color: var(--accent); color: var(--ink-on-dark); }
+.btn-pill.filled:hover{ background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* =========================== FOOTER =========================== */
+footer.site-footer{
+    background: var(--bg-dark);
+    color: var(--ink-on-dark);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    margin-top: 24px;
+    padding: 64px 0 0;
+}
+.footer-grid{ display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(241,240,236,0.12); }
+.footer-brand p{ color: #b9b8b5; max-width: 32ch; font-size:14px; margin-top: 14px; }
+.footer-col h4{ font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color: var(--accent-on-dark); margin-bottom:16px; }
+.footer-col ul{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-col a{ color: #b9b8b5; font-size:14px; transition: color 0.2s ease; }
+.footer-col a:hover{ color: var(--ink-on-dark); }
+.footer-bottom{ display:flex; justify-content:space-between; align-items:center; padding:22px 0 28px; flex-wrap:wrap; gap:10px; }
+.footer-bottom p{ font-size:12px; color:#8a8986; }
+
+/* =========================================================
+   BOOKING POPUP — identical system to index.html. Triggered by
+   the "Book a shoot" nav button on this page.
+   ========================================================= */
+.booking-overlay{
+    display:none;
+    position: fixed; inset:0;
+    z-index: 2100;
+    background: rgba(20,20,18,0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.booking-overlay.show{ display:flex; }
+
+.booking-modal{
+    background: var(--bg-pill);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+}
+
+.booking-close{
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg-pill);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--ink);
+}
+.booking-close:hover{ background: var(--ink); color: var(--bg-pill); border-color: var(--ink); }
+
+.booking-modal h3{ font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.booking-modal .booking-sub{ color: var(--ink-soft); font-size: 14px; margin-bottom: 22px; }
+
+.booking-field{ margin-bottom: 16px; }
+.booking-field label{
+    display:block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+}
+.booking-field input,
+.booking-field textarea{
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+    resize: vertical;
+}
+.booking-field input:focus,
+.booking-field textarea:focus{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.booking-actions{ display:flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+.booking-btn{
+    display:flex; align-items:center; justify-content:center; gap: 8px;
+    border-radius: var(--radius-pill);
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
+}
+.booking-btn.email{ background: var(--accent); color: var(--ink-on-dark); }
+.booking-btn.email:hover{ background: var(--accent-hover); }
+.booking-btn.whatsapp{ background: #25D366; color: #0b1f12; }
+.booking-btn.whatsapp:hover{ background: #1ebc59; }
+.booking-btn svg{ width: 18px; height: 18px; flex-shrink: 0; }
+
+.booking-note{ font-size: 12px; color: var(--ink-soft); margin-top: 14px; text-align: center; }
+.booking-field-err{ font-size: 12.5px; color: #c0392b; margin: -8px 0 14px; min-height: 16px; text-align: left; }
+.booking-btn.email.sent{ background: #27ae60; cursor: default; }
+.booking-btn.email:disabled{ opacity: 0.75; cursor: default; }
+
+/* =========================================================
+   FAQ SECTION
+   Light accordion — each question is a full-width row with a
+   border, expanding to reveal the answer below. Uses the same
+   grid-template-rows: 0fr → 1fr animation as the tier cards.
+   ========================================================= */
+.faq-section{ padding: 64px 0; }
+.faq-section .category-head{ margin-bottom: 32px; }
+
+.faq-list{ display: flex; flex-direction: column; gap: 0; }
+
+.faq-item{
+    border-bottom: 1px solid var(--line);
+}
+.faq-item:first-child{ border-top: 1px solid var(--line); }
+
+.faq-toggle{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: none;
+    border: none;
+    padding: 22px 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+.faq-toggle .faq-q{
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+}
+.faq-toggle .faq-chevron{
+    font-size: 18px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    line-height: 1;
+}
+.faq-item.open .faq-chevron{ transform: rotate(180deg); }
+
+.faq-body{
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s ease;
+}
+.faq-item.open .faq-body{ grid-template-rows: 1fr; }
+
+.faq-body-inner{
+    overflow: hidden;
+    min-height: 0;
+}
+.faq-answer{
+    padding: 0 0 22px;
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+    max-width: 72ch;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1024px){
+    .footer-grid{ grid-template-columns: 1.2fr 1fr 1fr; }
+    .footer-col.col-services{ display:none; }
+    .padel-features{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 860px){
+    nav.pill .nav-links{ display:none; }
+    .nav-shell{ padding: 14px var(--gutter) 0; }
+}
+
+@media (max-width: 760px){
+    .tier-row{ grid-template-columns: 1fr; gap: 14px; }
+    .addon-strip{ flex-direction: column; align-items: stretch; padding: 8px; }
+    .addon-list{ padding: 6px 8px 14px; }
+}
+
+@media (max-width: 600px){
+    .prices-hero{ padding: 40px 0 4px; }
+    .price-category{ padding: 40px 0; }
+    .footer-grid{ grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+    .footer-brand{ grid-column: span 2; }
+    .footer-bottom{ flex-direction:column; align-items:flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SCRIM (mobile menu backdrop) -->
+<div class="scrim" id="scrim"></div>
+
+<!-- MOBILE SLIDE-OUT MENU -->
+<div class="mobile-menu" id="mobileMenu">
+    <button class="close-menu" id="closeMenu" aria-label="Close menu">&times;</button>
+    <ul>
+        <li><a href="index.html#about" data-menu-link>About</a></li>
+        <li><a href="index.html#work" data-menu-link>Work</a></li>
+        <li><a href="gallery.html" data-menu-link>Gallery</a></li>
+        <li><a href="prices.html" class="active" data-menu-link>Prices</a></li>
+        <li><a href="policy.html" data-menu-link>Policy</a></li>
+        <li><a href="index.html#contact" data-menu-link>Contact</a></li>
+    </ul>
+    <div class="menu-media">
+        <img src="assets/mascot-head-color.png" alt="FOM Studios mascot">
+    </div>
+    <div class="menu-social">
+        <a href="https://instagram.com/fom_studios_" target="_blank">Instagram</a>
+        <a href="mailto:fomxstudios@gmail.com">Email</a>
+    </div>
+</div>
+
+<!-- PILL HEADER -->
+<div class="nav-shell">
+    <nav class="pill">
+        <button class="nav-toggle" id="navToggle" aria-label="Open menu">
+            <span></span><span></span>
+        </button>
+        <a href="index.html" class="brand-mark">FOM STUDIOS</a>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#work">Work</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="prices.html" class="active">Prices</a></li>
+                <li><a href="policy.html">Policy</a></li>
+            </ul>
+            <button class="nav-cta" id="navBookBtn">Book a shoot</button>
+        </div>
+    </nav>
+</div>
+
+<!-- PAGE HEADER + SHARED NOTE -->
+<div class="prices-hero">
+    <div class="wrap">
+        <span class="eyebrow">Packages</span>
+        <h1>Prices</h1>
+        <div class="prices-note">
+            <strong>Note:</strong> All packages can be tailored to your specific needs upon request. All packages are <strong>excluding</strong> transport costs.
+        </div>
+    </div>
+</div>
+
+<!-- PRICES TOC — jump links to each pricing category -->
+<div class="prices-hero" style="padding-top:0; padding-bottom:32px;">
+    <div class="wrap">
+        <div class="prices-toc">
+            <p>Jump to</p>
+            <ul>
+                <li><a href="#mini-shoot">Mini Shoot</a></li>
+                <li><a href="#photography">Photography</a></li>
+                <li><a href="#videography">Videography</a></li>
+                <li><a href="#photo-video">Photography &amp; Video</a></li>
+                <li><a href="#padel-league">Padel League</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     CATEGORY 1 — MINI SHOOT (single wide card, no add-on strip)
+     ========================================================= -->
+<section class="price-category" id="mini-shoot">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Mini Shoot</h2>
+            <p>Click below to see the details and price.</p>
+        </div>
+
+        <div class="tier-row" style="grid-template-columns: 1fr;">
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Mini Shoot"></span>
+                    <span class="tier-name">Mini Shoot</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>Photography (20 Edited Photos) <strong>OR</strong> Videography (1 x 30 Second Reel)</li>
+                            <li>30 Minute Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 500.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BOOK A SHOOT CTA -->
+
+<!-- =========================================================
+     CATEGORY 2 — PHOTOGRAPHY
+     ========================================================= -->
+<section class="price-category" id="photography">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Photography</h2>
+            <p>Click a package below to see the details and price.</p>
+        </div>
+
+        <div class="tier-row">
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
+                    <span class="tier-name">Bronze</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>30-40 Edited Photos</li>
+                            <li>2 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 800.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
+                    <span class="tier-name">Silver</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>40-50 Edited Photos</li>
+                            <li>4 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 1300.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
+                    <span class="tier-name">Gold</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>50-60 Edited Photos</li>
+                            <li>6 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 1800.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="addon-strip">
+            <div class="addon-badge">
+                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
+                <span>Add-On</span>
+            </div>
+            <ul class="addon-list">
+                <li>Additional Photos</li>
+                <li>Additional Revisions</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     CATEGORY 3 — VIDEOGRAPHY
+     ========================================================= -->
+<section class="price-category" id="videography">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Videography</h2>
+            <p>Click a package below to see the details and price.</p>
+        </div>
+
+        <div class="tier-row">
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
+                    <span class="tier-name">Bronze</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Videographer</li>
+                            <li>1 (30-60) Second Reel</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>2 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 1000.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
+                    <span class="tier-name">Silver</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Videographer</li>
+                            <li>2 (30-60) Second Reels</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>4 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 1700.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
+                    <span class="tier-name">Gold</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Videographer</li>
+                            <li>1 (2-3) Minute Reel</li>
+                            <li>1 (30-60) Second Reel</li>
+                            <li>Drone Coverage</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>6 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 3000.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="addon-strip">
+            <div class="addon-badge">
+                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
+                <span>Add-On</span>
+            </div>
+            <ul class="addon-list">
+                <li>(30-60) Second Reel</li>
+                <li>(2-3) Minute Reel</li>
+                <li>Additional Revisions</li>
+                <li>Drone Coverage</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     CATEGORY 4 — PHOTOGRAPHY & VIDEOGRAPHY
+     ========================================================= -->
+<section class="price-category" id="photo-video">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Photography &amp; Videography</h2>
+            <p>Click a package below to see the details and price.</p>
+        </div>
+
+        <div class="tier-row">
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
+                    <span class="tier-name">Bronze</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>1 Videographer</li>
+                            <li>1 (30-60) Second Reel</li>
+                            <li>30-40 Edited Photos</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>2 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 1500.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
+                    <span class="tier-name">Silver</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>1 Videographer</li>
+                            <li>2 (30-60) Second Reels</li>
+                            <li>40-50 Edited Photos</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>4 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 2700.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
+                    <span class="tier-name">Gold</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features">
+                            <li>1 Photographer</li>
+                            <li>1 Videographer</li>
+                            <li>1 (2-3) Minute Reel</li>
+                            <li>1 (30-60) Second Reel</li>
+                            <li>50-60 Edited Photos</li>
+                            <li>Drone Coverage</li>
+                            <li>2 rounds of revisions on the reel</li>
+                            <li>6 Hour Coverage</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 4500.00</span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="addon-strip">
+            <div class="addon-badge">
+                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
+                <span>Add-On</span>
+            </div>
+            <ul class="addon-list">
+                <li>(30-60) Second Reel</li>
+                <li>(2-3) Minute Reel</li>
+                <li>Additional Photos</li>
+                <li>Additional Revisions</li>
+                <li>Drone Coverage</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     CATEGORY 5 — PADEL LEAGUE PACKAGE (single wide card)
+     ========================================================= -->
+<section class="price-category" id="padel-league">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Padel League Package</h2>
+            <p>Click below to see the details and price.</p>
+        </div>
+
+        <div class="tier-row" style="grid-template-columns: 1fr;">
+            <div class="tier-card" data-tier>
+                <button class="tier-toggle" aria-expanded="false">
+                    <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Padel League"></span>
+                    <span class="tier-name">Padel League Package</span>
+                    <span class="tier-chevron">▾</span>
+                </button>
+                <div class="tier-body">
+                    <div class="tier-body-inner">
+                        <ul class="tier-features" style="display:grid; grid-template-columns:1fr 1fr; gap:10px 24px;">
+                            <li>1 Videographer</li>
+                            <li>6 Hour Game Day Coverage</li>
+                            <li>1 Photographer</li>
+                            <li>1 (2-3) Minute Game Day Reel Per Week</li>
+                            <li>Professionally Edited Photos Per Week</li>
+                        </ul>
+                        <div class="tier-price">
+                            <span class="price-pill">R 2500.00 <span style="font-size:12px; font-weight:600; opacity:0.7; text-transform:uppercase;">per week</span></span>
+                            <p class="price-note">Excluding transport</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="addon-strip">
+            <div class="addon-badge">
+                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
+                <span>Add-On</span>
+            </div>
+            <ul class="addon-list">
+                <li>Additional Photos</li>
+                <li>Additional Videos</li>
+                <li>Social Media Management</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+<section class="price-category" style="border-bottom:none;">
+    <div class="wrap">
+        <div class="cta-band">
+            <div class="cta-inner">
+                <div>
+                    <h3>Ready to book?</h3>
+                    <p>Pick a package above, then get in touch to lock in your date.</p>
+                </div>
+                <button class="btn-pill filled" id="ctaBookBtn">Book a shoot</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ SECTION -->
+<section class="faq-section" id="faq">
+    <div class="wrap">
+        <div class="category-head">
+            <h2>Frequently Asked Questions</h2>
+            <p>Everything you need to know before booking.</p>
+        </div>
+
+        <div class="faq-list">
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">How does pricing work?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">Our packages are split into three tiers: Bronze, Silver, and Gold across three service categories; Photography, Videography and Photography &amp; Videography combined. Each tier increases in coverage time, deliverables, and rounds of revisions. We also offer a Mini Shoot for quick, lightweight sessions. All prices are fixed per session and exclude transport costs, any travel required will be quoted separately before you confirm.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">Can I tailor my package?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">Yes, all packages can be adjusted to suit your specific needs. If you need more edited photos, extra reel revisions, drone coverage, or a different coverage duration, just let us know when you enquire and we'll put together a custom quote. Our Add-On options (listed under each category) are a good starting point, but we're always open to building something from scratch if none of the standard tiers quite fit.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">What payment methods do you accept?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">We accept EFT (electronic funds transfer), direct bank deposit, and in-person card payments via Yoco including Apple Pay tap-to-pay. A 50% non-refundable deposit is required to secure your booking, with the remaining balance due before the shoot date.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">How long until I receive my photos or video?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">Delivery timelines are agreed before your shoot so you always know what to expect. If you need your content turned around faster than the standard timeline, a rush delivery option is available for an additional 20% fee. Raw, unedited files are not included in any package unless specifically agreed to upfront.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">What happens if I need to cancel or reschedule?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">Cancellations more than 10 days before the shoot date incur no additional charge beyond the non-refundable deposit. Cancellations within 10 days attract an additional fee of 20% of the outstanding balance. Each booking allows one free reschedule, your payment transfers to the new date, subject to availability. All cancellations must be submitted in writing.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">Will my photos and videos be used on your social media?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">FOM Studios retains the right to use content for portfolio and marketing purposes, including our website and social media, unless a confidentiality agreement is arranged in writing before the shoot. If you'd prefer your content stays private, just let us know during the booking process and we'll accommodate that.</p>
+                </div></div>
+            </div>
+
+            <div class="faq-item" data-faq>
+                <button class="faq-toggle" aria-expanded="false">
+                    <span class="faq-q">Do you travel outside Johannesburg?</span>
+                    <span class="faq-chevron">▾</span>
+                </button>
+                <div class="faq-body"><div class="faq-body-inner">
+                    <p class="faq-answer">Yes, all packages exclude transport costs, which are quoted separately based on the shoot location. Get in touch with your shoot details and we'll include a transport quote along with your package confirmation.</p>
+                </div></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact" class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="brand-mark">FOM STUDIOS</div>
+                <p>Photography, videography and creative storytelling based in Johannesburg, South Africa.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Site</h4>
+                <ul>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#work">Work</a></li>
+                    <li><a href="gallery.html">Gallery</a></li>
+                    <li><a href="prices.html">Prices</a></li>
+                    <li><a href="policy.html">Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:fomxstudios@gmail.com">fomxstudios@gmail.com</a></li>
+                    <li><a href="tel:0737553136">073 755 3136</a></li>
+                    <li><a href="https://instagram.com/fom_studios_" target="_blank">@fom_studios_</a></li>
+                    <li><a href="https://whatsapp.com/channel/0029VbCfflP4SpkNXLDI3b0i" target="_blank">WhatsApp Channel</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Location</h4>
+                <ul>
+                    <li><span>Johannesburg, South Africa</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 FOM Studios. All rights reserved.</p>
+            <p>Johannesburg, South Africa</p>
+        </div>
+    </div>
+</footer>
+
+<!-- BOOKING POPUP — same system as index.html -->
+<div class="booking-overlay" id="bookingOverlay">
+    <div class="booking-modal">
+        <button class="booking-close" id="bookingClose" aria-label="Close">&times;</button>
+        <h3>Book a shoot</h3>
+        <p class="booking-sub">Tell us a bit about what you need, then send it however suits you.</p>
+
+        <div class="booking-field">
+            <label for="bookingName">Your name</label>
+            <input type="text" id="bookingName" placeholder="Jane Doe" autocomplete="name">
+        </div>
+        <div class="booking-field">
+            <label for="bookingEmail">Your email</label>
+            <input type="email" id="bookingEmail" placeholder="jane@email.com" autocomplete="email">
+        </div>
+        <div class="booking-field">
+            <label for="bookingMessage">Message</label>
+            <textarea id="bookingMessage" rows="4" placeholder="Date, location, and what you'd like covered..."></textarea>
+        </div>
+        <p class="booking-field-err" id="bookingErr"></p>
+
+        <div class="booking-actions">
+            <button class="booking-btn email" id="bookingEmailBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l9 7 9-7" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+                <span id="bookingEmailBtnLabel">Send Message</span>
+            </button>
+            <button class="booking-btn whatsapp" id="bookingWhatsappBtn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.3A8.8 8.8 0 0 0 12 4a8.8 8.8 0 0 0-7.6 13.2L3 21l3.9-1.3A8.8 8.8 0 0 0 12 20a8.8 8.8 0 0 0 5.6-15.7zM12 18.3c-1.4 0-2.7-.4-3.9-1.1l-.3-.2-2.7.9.9-2.6-.2-.3A6.9 6.9 0 0 1 12 5.7a6.9 6.9 0 0 1 0 12.6zm3.8-5.2c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.5.1-.1.2-.5.7-.7.8-.1.2-.3.2-.5.1-.6-.3-1.2-.7-1.7-1.2-.4-.4-.8-1-1.1-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.2.2-.3.1-.5l-.6-1.4c-.2-.4-.4-.3-.5-.3h-.5c-.2 0-.4.1-.5.2-.2.2-.7.7-.7 1.6 0 .9.7 1.9.8 2 .1.1 1.4 2.1 3.3 2.9 1.9.8 1.9.5 2.3.5.3 0 1.1-.4 1.2-.9.2-.4.2-.8.1-.9-.1-.1-.2-.2-.4-.3z"/></svg>
+                Message on WhatsApp
+            </button>
+        </div>
+        <p class="booking-note">Sending your message adds you to our mailing list for booking updates and promos. WhatsApp opens a chat with FOM Studios.</p>
+    </div>
+</div>
+
+
+<script>
+/* WHATSAPP_NUMBER must be in international format, digits only,
+   no leading 0 or +. Matches the same number used on index.html —
+   update both files together if this ever changes. */
+const WHATSAPP_NUMBER = '27737553136';
+
+/* ---- Brevo "Book a Shoot" form — submits silently in the background,
+   no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
+   URL come directly from the embed code generated in Brevo. ---- */
+const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
+
+/* Submits a form to Brevo via a hidden iframe so the visitor's page
+   never navigates away and no mail app or new tab opens. Forms (unlike
+   fetch/XHR) aren't blocked by CORS when posting cross-origin, and
+   targeting a hidden iframe keeps the response off-screen. */
+function submitToBrevo(fields){
+    return new Promise((resolve) => {
+        const iframeName = 'brevo-submit-' + Date.now();
+        const iframe = document.createElement('iframe');
+        iframe.name = iframeName;
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = BREVO_ACTION_URL;
+        form.target = iframeName;
+        form.style.display = 'none';
+
+        const data = { ...fields, email_address_check: '', locale: 'en' };
+        Object.keys(data).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+
+        // give Brevo a moment to process, then clean up
+        setTimeout(() => {
+            resolve();
+            form.remove();
+            iframe.remove();
+        }, 900);
+    });
+}
+
+/* ---- mobile slide-out menu ---- */
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const closeMenu = document.getElementById('closeMenu');
+const scrim = document.getElementById('scrim');
+
+function openMenu(){ mobileMenu.classList.add('open'); scrim.classList.add('show'); }
+function closeMenuFn(){ mobileMenu.classList.remove('open'); scrim.classList.remove('show'); }
+navToggle.addEventListener('click', openMenu);
+closeMenu.addEventListener('click', closeMenuFn);
+scrim.addEventListener('click', closeMenuFn);
+document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('click', closeMenuFn));
+
+/* ---- tier card expand/collapse ---- */
+document.querySelectorAll('[data-tier]').forEach(card => {
+    const toggle = card.querySelector('.tier-toggle');
+    toggle.addEventListener('click', () => {
+        const isOpen = card.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen);
+    });
+});
+
+/* ---- FAQ accordion ---- */
+document.querySelectorAll('[data-faq]').forEach(item => {
+    const toggle = item.querySelector('.faq-toggle');
+    toggle.addEventListener('click', () => {
+        const isOpen = item.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen);
+    });
+});
+
+/* ---- booking popup: open/close + send via email or WhatsApp ---- */
+const bookingOverlay = document.getElementById('bookingOverlay');
+const bookingClose = document.getElementById('bookingClose');
+const bookingName = document.getElementById('bookingName');
+const bookingEmail = document.getElementById('bookingEmail');
+const bookingMessage = document.getElementById('bookingMessage');
+const bookingErr = document.getElementById('bookingErr');
+const bookingEmailBtn = document.getElementById('bookingEmailBtn');
+const bookingEmailBtnLabel = document.getElementById('bookingEmailBtnLabel');
+const bookingWhatsappBtn = document.getElementById('bookingWhatsappBtn');
+const navBookBtn = document.getElementById('navBookBtn');
+const ctaBookBtn = document.getElementById('ctaBookBtn');
+
+function openBooking(){
+    bookingOverlay.classList.add('show');
+    bookingName.focus();
+}
+function closeBooking(){
+    bookingOverlay.classList.remove('show');
+}
+
+navBookBtn.addEventListener('click', openBooking);
+ctaBookBtn.addEventListener('click', openBooking);
+bookingClose.addEventListener('click', closeBooking);
+bookingOverlay.addEventListener('click', (e) => {
+    if (e.target === bookingOverlay) closeBooking();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBooking();
+});
+
+function buildMessage(){
+    const name = bookingName.value.trim();
+    const msg = bookingMessage.value.trim();
+    let text = msg || "Hi FOM Studios, I'd like to book a shoot.";
+    if (name) text = `Hi FOM Studios, I'm ${name}. ${msg || "I'd like to book a shoot."}`;
+    return text;
+}
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+bookingEmailBtn.addEventListener('click', async () => {
+    const name = bookingName.value.trim();
+    const email = bookingEmail.value.trim();
+    const message = bookingMessage.value.trim();
+
+    bookingErr.textContent = '';
+    if (!name){ bookingErr.textContent = 'Please enter your name.'; bookingName.focus(); return; }
+    if (!email || !isValidEmail(email)){ bookingErr.textContent = 'Please enter a valid email address.'; bookingEmail.focus(); return; }
+    if (!message){ bookingErr.textContent = 'Let us know a bit about what you need.'; bookingMessage.focus(); return; }
+
+    bookingEmailBtn.disabled = true;
+    bookingEmailBtnLabel.textContent = 'Sending…';
+
+    await submitToBrevo({ NAME: name, EMAIL: email, MESSAGE: message });
+
+    bookingEmailBtn.classList.add('sent');
+    bookingEmailBtnLabel.textContent = 'Sent ✓';
+
+    // reset back to normal after the visitor's had a moment to see it worked
+    setTimeout(() => {
+        bookingEmailBtn.disabled = false;
+        bookingEmailBtn.classList.remove('sent');
+        bookingEmailBtnLabel.textContent = 'Send Message';
+        bookingName.value = '';
+        bookingEmail.value = '';
+        bookingMessage.value = '';
+        closeBooking();
+    }, 1800);
+});
+
+bookingWhatsappBtn.addEventListener('click', () => {
+    const text = buildMessage();
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+});
+</script>
+
+</body>
+</html>
