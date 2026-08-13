@@ -657,6 +657,118 @@ footer.site-footer{
     .footer-brand{ grid-column: span 2; }
     .footer-bottom{ flex-direction:column; align-items:flex-start; }
 }
+
+/* =========================================================
+   PACKAGE CARD CAROUSEL — mirrors the homepage's swipeable
+   gallery-scroller pattern: 1 card on mobile, more on wider
+   screens, scroll-snap + round arrow buttons for desktop
+   (identical design to the homepage's Work section arrows).
+   ========================================================= */
+.pkg-controls{ display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:18px; }
+.pkg-scroller{
+    display:flex; gap:18px; overflow-x:auto;
+    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; padding-bottom:4px;
+}
+.pkg-scroller::-webkit-scrollbar{ display:none; }
+.pkg-card{
+    flex:0 0 calc((100% - 36px) / 3); scroll-snap-align:start;
+    position:relative; border-radius:var(--radius-card); overflow:hidden;
+    background:var(--bg-pill); border:1px solid var(--line);
+    aspect-ratio:3/4; cursor:pointer; transition:transform .3s ease;
+}
+.pkg-card:hover{ transform:translateY(-4px); }
+.pkg-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pkg-card .pkg-label{
+    position:absolute; left:10px; right:10px; bottom:10px; height:56px;
+    background:rgba(20,20,18,0.55);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-radius:14px; padding:8px 16px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+}
+.pkg-card .pkg-label span{ color:#fff; font-weight:800; font-size:17px; letter-spacing:-.01em; line-height:1.2; }
+@media(max-width:700px){ .pkg-card{ flex:0 0 82%; } .pkg-controls{ display:none; } }
+@media(min-width:701px) and (max-width:1024px){ .pkg-card{ flex:0 0 calc((100% - 18px) / 2); } }
+
+/* round arrow buttons — same design as the homepage's gallery-arrow */
+.gallery-arrows{ display:flex; gap:10px; }
+.gallery-arrow{
+    width:44px; height:44px; border-radius:50%;
+    border:1px solid var(--ink); background:var(--bg-pill);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:16px; transition:.2s ease; flex-shrink:0;
+}
+.gallery-arrow:hover{ background:var(--ink); color:var(--bg-pill); }
+
+/* =========================================================
+   PACKAGE DETAIL OVERLAY — tap a card to open; slides up from
+   the bottom on mobile, centers as a large modal on desktop.
+   ========================================================= */
+.pkg-detail-overlay{
+    display:none; position:fixed; inset:0; z-index:2200;
+    background:rgba(20,20,18,.6); align-items:flex-end; justify-content:center;
+}
+.pkg-detail-overlay.show{ display:flex; }
+.pkg-detail-panel{
+    background:var(--bg); width:100%; max-width:560px; max-height:92vh;
+    overflow-y:auto; border-radius:24px 24px 0 0; position:relative;
+}
+.pkg-detail-media{ position:relative; aspect-ratio:4/3; background:var(--bg-pill); }
+.pkg-detail-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pkg-back{
+    position:absolute; top:16px; left:16px; width:40px; height:40px;
+    border-radius:50%; background:#fff; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+.pkg-back svg{ width:20px; height:20px; color:var(--ink); }
+.pkg-detail-label{
+    position:absolute; left:0; right:0; bottom:0; padding:22px 24px;
+    background:linear-gradient(180deg, transparent 0%, rgba(20,20,18,.68) 100%);
+    display:flex; justify-content:space-between; align-items:flex-end; gap:12px;
+}
+.pkg-detail-name{ color:#fff; font-size:23px; font-weight:800; letter-spacing:-.01em; }
+.pkg-detail-price{ color:#fff; font-size:30px; font-weight:800; white-space:nowrap; letter-spacing:-.01em; }
+.pkg-detail-body{ padding:26px 24px 28px; }
+
+/* tier switcher — only shown for packages with Bronze/Silver/Gold */
+.pkg-tier-tabs{ display:flex; gap:8px; margin-bottom:20px; }
+.pkg-tier-tab{
+    flex:1; border:1px solid var(--line); background:var(--bg-pill);
+    border-radius:var(--radius-pill); padding:10px 12px;
+    font-size:13.5px; font-weight:700; color:var(--ink-soft); cursor:pointer; transition:.2s ease;
+}
+.pkg-tier-tab:hover{ border-color:var(--ink); color:var(--ink); }
+.pkg-tier-tab.on{ background:var(--ink); border-color:var(--ink); color:var(--bg-pill); }
+
+.pkg-stats{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+.pkg-stat{
+    display:flex; align-items:center; gap:8px; background:var(--bg-pill);
+    border:1px solid var(--line); border-radius:var(--radius-pill);
+    padding:9px 14px; font-size:13px; font-weight:600; color:var(--ink);
+}
+.pkg-stat svg{ width:16px; height:16px; color:var(--ink-soft); flex-shrink:0; }
+
+/* detailed bullet list — same level of detail as the old tier cards */
+.pkg-features{ list-style:none; display:flex; flex-direction:column; gap:9px; margin-bottom:6px; }
+.pkg-features li{
+    font-size:14.5px; color:var(--ink); line-height:1.5; padding-left:18px; position:relative;
+}
+.pkg-features li::before{ content:"•"; position:absolute; left:0; color:var(--accent); font-weight:800; }
+.pkg-detail-note{
+    font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em;
+    margin:14px 0 26px;
+}
+.pkg-book-btn{
+    width:100%; background:var(--ink); color:var(--ink-on-dark); border:none;
+    border-radius:var(--radius-pill); padding:16px; font-size:15px; font-weight:700;
+    cursor:pointer; transition:.2s ease;
+}
+.pkg-book-btn:hover{ background:#000; }
+@media(min-width:701px){
+    .pkg-detail-overlay{ align-items:center; }
+    .pkg-detail-panel{ border-radius:var(--radius-card); max-height:88vh; }
+}
 </style>
 </head>
 
@@ -716,416 +828,41 @@ footer.site-footer{
     </div>
 </div>
 
-<!-- PRICES TOC — jump links to each pricing category -->
-<div class="prices-hero" style="padding-top:0; padding-bottom:32px;">
+<!-- PACKAGE CARDS -->
+<section class="price-category" style="padding-top:8px; border-bottom:none;">
     <div class="wrap">
-        <div class="prices-toc">
-            <p>Jump to</p>
-            <ul>
-                <li><a href="#mini-shoot">Mini Shoot</a></li>
-                <li><a href="#photography">Photography</a></li>
-                <li><a href="#videography">Videography</a></li>
-                <li><a href="#photo-video">Photography &amp; Video</a></li>
-                <li><a href="#padel-league">Padel League</a></li>
-                <li><a href="#faq">FAQ</a></li>
-            </ul>
+        <div class="pkg-scroller" id="pkgScroller"></div>
+        <div class="pkg-controls">
+            <div class="gallery-arrows">
+                <button class="gallery-arrow" id="pkgPrev" aria-label="Previous">&larr;</button>
+                <button class="gallery-arrow" id="pkgNext" aria-label="Next">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PACKAGE DETAIL OVERLAY -->
+<div class="pkg-detail-overlay" id="pkgDetailOverlay">
+    <div class="pkg-detail-panel">
+        <div class="pkg-detail-media">
+            <button class="pkg-back" id="pkgBack" aria-label="Back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <img id="pkgDetailImg" src="" alt="">
+            <div class="pkg-detail-label">
+                <div class="pkg-detail-name" id="pkgDetailName"></div>
+                <div class="pkg-detail-price" id="pkgDetailPrice"></div>
+            </div>
+        </div>
+        <div class="pkg-detail-body">
+            <div class="pkg-tier-tabs" id="pkgTierTabs" style="display:none;"></div>
+            <div class="pkg-stats" id="pkgDetailStats"></div>
+            <ul class="pkg-features" id="pkgDetailFeatures"></ul>
+            <div class="pkg-detail-note">Excluding transport</div>
+            <button class="pkg-book-btn" id="pkgBookBtn">Book Now</button>
         </div>
     </div>
 </div>
-
-<!-- =========================================================
-     CATEGORY 1 — MINI SHOOT (single wide card, no add-on strip)
-     ========================================================= -->
-<section class="price-category" id="mini-shoot">
-    <div class="wrap">
-        <div class="category-head">
-            <h2>Mini Shoot</h2>
-            <p>Click below to see the details and price.</p>
-        </div>
-
-        <div class="tier-row" style="grid-template-columns: 1fr;">
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Mini Shoot"></span>
-                    <span class="tier-name">Mini Shoot</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>Photography (20 Edited Photos) <strong>OR</strong> Videography (1 x 30 Second Reel)</li>
-                            <li>30 Minute Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 500.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- BOOK A SHOOT CTA -->
-
-<!-- =========================================================
-     CATEGORY 2 — PHOTOGRAPHY
-     ========================================================= -->
-<section class="price-category" id="photography">
-    <div class="wrap">
-        <div class="category-head">
-            <h2>Photography</h2>
-            <p>Click a package below to see the details and price.</p>
-        </div>
-
-        <div class="tier-row">
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
-                    <span class="tier-name">Bronze</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>30-40 Edited Photos</li>
-                            <li>2 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 800.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
-                    <span class="tier-name">Silver</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>40-50 Edited Photos</li>
-                            <li>4 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 1300.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
-                    <span class="tier-name">Gold</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>50-60 Edited Photos</li>
-                            <li>6 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 1800.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="addon-strip">
-            <div class="addon-badge">
-                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
-                <span>Add-On</span>
-            </div>
-            <ul class="addon-list">
-                <li>Additional Photos</li>
-                <li>Additional Revisions</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-
-<!-- =========================================================
-     CATEGORY 3 — VIDEOGRAPHY
-     ========================================================= -->
-<section class="price-category" id="videography">
-    <div class="wrap">
-        <div class="category-head">
-            <h2>Videography</h2>
-            <p>Click a package below to see the details and price.</p>
-        </div>
-
-        <div class="tier-row">
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
-                    <span class="tier-name">Bronze</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Videographer</li>
-                            <li>1 (30-60) Second Reel</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>2 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 1000.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
-                    <span class="tier-name">Silver</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Videographer</li>
-                            <li>2 (30-60) Second Reels</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>4 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 1700.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
-                    <span class="tier-name">Gold</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Videographer</li>
-                            <li>1 (2-3) Minute Reel</li>
-                            <li>1 (30-60) Second Reel</li>
-                            <li>Drone Coverage</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>6 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 3000.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="addon-strip">
-            <div class="addon-badge">
-                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
-                <span>Add-On</span>
-            </div>
-            <ul class="addon-list">
-                <li>(30-60) Second Reel</li>
-                <li>(2-3) Minute Reel</li>
-                <li>Additional Revisions</li>
-                <li>Drone Coverage</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-
-<!-- =========================================================
-     CATEGORY 4 — PHOTOGRAPHY & VIDEOGRAPHY
-     ========================================================= -->
-<section class="price-category" id="photo-video">
-    <div class="wrap">
-        <div class="category-head">
-            <h2>Photography &amp; Videography</h2>
-            <p>Click a package below to see the details and price.</p>
-        </div>
-
-        <div class="tier-row">
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-bronze.jpg" alt="Bronze tier"></span>
-                    <span class="tier-name">Bronze</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>1 Videographer</li>
-                            <li>1 (30-60) Second Reel</li>
-                            <li>30-40 Edited Photos</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>2 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 1500.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-silver.jpg" alt="Silver tier"></span>
-                    <span class="tier-name">Silver</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>1 Videographer</li>
-                            <li>2 (30-60) Second Reels</li>
-                            <li>40-50 Edited Photos</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>4 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 2700.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-gold.jpg" alt="Gold tier"></span>
-                    <span class="tier-name">Gold</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features">
-                            <li>1 Photographer</li>
-                            <li>1 Videographer</li>
-                            <li>1 (2-3) Minute Reel</li>
-                            <li>1 (30-60) Second Reel</li>
-                            <li>50-60 Edited Photos</li>
-                            <li>Drone Coverage</li>
-                            <li>2 rounds of revisions on the reel</li>
-                            <li>6 Hour Coverage</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 4500.00</span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="addon-strip">
-            <div class="addon-badge">
-                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
-                <span>Add-On</span>
-            </div>
-            <ul class="addon-list">
-                <li>(30-60) Second Reel</li>
-                <li>(2-3) Minute Reel</li>
-                <li>Additional Photos</li>
-                <li>Additional Revisions</li>
-                <li>Drone Coverage</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-
-<!-- =========================================================
-     CATEGORY 5 — PADEL LEAGUE PACKAGE (single wide card)
-     ========================================================= -->
-<section class="price-category" id="padel-league">
-    <div class="wrap">
-        <div class="category-head">
-            <h2>Padel League Package</h2>
-            <p>Click below to see the details and price.</p>
-        </div>
-
-        <div class="tier-row" style="grid-template-columns: 1fr;">
-            <div class="tier-card" data-tier>
-                <button class="tier-toggle" aria-expanded="false">
-                    <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Padel League"></span>
-                    <span class="tier-name">Padel League Package</span>
-                    <span class="tier-chevron">▾</span>
-                </button>
-                <div class="tier-body">
-                    <div class="tier-body-inner">
-                        <ul class="tier-features" style="display:grid; grid-template-columns:1fr 1fr; gap:10px 24px;">
-                            <li>1 Videographer</li>
-                            <li>6 Hour Game Day Coverage</li>
-                            <li>1 Photographer</li>
-                            <li>1 (2-3) Minute Game Day Reel Per Week</li>
-                            <li>Professionally Edited Photos Per Week</li>
-                        </ul>
-                        <div class="tier-price">
-                            <span class="price-pill">R 2500.00 <span style="font-size:12px; font-weight:600; opacity:0.7; text-transform:uppercase;">per week</span></span>
-                            <p class="price-note">Excluding transport</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="addon-strip">
-            <div class="addon-badge">
-                <span class="tier-icon"><img src="assets/mascot-head-color.png" alt="Add-on"></span>
-                <span>Add-On</span>
-            </div>
-            <ul class="addon-list">
-                <li>Additional Photos</li>
-                <li>Additional Videos</li>
-                <li>Social Media Management</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-
-<section class="price-category" style="border-bottom:none;">
-    <div class="wrap">
-        <div class="cta-band">
-            <div class="cta-inner">
-                <div>
-                    <h3>Ready to book?</h3>
-                    <p>Pick a package above, then get in touch to lock in your date.</p>
-                </div>
-                <button class="btn-pill filled" id="ctaBookBtn">Book a shoot</button>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- FAQ SECTION -->
 <section class="faq-section" id="faq">
@@ -1351,15 +1088,6 @@ closeMenu.addEventListener('click', closeMenuFn);
 scrim.addEventListener('click', closeMenuFn);
 document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('click', closeMenuFn));
 
-/* ---- tier card expand/collapse ---- */
-document.querySelectorAll('[data-tier]').forEach(card => {
-    const toggle = card.querySelector('.tier-toggle');
-    toggle.addEventListener('click', () => {
-        const isOpen = card.classList.toggle('open');
-        toggle.setAttribute('aria-expanded', isOpen);
-    });
-});
-
 /* ---- FAQ accordion ---- */
 document.querySelectorAll('[data-faq]').forEach(item => {
     const toggle = item.querySelector('.faq-toggle');
@@ -1380,18 +1108,17 @@ const bookingEmailBtn = document.getElementById('bookingEmailBtn');
 const bookingEmailBtnLabel = document.getElementById('bookingEmailBtnLabel');
 const bookingWhatsappBtn = document.getElementById('bookingWhatsappBtn');
 const navBookBtn = document.getElementById('navBookBtn');
-const ctaBookBtn = document.getElementById('ctaBookBtn');
 
-function openBooking(){
+function openBooking(prefillMsg){
     bookingOverlay.classList.add('show');
+    bookingMessage.value = prefillMsg || '';
     bookingName.focus();
 }
 function closeBooking(){
     bookingOverlay.classList.remove('show');
 }
 
-navBookBtn.addEventListener('click', openBooking);
-ctaBookBtn.addEventListener('click', openBooking);
+navBookBtn.addEventListener('click', () => openBooking());
 bookingClose.addEventListener('click', closeBooking);
 bookingOverlay.addEventListener('click', (e) => {
     if (e.target === bookingOverlay) closeBooking();
@@ -1445,6 +1172,147 @@ bookingWhatsappBtn.addEventListener('click', () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 });
+
+/* ============================================================
+   PACKAGE CARDS — 5 category groups, each with one photo.
+   Groups with multiple tiers (Photography, Videography,
+   Photo & Video) show a Bronze/Silver/Gold tab switcher inside
+   the detail view; Mini Shoot and Padel League have a single
+   tier and no tabs. Card images live at assets/card1.png
+   through assets/card5.png — replace each with the real photo
+   for that category (portrait crop works best).
+   ============================================================ */
+const ICONS = {
+    clock:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+    tag:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 12 4.8A2 2 0 0 0 10.6 4H5a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .6 1.4l8.6 8.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8Z"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/></svg>',
+};
+
+const GROUPS = [
+    { id:'mini', name:'Mini Shoot', img:'assets/card1.png', tiers:[
+        { name:'', price:'R500', coverage:'30 Minute Coverage', deliverable:'20 Photos / 1 Reel',
+          features:['Photography (20 Edited Photos) OR Videography (1 x 30 Second Reel)','30 Minute Coverage'] },
+    ]},
+    { id:'photo', name:'Photography', img:'assets/card2.png', tiers:[
+        { name:'Bronze', price:'R800', coverage:'2 Hour Coverage', deliverable:'30-40 Photos',
+          features:['1 Photographer','30-40 Edited Photos','2 Hour Coverage'] },
+        { name:'Silver', price:'R1300', coverage:'4 Hour Coverage', deliverable:'40-50 Photos',
+          features:['1 Photographer','40-50 Edited Photos','4 Hour Coverage'] },
+        { name:'Gold', price:'R1800', coverage:'6 Hour Coverage', deliverable:'50-60 Photos',
+          features:['1 Photographer','50-60 Edited Photos','6 Hour Coverage'] },
+    ]},
+    { id:'video', name:'Videography', img:'assets/card3.png', tiers:[
+        { name:'Bronze', price:'R1000', coverage:'2 Hour Coverage', deliverable:'1 Reel',
+          features:['1 Videographer','1 (30-60) Second Reel','2 rounds of revisions on the reel','2 Hour Coverage'] },
+        { name:'Silver', price:'R1700', coverage:'4 Hour Coverage', deliverable:'2 Reels',
+          features:['1 Videographer','2 (30-60) Second Reels','2 rounds of revisions on the reel','4 Hour Coverage'] },
+        { name:'Gold', price:'R3000', coverage:'6 Hour Coverage', deliverable:'2 Reels + Drone',
+          features:['1 Videographer','1 (2-3) Minute Reel','1 (30-60) Second Reel','Drone Coverage','2 rounds of revisions on the reel','6 Hour Coverage'] },
+    ]},
+    { id:'combo', name:'Photography & Videography', img:'assets/card4.png', tiers:[
+        { name:'Bronze', price:'R1500', coverage:'2 Hour Coverage', deliverable:'Photos + 1 Reel',
+          features:['1 Photographer','1 Videographer','1 (30-60) Second Reel','30-40 Edited Photos','2 rounds of revisions on the reel','2 Hour Coverage'] },
+        { name:'Silver', price:'R2700', coverage:'4 Hour Coverage', deliverable:'Photos + 2 Reels',
+          features:['1 Photographer','1 Videographer','2 (30-60) Second Reels','40-50 Edited Photos','2 rounds of revisions on the reel','4 Hour Coverage'] },
+        { name:'Gold', price:'R4500', coverage:'6 Hour Coverage', deliverable:'Photos + Drone + Reels',
+          features:['1 Photographer','1 Videographer','1 (2-3) Minute Reel','1 (30-60) Second Reel','50-60 Edited Photos','Drone Coverage','2 rounds of revisions on the reel','6 Hour Coverage'] },
+    ]},
+    { id:'padel', name:'Padel League', img:'assets/card5.png', tiers:[
+        { name:'', price:'R2500/wk', coverage:'6 Hour Game Day Coverage', deliverable:'Reel + Photos weekly',
+          features:['1 Videographer','6 Hour Game Day Coverage','1 Photographer','1 (2-3) Minute Game Day Reel Per Week','Professionally Edited Photos Per Week'] },
+    ]},
+];
+
+const pkgScroller = document.getElementById('pkgScroller');
+
+function pkgCardHTML(g){
+    return `<div class="pkg-card" data-id="${g.id}" tabindex="0" role="button" aria-label="View ${g.name} package">
+        <img src="${g.img}" alt="${g.name}" loading="lazy">
+        <div class="pkg-label"><span>${g.name}</span></div>
+    </div>`;
+}
+
+function renderPackages(){
+    pkgScroller.innerHTML = GROUPS.map(pkgCardHTML).join('');
+    pkgScroller.querySelectorAll('.pkg-card').forEach(card => {
+        card.addEventListener('click', () => openDetail(card.dataset.id));
+        card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openDetail(card.dataset.id); } });
+    });
+}
+
+function pkgCardWidth(){
+    const card = pkgScroller.querySelector('.pkg-card');
+    return card ? card.getBoundingClientRect().width + 18 : 300;
+}
+document.getElementById('pkgPrev').addEventListener('click', () => pkgScroller.scrollBy({ left: -pkgCardWidth(), behavior: 'smooth' }));
+document.getElementById('pkgNext').addEventListener('click', () => pkgScroller.scrollBy({ left: pkgCardWidth(), behavior: 'smooth' }));
+
+/* ---- detail overlay ---- */
+const pkgDetailOverlay = document.getElementById('pkgDetailOverlay');
+const pkgDetailImg = document.getElementById('pkgDetailImg');
+const pkgDetailName = document.getElementById('pkgDetailName');
+const pkgDetailPrice = document.getElementById('pkgDetailPrice');
+const pkgTierTabs = document.getElementById('pkgTierTabs');
+const pkgDetailStats = document.getElementById('pkgDetailStats');
+const pkgDetailFeatures = document.getElementById('pkgDetailFeatures');
+const pkgBookBtn = document.getElementById('pkgBookBtn');
+let currentGroup = null;
+let currentTierIndex = 0;
+
+function renderTier(){
+    const g = currentGroup, t = g.tiers[currentTierIndex];
+    pkgDetailName.textContent = t.name ? `${t.name} — ${g.name}` : g.name;
+    pkgDetailPrice.textContent = t.price;
+    pkgDetailStats.innerHTML = `
+        <div class="pkg-stat">${ICONS.clock}<span>${t.coverage}</span></div>
+        <div class="pkg-stat">${ICONS.camera}<span>${t.deliverable}</span></div>
+        <div class="pkg-stat">${ICONS.tag}<span>${t.price}</span></div>`;
+    pkgDetailFeatures.innerHTML = t.features.map(f => `<li>${f}</li>`).join('');
+}
+
+function openDetail(id){
+    const g = GROUPS.find(x => x.id === id);
+    if(!g) return;
+    currentGroup = g;
+    currentTierIndex = 0;
+    pkgDetailImg.src = g.img;
+    pkgDetailImg.alt = g.name;
+
+    if(g.tiers.length > 1){
+        pkgTierTabs.style.display = 'flex';
+        pkgTierTabs.innerHTML = g.tiers.map((t, i) =>
+            `<button class="pkg-tier-tab ${i === 0 ? 'on' : ''}" data-i="${i}">${t.name}</button>`).join('');
+        pkgTierTabs.querySelectorAll('.pkg-tier-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentTierIndex = +btn.dataset.i;
+                pkgTierTabs.querySelectorAll('.pkg-tier-tab').forEach(b => b.classList.toggle('on', b === btn));
+                renderTier();
+            });
+        });
+    } else {
+        pkgTierTabs.style.display = 'none';
+        pkgTierTabs.innerHTML = '';
+    }
+
+    renderTier();
+    pkgDetailOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+function closeDetail(){
+    pkgDetailOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+}
+document.getElementById('pkgBack').addEventListener('click', closeDetail);
+pkgDetailOverlay.addEventListener('click', e => { if(e.target === pkgDetailOverlay) closeDetail(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDetail(); });
+
+pkgBookBtn.addEventListener('click', () => {
+    const g = currentGroup, t = g ? g.tiers[currentTierIndex] : null;
+    closeDetail();
+    openBooking(g ? `Hi FOM Studios, I'm interested in the ${t.name ? t.name + ' — ' + g.name : g.name} package.` : '');
+});
+
+renderPackages();
 </script>
 
 </body>
