@@ -341,6 +341,19 @@ section.tight{ padding: 36px 0; }
 
 /* =========================== ABOUT =========================== */
 .about{ display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 56px; align-items: center; }
+/* "tab" treatment — mirrors the footer's rounded-top card so the
+   page reads as bookended: an outlined panel peeling up here, a
+   dark filled one at the very bottom. Background matches the page
+   (not a filled card) — only the border traces the tab shape. */
+.about-panel{
+    background: var(--bg);
+    border: 1.5px solid var(--ink);
+    border-bottom: none;
+    border-radius: 40px 40px 0 0;
+    margin-top: -24px;
+    position: relative;
+    z-index: 2;
+}
 /* PNG cutout treatment — no background card, no rounded clipping,
    image keeps its natural transparent edges (same approach as the
    mascot image at the bottom of the policy page). */
@@ -430,6 +443,17 @@ section.tight{ padding: 36px 0; }
 .cta-band.dark .btn-pill:hover{ background: var(--ink-on-dark); color: var(--ink); }
 .btn-pill.whatsapp-cta{ background: #25D366; border-color: #25D366; color: #0b1f12; }
 .btn-pill.whatsapp-cta:hover{ background: #1ebc59; border-color: #1ebc59; color: #0b1f12; }
+/* Instagram + WhatsApp CTA bands: unified black pill, matched width,
+   so the two buttons read as a set instead of mismatched colors/sizes */
+.cta-inner a.btn-pill.filled,
+.cta-inner a.btn-pill.whatsapp-cta{
+    background: var(--ink); border-color: var(--ink); color: var(--ink-on-dark);
+    min-width: 210px;
+}
+.cta-inner a.btn-pill.filled:hover,
+.cta-inner a.btn-pill.whatsapp-cta:hover{
+    background: #000; border-color: #000; color: var(--ink-on-dark);
+}
 
 /* =========================== FOOTER =========================== */
 footer.site-footer{
@@ -730,7 +754,7 @@ footer.site-footer{
 </div>
 
 <!-- ABOUT -->
-<section id="about">
+<section id="about" class="about-panel">
     <div class="wrap">
         <div class="about">
             <div class="about-media">
