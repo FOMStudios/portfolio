@@ -388,6 +388,23 @@ footer.site-footer{
 .booking-field-err{ font-size: 12.5px; color: #c0392b; margin: -8px 0 14px; min-height: 16px; text-align: left; }
 .booking-btn.email.sent{ background: #27ae60; cursor: default; }
 .booking-btn.email:disabled{ opacity: 0.75; cursor: default; }
+
+/* =========================================================
+   GALLERY FILTERS
+   ========================================================= */
+.filter-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.filter-chip{
+    border:1px solid var(--line); background:var(--bg-pill);
+    border-radius:var(--radius-pill); padding:9px 18px;
+    font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; transition:.2s ease;
+}
+.filter-chip:hover{ border-color:var(--ink); color:var(--ink); }
+.filter-chip.on{ background:var(--ink); border-color:var(--ink); color:var(--bg-pill); }
+.b-card.hide{ display:none; }
+.bento-empty{
+    display:none; text-align:center; padding:56px 20px; color:var(--ink-soft);
+    font-size:15px; grid-column:1/-1;
+}
 </style>
 </head>
 
@@ -445,6 +462,18 @@ footer.site-footer{
     </div>
 </div>
 
+<!-- GALLERY FILTERS -->
+<div class="gallery-hero" style="padding-top:0; padding-bottom:8px;">
+    <div class="wrap">
+        <div class="filter-row" id="galleryFilterRow">
+            <button class="filter-chip on" data-cat="all">All Work</button>
+            <button class="filter-chip" data-cat="sports">Sports</button>
+            <button class="filter-chip" data-cat="automotive">Automotive</button>
+            <button class="filter-chip" data-cat="other">Other</button>
+        </div>
+    </div>
+</div>
+
 <!-- =========================================================
      BENTO GALLERY
      Naming convention continues from the homepage: work1.jpg
@@ -452,51 +481,54 @@ footer.site-footer{
      work11.jpg onward are gallery-only — just keep adding
      workN.jpg to assets/ and a new card below using the next
      number, picking whichever shape (b-big / b-wide / b-tall /
-     b-square) keeps the mosaic balanced.
+     b-square) keeps the mosaic balanced. Every card also needs
+     a data-cat (sports / automotive / events / portraits) so
+     the filter row above can show/hide it correctly.
      ========================================================= -->
 <section>
     <div class="wrap">
         <div class="bento" id="bentoGrid">
-            <div class="b-card b-big" data-full="assets/work1.jpg"><img src="assets/work1.jpg" alt="Work 1"><div class="b-caption">Match Day</div></div>
-            <div class="b-card b-square" data-full="assets/work2.jpg"><img src="assets/work2.jpg" alt="Work 2"><div class="b-caption">Action Shots</div></div>
-            <div class="b-card b-square" data-full="assets/work3.jpg"><img src="assets/work3.jpg" alt="Work 3"><div class="b-caption">Interviews</div></div>
-            <div class="b-card b-wide" data-full="assets/work4.jpg"><img src="assets/work4.jpg" alt="Work 4"><div class="b-caption">Event Coverage</div></div>
-            <div class="b-card b-square" data-full="assets/work5.jpg"><img src="assets/work5.jpg" alt="Work 5"><div class="b-caption">Aerial Shot</div></div>
-            <div class="b-card b-square" data-full="assets/work6.jpg"><img src="assets/work6.jpg" alt="Work 6"><div class="b-caption">Motorbikes</div></div>
-            <div class="b-card b-tall" data-full="assets/work7.jpg"><img src="assets/work7.jpg" alt="Work 7"><div class="b-caption">Automotive</div></div>
-            <div class="b-card b-wide" data-full="assets/work8.jpg"><img src="assets/work8.jpg" alt="Work 8"><div class="b-caption">Automotive</div></div>
-            <div class="b-card b-square" data-full="assets/work9.jpg"><img src="assets/work9.jpg" alt="Work 9"><div class="b-caption">Car Meets</div></div>
-            <div class="b-card b-square" data-full="assets/work10.jpg"><img src="assets/work10.jpg" alt="Work 10"><div class="b-caption">Automotive</div></div>
-            <div class="b-card b-square" data-full="assets/work11.jpg"><img src="assets/work11.jpg" alt="Work 11"><div class="b-caption">Zaydaan</div></div>
-            <div class="b-card b-square" data-full="assets/work12.jpg"><img src="assets/work12.jpg" alt="Work 12"><div class="b-caption">Zaydaan</div></div>
-            <div class="b-card b-square" data-full="assets/work13.jpg"><img src="assets/work13.jpg" alt="Work 13"><div class="b-caption">Kyle Oliver</div></div>
-            <div class="b-card b-square" data-full="assets/work14.jpg"><img src="assets/work14.jpg" alt="Work 14"><div class="b-caption">Motion Blur</div></div>
-            <div class="b-card b-wide" data-full="assets/work15.jpg"><img src="assets/work15.jpg" alt="Work 15"><div class="b-caption">Team Spirit</div></div>
-            <div class="b-card b-square" data-full="assets/work16.jpg"><img src="assets/work16.jpg" alt="Work 16"><div class="b-caption">Details</div></div>
-            <div class="b-card b-square" data-full="assets/work17.jpg"><img src="assets/work17.jpg" alt="Work 17"><div class="b-caption">Pixel Stretch</div></div>
-            <div class="b-card b-wide" data-full="assets/work18.jpg"><img src="assets/work18.jpg" alt="Work 18"><div class="b-caption">Zaydaan</div></div>
-            <div class="b-card b-wide" data-full="assets/work19.jpg"><img src="assets/work19.jpg" alt="Work 19"><div class="b-caption">Soccer</div></div>
-            <div class="b-card b-tall" data-full="assets/work20.jpg"><img src="assets/work20.jpg" alt="Work 20"><div class="b-caption">Soccer</div></div>
-            <div class="b-card b-square" data-full="assets/work21.jpg"><img src="assets/work21.jpg" alt="Work 21"><div class="b-caption">Soccer</div></div>
-            <div class="b-card b-square" data-full="assets/work22.jpg"><img src="assets/work22.jpg" alt="Work 22"><div class="b-caption">Soccer</div></div>
-            <div class="b-card b-wide" data-full="assets/work23.jpg"><img src="assets/work23.jpg" alt="Work 23"><div class="b-caption">BMW</div></div>
-            <div class="b-card b-tall" data-full="assets/work24.jpg"><img src="assets/work24.jpg" alt="Work 24"><div class="b-caption">Rotary</div></div>
-            <div class="b-card b-square" data-full="assets/work25.jpg"><img src="assets/work25.jpg" alt="Work 25"><div class="b-caption">325i</div></div>
-            <div class="b-card b-square" data-full="assets/work26.jpg"><img src="assets/work26.jpg" alt="Work 26"><div class="b-caption">RX7</div></div>
-            <div class="b-card b-square" data-full="assets/work27.jpg"><img src="assets/work27.jpg" alt="Work 27"><div class="b-caption">S1000RR</div></div>
-            <div class="b-card b-square" data-full="assets/work28.jpg"><img src="assets/work28.jpg" alt="Work 28"><div class="b-caption">Porsche</div></div>
-            <div class="b-card b-square" data-full="assets/work29.jpg"><img src="assets/work29.jpg" alt="Work 29"><div class="b-caption">Benz</div></div>
-            <div class="b-card b-wide" data-full="assets/work30.jpg"><img src="assets/work30.jpg" alt="Work 30"><div class="b-caption">BMW</div></div>
-            <div class="b-card b-tall" data-full="assets/work31.jpg"><img src="assets/work31.jpg" alt="Work 31"><div class="b-caption">Porsche</div></div>
-            <div class="b-card b-tall" data-full="assets/work32.jpg"><img src="assets/work32.jpg" alt="Work 32"><div class="b-caption">Porsche</div></div>
-            <div class="b-card b-tall" data-full="assets/work33.jpg"><img src="assets/work33.jpg" alt="Work 33"><div class="b-caption">Porsche</div></div>
-            <div class="b-card b-tall" data-full="assets/work34.jpg"><img src="assets/work34.jpg" alt="Work 34"><div class="b-caption">BMW</div></div>
-            <div class="b-card b-square" data-full="assets/work35.jpg"><img src="assets/work35.jpg" alt="Work 35"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-full="assets/work36.jpg"><img src="assets/work36.jpg" alt="Work 36"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-full="assets/work37.jpg"><img src="assets/work37.jpg" alt="Work 37"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-full="assets/work38.jpg"><img src="assets/work38.jpg" alt="Work 38"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-full="assets/work39.jpg"><img src="assets/work39.jpg" alt="Work 39"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-full="assets/work40.jpg"><img src="assets/work40.jpg" alt="Work 40"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-big" data-cat="sports" data-full="assets/work1.jpg"><img src="assets/work1.jpg" alt="Work 1"><div class="b-caption">Match Day</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work2.jpg"><img src="assets/work2.jpg" alt="Work 2"><div class="b-caption">Action Shots</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work3.jpg"><img src="assets/work3.jpg" alt="Work 3"><div class="b-caption">Interviews</div></div>
+            <div class="b-card b-wide" data-cat="sports" data-full="assets/work4.jpg"><img src="assets/work4.jpg" alt="Work 4"><div class="b-caption">Event Coverage</div></div>
+            <div class="b-card b-square" data-cat="other" data-full="assets/work5.jpg"><img src="assets/work5.jpg" alt="Work 5"><div class="b-caption">Aerial Shot</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work6.jpg"><img src="assets/work6.jpg" alt="Work 6"><div class="b-caption">Motorbikes</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work7.jpg"><img src="assets/work7.jpg" alt="Work 7"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-wide" data-cat="automotive" data-full="assets/work8.jpg"><img src="assets/work8.jpg" alt="Work 8"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work9.jpg"><img src="assets/work9.jpg" alt="Work 9"><div class="b-caption">Car Meets</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work10.jpg"><img src="assets/work10.jpg" alt="Work 10"><div class="b-caption">Automotive</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work11.jpg"><img src="assets/work11.jpg" alt="Work 11"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work12.jpg"><img src="assets/work12.jpg" alt="Work 12"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work13.jpg"><img src="assets/work13.jpg" alt="Work 13"><div class="b-caption">Kyle Oliver</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work14.jpg"><img src="assets/work14.jpg" alt="Work 14"><div class="b-caption">Motion Blur</div></div>
+            <div class="b-card b-wide" data-cat="sports" data-full="assets/work15.jpg"><img src="assets/work15.jpg" alt="Work 15"><div class="b-caption">Team Spirit</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work16.jpg"><img src="assets/work16.jpg" alt="Work 16"><div class="b-caption">Details</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work17.jpg"><img src="assets/work17.jpg" alt="Work 17"><div class="b-caption">Pixel Stretch</div></div>
+            <div class="b-card b-wide" data-cat="sports" data-full="assets/work18.jpg"><img src="assets/work18.jpg" alt="Work 18"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-wide" data-cat="sports" data-full="assets/work19.jpg"><img src="assets/work19.jpg" alt="Work 19"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-tall" data-cat="sports" data-full="assets/work20.jpg"><img src="assets/work20.jpg" alt="Work 20"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work21.jpg"><img src="assets/work21.jpg" alt="Work 21"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work22.jpg"><img src="assets/work22.jpg" alt="Work 22"><div class="b-caption">Soccer</div></div>
+            <div class="b-card b-wide" data-cat="automotive" data-full="assets/work23.jpg"><img src="assets/work23.jpg" alt="Work 23"><div class="b-caption">BMW</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work24.jpg"><img src="assets/work24.jpg" alt="Work 24"><div class="b-caption">Rotary</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work25.jpg"><img src="assets/work25.jpg" alt="Work 25"><div class="b-caption">325i</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work26.jpg"><img src="assets/work26.jpg" alt="Work 26"><div class="b-caption">RX7</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work27.jpg"><img src="assets/work27.jpg" alt="Work 27"><div class="b-caption">S1000RR</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work28.jpg"><img src="assets/work28.jpg" alt="Work 28"><div class="b-caption">Porsche</div></div>
+            <div class="b-card b-square" data-cat="automotive" data-full="assets/work29.jpg"><img src="assets/work29.jpg" alt="Work 29"><div class="b-caption">Benz</div></div>
+            <div class="b-card b-wide" data-cat="automotive" data-full="assets/work30.jpg"><img src="assets/work30.jpg" alt="Work 30"><div class="b-caption">BMW</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work31.jpg"><img src="assets/work31.jpg" alt="Work 31"><div class="b-caption">Porsche</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work32.jpg"><img src="assets/work32.jpg" alt="Work 32"><div class="b-caption">Porsche</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work33.jpg"><img src="assets/work33.jpg" alt="Work 33"><div class="b-caption">Porsche</div></div>
+            <div class="b-card b-tall" data-cat="automotive" data-full="assets/work34.jpg"><img src="assets/work34.jpg" alt="Work 34"><div class="b-caption">BMW</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work35.jpg"><img src="assets/work35.jpg" alt="Work 35"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work36.jpg"><img src="assets/work36.jpg" alt="Work 36"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work37.jpg"><img src="assets/work37.jpg" alt="Work 37"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work38.jpg"><img src="assets/work38.jpg" alt="Work 38"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work39.jpg"><img src="assets/work39.jpg" alt="Work 39"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work40.jpg"><img src="assets/work40.jpg" alt="Work 40"><div class="b-caption">Swimming</div></div>
+            <div class="bento-empty" id="bentoEmpty">No shots in this category yet — check back soon.</div>
         </div>
     </div>
 </section>
@@ -609,6 +641,23 @@ document.querySelectorAll('.b-card').forEach(card => {
 lightboxClose.addEventListener('click', () => lightbox.classList.remove('show'));
 lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) lightbox.classList.remove('show');
+});
+
+/* ---- gallery category filters ---- */
+const bentoCards = document.querySelectorAll('.b-card');
+const bentoEmpty = document.getElementById('bentoEmpty');
+document.getElementById('galleryFilterRow').addEventListener('click', e => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    document.querySelectorAll('#galleryFilterRow .filter-chip').forEach(c => c.classList.toggle('on', c === chip));
+    const cat = chip.dataset.cat;
+    let visibleCount = 0;
+    bentoCards.forEach(card => {
+        const match = cat === 'all' || card.dataset.cat === cat;
+        card.classList.toggle('hide', !match);
+        if (match) visibleCount++;
+    });
+    bentoEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
 });
 
 
