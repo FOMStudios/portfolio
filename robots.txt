@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /client-portal.html
+Disallow: /paid.html
+
+Sitemap: https://www.fomstudios.co.za/sitemap.xml

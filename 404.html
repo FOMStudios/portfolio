@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found | FOM Studios</title>
+<meta name="description" content="This page doesn't exist — head back to FOM Studios for photography and videography in Johannesburg.">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" type="image/png" href="assets/mascot.png">
+<link rel="apple-touch-icon" href="assets/mascot.png">
+<style>
+:root{
+    --bg:#f1f0ec; --bg-pill:#fafaf9; --bg-dark:#2a2b2c; --ink:#2a2b2c; --ink-soft:#6f6f6d;
+    --ink-on-dark:#f1f0ec; --line:#dcdad3; --accent:#02367B; --accent-hover:#022a5f;
+    --radius-pill:999px; --radius-card:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+img{display:block;max-width:100%;}
+.card{background:var(--bg-pill);border:1px solid var(--line);border-radius:var(--radius-card);padding:48px 36px;max-width:460px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.08);}
+.brand{font-weight:800;font-size:16px;letter-spacing:.06em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:24px;}
+.mascot{width:110px;margin:0 auto 20px;}
+.mascot img{width:100%;}
+.code{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-bottom:10px;}
+h1{font-size:26px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px;}
+p{color:var(--ink-soft);font-size:15px;margin-bottom:8px;}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px;}
+.btn{display:inline-block;text-decoration:none;border-radius:var(--radius-pill);padding:14px 26px;font-size:14.5px;font-weight:700;transition:.2s;}
+.btn.filled{background:var(--ink);color:var(--ink-on-dark);}
+.btn.filled:hover{background:#000;}
+.btn.outline{border:1px solid var(--ink);color:var(--ink);}
+.btn.outline:hover{background:var(--ink);color:var(--ink-on-dark);}
+.foot{margin-top:26px;font-size:12px;color:var(--ink-soft);}
+.foot a{color:var(--accent);text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">FOM Studios</div>
+    <div class="mascot"><img src="assets/mascot.png" alt="FOM Studios mascot" onerror="this.parentElement.style.display='none'"></div>
+    <div class="code">404</div>
+    <h1>This page went off frame.</h1>
+    <p>The page you're looking for doesn't exist or may have moved.</p>
+    <div class="actions">
+      <a class="btn filled" href="/index.html">Back to Home</a>
+      <a class="btn outline" href="/gallery.html">View Gallery</a>
+    </div>
+    <div class="foot">Questions? <a href="mailto:info@fomstudios.co.za">info@fomstudios.co.za</a> · <a href="https://www.fomstudios.co.za">www.fomstudios.co.za</a></div>
+  </div>
+</body>
+</html>
