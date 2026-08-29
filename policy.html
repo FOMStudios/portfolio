@@ -747,7 +747,15 @@ bookingWhatsappBtn.addEventListener('click', () => {
 .cookie-btn{ flex:1; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; border:1px solid var(--ink, #2a2b2c); background:transparent; color:var(--ink, #2a2b2c); transition:.2s ease; }
 .cookie-btn.filled{ background:var(--ink, #2a2b2c); color:var(--ink-on-dark, #f1f0ec); }
 .cookie-btn:hover{ opacity:.82; }
-</style>
+/* respect the visitor's reduced-motion preference */
+@media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}</style>
 <script>
 (function(){
     function loadGA(){
