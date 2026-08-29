@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOM Studios | Policy</title>
 <meta name="description" content="FOM Studios booking, payment, cancellation and usage policy.">
+<link rel="canonical" href="https://www.fomstudios.co.za/policy.html">
+
+<!-- Open Graph / social share -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FOM Studios">
+<meta property="og:title" content="FOM Studios | Policy">
+<meta property="og:description" content="FOM Studios booking, payment, cancellation and usage policy.">
+<meta property="og:image" content="https://www.fomstudios.co.za/assets/hero.jpg">
+<meta property="og:url" content="https://www.fomstudios.co.za/policy.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FOM Studios | Policy">
+<meta name="twitter:description" content="FOM Studios booking, payment, cancellation and usage policy.">
+<meta name="twitter:image" content="https://www.fomstudios.co.za/assets/hero.jpg">
+
+<!-- Google Analytics (GA4) — only loads after cookie consent is accepted -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+window.FOM_GA_ID = 'G-TEYD624ZE7';
+</script>
 
 <style>
 /* Tokens match index.html exactly — see that file for the full
@@ -697,6 +717,64 @@ bookingWhatsappBtn.addEventListener('click', () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 });
+</script>
+
+
+<!-- ============================================================
+     COOKIE CONSENT + GA4 LOADER
+     GA4 (window.FOM_GA_ID, set in <head>) only loads after the
+     visitor accepts — no tracking cookies are set before consent.
+     Choice is remembered in localStorage.
+     ============================================================ -->
+<div id="cookieConsent" class="cookie-consent" style="display:none;">
+    <p>We use cookies for analytics, to understand how visitors use this site. <a href="/policy.html">Learn more</a></p>
+    <div class="cookie-consent-actions">
+        <button id="cookieDecline" class="cookie-btn outline">Decline</button>
+        <button id="cookieAccept" class="cookie-btn filled">Accept</button>
+    </div>
+</div>
+<style>
+.cookie-consent{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index:3000;
+    max-width:480px; margin:0 auto;
+    background:var(--bg-pill, #fafaf9); border:1px solid var(--line, #dcdad3);
+    border-radius:16px; padding:18px 20px; box-shadow:0 12px 40px rgba(0,0,0,.15);
+    font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+.cookie-consent p{ font-size:13px; color:var(--ink-soft, #6f6f6d); margin-bottom:14px; line-height:1.5; }
+.cookie-consent p a{ color:var(--accent, #02367B); font-weight:600; text-decoration:none; }
+.cookie-consent-actions{ display:flex; gap:8px; }
+.cookie-btn{ flex:1; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; border:1px solid var(--ink, #2a2b2c); background:transparent; color:var(--ink, #2a2b2c); transition:.2s ease; }
+.cookie-btn.filled{ background:var(--ink, #2a2b2c); color:var(--ink-on-dark, #f1f0ec); }
+.cookie-btn:hover{ opacity:.82; }
+</style>
+<script>
+(function(){
+    function loadGA(){
+        if(!window.FOM_GA_ID || window.__fomGaLoaded) return;
+        window.__fomGaLoaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.FOM_GA_ID;
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', window.FOM_GA_ID);
+    }
+    var choice = localStorage.getItem('fom_cookie_consent');
+    if(choice === 'accepted'){ loadGA(); }
+    else if(choice !== 'declined'){
+        document.getElementById('cookieConsent').style.display = 'block';
+    }
+    document.getElementById('cookieAccept').addEventListener('click', function(){
+        localStorage.setItem('fom_cookie_consent', 'accepted');
+        document.getElementById('cookieConsent').style.display = 'none';
+        loadGA();
+    });
+    document.getElementById('cookieDecline').addEventListener('click', function(){
+        localStorage.setItem('fom_cookie_consent', 'declined');
+        document.getElementById('cookieConsent').style.display = 'none';
+    });
+})();
 </script>
 
 </body>
