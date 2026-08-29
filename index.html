@@ -7,6 +7,26 @@
 <link rel="icon" type="image/png" href="assets/mascot-head-color.png">
 <link rel="apple-touch-icon" href="assets/mascot-head-color.png">
 <meta name="description" content="FOM Studios — photography, videography and creative storytelling based in Johannesburg, South Africa.">
+<link rel="canonical" href="https://www.fomstudios.co.za/index.html">
+
+<!-- Open Graph / social share -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FOM Studios">
+<meta property="og:title" content="FOM Studios | Photography &amp; Videography, Johannesburg">
+<meta property="og:description" content="Photography, videography and creative storytelling based in Johannesburg, South Africa — sports, automotive and events with a cinematic edge.">
+<meta property="og:image" content="https://www.fomstudios.co.za/assets/hero.jpg">
+<meta property="og:url" content="https://www.fomstudios.co.za/index.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FOM Studios | Photography &amp; Videography, Johannesburg">
+<meta name="twitter:description" content="Photography, videography and creative storytelling based in Johannesburg, South Africa.">
+<meta name="twitter:image" content="https://www.fomstudios.co.za/assets/hero.jpg">
+
+<!-- Google Analytics (GA4) — only loads after cookie consent is accepted, see cookie-consent script near </body> -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+window.FOM_GA_ID = 'G-TEYD624ZE7';
+</script>
 
 <style>
 /* =========================================================
@@ -678,6 +698,28 @@ footer.site-footer{
     .footer-bottom{ flex-direction: column; align-items:flex-start; }
     .gallery-arrows{ display:none; }
 }
+
+/* =========================== WORKED WITH =========================== */
+.worked-with-strip{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:36px 48px; margin-top:8px; padding: 8px 0;
+}
+.ww-item{ display:flex; align-items:center; justify-content:center; height:44px; }
+.ww-item img{
+    max-height:40px; max-width:150px; width:auto; height:auto;
+    object-fit:contain; filter:grayscale(100%); opacity:.55; transition:.2s ease;
+}
+.ww-item img:hover{ filter:grayscale(0%); opacity:1; }
+.ww-fallback{
+    font-weight:700; font-size:15px; color:var(--ink-soft); letter-spacing:-.01em; transition:.2s ease;
+}
+.ww-item:hover .ww-fallback{ color:var(--ink); }
+@media (max-width: 600px){
+    .worked-with-strip{ gap:24px 32px; }
+    .ww-item{ height:36px; }
+    .ww-item img{ max-height:32px; max-width:110px; }
+    .ww-fallback{ font-size:13px; }
+}
 </style>
 </head>
 
@@ -787,16 +829,16 @@ footer.site-footer{
         </div>
 
         <div class="gallery-scroller" id="galleryScroller">
-            <div class="g-card" data-full="assets/work1.jpg"><div class="g-media"><img src="assets/work1.jpg" alt="Work 1"></div><div class="g-caption">Match Day</div></div>
-            <div class="g-card" data-full="assets/work2.jpg"><div class="g-media"><img src="assets/work2.jpg" alt="Work 2"></div><div class="g-caption">Action Shots</div></div>
-            <div class="g-card" data-full="assets/work3.jpg"><div class="g-media"><img src="assets/work3.jpg" alt="Work 3"></div><div class="g-caption">Interviews</div></div>
-            <div class="g-card" data-full="assets/work4.jpg"><div class="g-media"><img src="assets/work4.jpg" alt="Work 4"></div><div class="g-caption">Event Coverage</div></div>
-            <div class="g-card" data-full="assets/work5.jpg"><div class="g-media"><img src="assets/work5.jpg" alt="Work 5"></div><div class="g-caption">Aerial Shots</div></div>
-            <div class="g-card" data-full="assets/work6.jpg"><div class="g-media"><img src="assets/work6.jpg" alt="Work 6"></div><div class="g-caption">Motorbikes</div></div>
-            <div class="g-card" data-full="assets/work7.jpg"><div class="g-media"><img src="assets/work7.jpg" alt="Work 7"></div><div class="g-caption">Automotive</div></div>
-            <div class="g-card" data-full="assets/work8.jpg"><div class="g-media"><img src="assets/work8.jpg" alt="Work 8"></div><div class="g-caption">Automotive</div></div>
-            <div class="g-card" data-full="assets/work9.jpg"><div class="g-media"><img src="assets/work9.jpg" alt="Work 9"></div><div class="g-caption">Car Meets</div></div>
-            <div class="g-card" data-full="assets/work10.jpg"><div class="g-media"><img src="assets/work10.jpg" alt="Work 10"></div><div class="g-caption">The GOAT</div></div>
+            <div class="g-card" data-full="assets/work1.jpg"><div class="g-media"><img src="assets/work1.jpg" alt="Match day sports photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Match Day</div></div>
+            <div class="g-card" data-full="assets/work2.jpg"><div class="g-media"><img src="assets/work2.jpg" alt="Sports action photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Action Shots</div></div>
+            <div class="g-card" data-full="assets/work3.jpg"><div class="g-media"><img src="assets/work3.jpg" alt="Sports interview photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Interviews</div></div>
+            <div class="g-card" data-full="assets/work4.jpg"><div class="g-media"><img src="assets/work4.jpg" alt="Event coverage photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Event Coverage</div></div>
+            <div class="g-card" data-full="assets/work5.jpg"><div class="g-media"><img src="assets/work5.jpg" alt="Aerial drone photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Aerial Shots</div></div>
+            <div class="g-card" data-full="assets/work6.jpg"><div class="g-media"><img src="assets/work6.jpg" alt="Motorbike photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Motorbikes</div></div>
+            <div class="g-card" data-full="assets/work7.jpg"><div class="g-media"><img src="assets/work7.jpg" alt="Automotive photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Automotive</div></div>
+            <div class="g-card" data-full="assets/work8.jpg"><div class="g-media"><img src="assets/work8.jpg" alt="Automotive photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Automotive</div></div>
+            <div class="g-card" data-full="assets/work9.jpg"><div class="g-media"><img src="assets/work9.jpg" alt="Car meet automotive photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">Car Meets</div></div>
+            <div class="g-card" data-full="assets/work10.jpg"><div class="g-media"><img src="assets/work10.jpg" alt="Automotive photography by FOM Studios, Johannesburg" loading="lazy"></div><div class="g-caption">The GOAT</div></div>
         </div>
 
         <div class="gallery-controls">
@@ -831,6 +873,55 @@ footer.site-footer{
                     <iframe src="https://www.youtube.com/embed/EP1k_DnKRuM" title="FOM Studios drone shots" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
                 </div>
                 <div class="v-meta"><span>Drone Shots</span><span>2026</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     WORKED WITH — client/brand logo strip. Each item tries to
+     load a logo image first; if it's not there yet (or fails),
+     it falls back to showing the company name as styled text,
+     so the section works immediately and upgrades automatically
+     once real logos are uploaded to assets/.
+     Naming convention: assets/logo-<slug>.png (transparent PNG
+     recommended, ~240px wide works well for both crisp desktop
+     and retina display).
+     ========================================================= -->
+<section class="tight">
+    <div class="wrap">
+        <div class="section-head" style="text-align:center;">
+            <span class="eyebrow">Worked With</span>
+            <h2>Brands &amp; clients we've worked with</h2>
+        </div>
+        <div class="worked-with-strip">
+            <div class="ww-item">
+                <img src="assets/logo-party-bubbles.png" alt="Party Bubbles" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">Party Bubbles</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-hyde-park-falcons.png" alt="Hyde Park Falcons" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">Hyde Park Falcons</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-redbull-media.png" alt="Red Bull Media" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">Red Bull Media</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-custom-wear.png" alt="Custom Wear" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">Custom Wear</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-str-towing.png" alt="STR Towing" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">STR Towing</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-padel-crew.png" alt="The Padel Crew" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">The Padel Crew</span>
+            </div>
+            <div class="ww-item">
+                <img src="assets/logo-radiant-rubies.png" alt="Radiant Rubies" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="ww-fallback" style="display:none;">Radiant Rubies</span>
             </div>
         </div>
     </div>
@@ -1204,6 +1295,64 @@ bookingWhatsappBtn.addEventListener('click', () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 });
+</script>
+
+
+<!-- ============================================================
+     COOKIE CONSENT + GA4 LOADER
+     GA4 (window.FOM_GA_ID, set in <head>) only loads after the
+     visitor accepts — no tracking cookies are set before consent.
+     Choice is remembered in localStorage.
+     ============================================================ -->
+<div id="cookieConsent" class="cookie-consent" style="display:none;">
+    <p>We use cookies for analytics, to understand how visitors use this site. <a href="/policy.html">Learn more</a></p>
+    <div class="cookie-consent-actions">
+        <button id="cookieDecline" class="cookie-btn outline">Decline</button>
+        <button id="cookieAccept" class="cookie-btn filled">Accept</button>
+    </div>
+</div>
+<style>
+.cookie-consent{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index:3000;
+    max-width:480px; margin:0 auto;
+    background:var(--bg-pill, #fafaf9); border:1px solid var(--line, #dcdad3);
+    border-radius:16px; padding:18px 20px; box-shadow:0 12px 40px rgba(0,0,0,.15);
+    font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+.cookie-consent p{ font-size:13px; color:var(--ink-soft, #6f6f6d); margin-bottom:14px; line-height:1.5; }
+.cookie-consent p a{ color:var(--accent, #02367B); font-weight:600; text-decoration:none; }
+.cookie-consent-actions{ display:flex; gap:8px; }
+.cookie-btn{ flex:1; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; border:1px solid var(--ink, #2a2b2c); background:transparent; color:var(--ink, #2a2b2c); transition:.2s ease; }
+.cookie-btn.filled{ background:var(--ink, #2a2b2c); color:var(--ink-on-dark, #f1f0ec); }
+.cookie-btn:hover{ opacity:.82; }
+</style>
+<script>
+(function(){
+    function loadGA(){
+        if(!window.FOM_GA_ID || window.__fomGaLoaded) return;
+        window.__fomGaLoaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.FOM_GA_ID;
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', window.FOM_GA_ID);
+    }
+    var choice = localStorage.getItem('fom_cookie_consent');
+    if(choice === 'accepted'){ loadGA(); }
+    else if(choice !== 'declined'){
+        document.getElementById('cookieConsent').style.display = 'block';
+    }
+    document.getElementById('cookieAccept').addEventListener('click', function(){
+        localStorage.setItem('fom_cookie_consent', 'accepted');
+        document.getElementById('cookieConsent').style.display = 'none';
+        loadGA();
+    });
+    document.getElementById('cookieDecline').addEventListener('click', function(){
+        localStorage.setItem('fom_cookie_consent', 'declined');
+        document.getElementById('cookieConsent').style.display = 'none';
+    });
+})();
 </script>
 
 </body>
