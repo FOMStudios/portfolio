@@ -19,7 +19,7 @@
 <meta name="twitter:description" content="FOM Studios booking, payment, cancellation and usage policy.">
 <meta name="twitter:image" content="https://www.fomstudios.co.za/assets/hero.jpg">
 
-<!-- Google Analytics (GA4) — only loads after cookie consent is accepted -->
+<!-- Google Analytics (GA4) - only loads after cookie consent is accepted -->
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){ dataLayer.push(arguments); }
@@ -27,7 +27,7 @@ window.FOM_GA_ID = 'G-TEYD624ZE7';
 </script>
 
 <style>
-/* Tokens match index.html exactly — see that file for the full
+/* Tokens match index.html exactly - see that file for the full
    comment explaining the palette choices. */
 :root{
     --bg: #f1f0ec;
@@ -74,7 +74,7 @@ button{ font-family: inherit; }
     margin-bottom: 12px;
 }
 
-/* PILL HEADER — identical system to index.html */
+/* PILL HEADER - identical system to index.html */
 .nav-shell{
     position: sticky;
     top: 0;
@@ -109,7 +109,7 @@ nav.pill .nav-links a{ font-size: 14px; font-weight: 500; color: var(--ink); tra
 nav.pill .nav-links a:hover{ color: var(--ink-soft); }
 .nav-cta{ border: 1px solid var(--ink); border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 600; white-space: nowrap; }
 
-/* mobile slide-out menu — identical system to index.html */
+/* mobile slide-out menu - identical system to index.html */
 .mobile-menu{
     position: fixed; top: 0; left: 0; height: 100%;
     width: min(340px, 86vw);
@@ -184,7 +184,7 @@ nav.pill .nav-links a:hover{ color: var(--ink-soft); }
 .policy-mascot{ text-align:center; margin: 28px 0 0; }
 .policy-mascot img{ width: 150px; max-width: 55%; margin: 0 auto; }
 
-/* FOOTER — identical system to index.html */
+/* FOOTER - identical system to index.html */
 footer.site-footer{
     background: var(--bg-dark);
     color: var(--ink-on-dark);
@@ -205,7 +205,7 @@ footer.site-footer{
 @media (max-width: 900px){
     .policy-layout{ grid-template-columns: 1fr; gap: 28px; }
     .policy-toc{ position:static; }
-    /* turn each link into its own pill chip — plain wrapped text
+    /* turn each link into its own pill chip - plain wrapped text
        links looked messy once they stopped being a vertical list */
     .policy-toc ul{ flex-direction:row; flex-wrap:wrap; gap: 8px; }
     .policy-toc a{
@@ -591,13 +591,13 @@ document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('c
 
 
 /* WHATSAPP_NUMBER must be in international format, digits only,
-   no leading 0 or +. FOM's site phone is 073 755 3136 — assuming
+   no leading 0 or +. FOM's site phone is 073 755 3136 - assuming
    this is the WhatsApp number, the SA country code (27) replaces
    the leading 0: 27737553136. Double check this is correct and
    WhatsApp-enabled before going live. */
 const WHATSAPP_NUMBER = '27737553136';
 
-/* ---- Brevo "Book a Shoot" form — submits silently in the background,
+/* ---- Brevo "Book a Shoot" form - submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
    URL come directly from the embed code generated in Brevo. ---- */
 const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
@@ -723,7 +723,7 @@ bookingWhatsappBtn.addEventListener('click', () => {
 <!-- ============================================================
      COOKIE CONSENT + GA4 LOADER
      GA4 (window.FOM_GA_ID, set in <head>) only loads after the
-     visitor accepts — no tracking cookies are set before consent.
+     visitor accepts - no tracking cookies are set before consent.
      Choice is remembered in localStorage.
      ============================================================ -->
 <div id="cookieConsent" class="cookie-consent" style="display:none;">
