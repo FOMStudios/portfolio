@@ -4,22 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOM Studios | Gallery</title>
-<meta name="description" content="Full gallery of FOM Studios photography and videography work — Johannesburg, South Africa.">
+<meta name="description" content="Full gallery of FOM Studios photography and videography work in Johannesburg, South Africa.">
 <link rel="canonical" href="https://www.fomstudios.co.za/gallery.html">
 
 <!-- Open Graph / social share -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FOM Studios">
 <meta property="og:title" content="FOM Studios | Gallery">
-<meta property="og:description" content="Full gallery of FOM Studios photography and videography work — Johannesburg, South Africa.">
+<meta property="og:description" content="Full gallery of FOM Studios photography and videography work in Johannesburg, South Africa.">
 <meta property="og:image" content="https://www.fomstudios.co.za/assets/work1.jpg">
 <meta property="og:url" content="https://www.fomstudios.co.za/gallery.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FOM Studios | Gallery">
-<meta name="twitter:description" content="Full gallery of FOM Studios photography and videography work — Johannesburg, South Africa.">
+<meta name="twitter:description" content="Full gallery of FOM Studios photography and videography work in Johannesburg, South Africa.">
 <meta name="twitter:image" content="https://www.fomstudios.co.za/assets/work1.jpg">
 
-<!-- Google Analytics (GA4) — only loads after cookie consent is accepted -->
+<!-- Google Analytics (GA4) - only loads after cookie consent is accepted -->
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){ dataLayer.push(arguments); }
@@ -27,7 +27,7 @@ window.FOM_GA_ID = 'G-TEYD624ZE7';
 </script>
 
 <style>
-/* Tokens match index.html / policy.html exactly — see index.html
+/* Tokens match index.html / policy.html exactly - see index.html
    for the full comment explaining the palette choices. */
 :root{
     --bg: #f1f0ec;
@@ -74,7 +74,7 @@ button{ font-family: inherit; }
     margin-bottom: 12px;
 }
 
-/* PILL HEADER — identical system to index.html */
+/* PILL HEADER - identical system to index.html */
 .nav-shell{
     position: sticky;
     top: 0;
@@ -109,7 +109,7 @@ nav.pill .nav-links a:hover{ color: var(--ink-soft); }
 nav.pill .nav-links a.active{ color: var(--accent); font-weight: 700; }
 .nav-cta{ border: 1px solid var(--ink); border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 600; white-space: nowrap; }
 
-/* mobile slide-out menu — identical system to index.html */
+/* mobile slide-out menu - identical system to index.html */
 .mobile-menu{
     position: fixed; top: 0; left: 0; height: 100%;
     width: min(340px, 86vw);
@@ -147,7 +147,7 @@ nav.pill .nav-links a.active{ color: var(--accent); font-weight: 700; }
    A 4-column base grid on desktop. Each cell is assigned one of
    four shapes (big / wide / tall / square) which cycle in a
    repeating pattern, so the mosaic stays balanced no matter how
-   many images get added later — new shoots just continue the
+   many images get added later - new shoots just continue the
    work-N.jpg numbering and slot into the next position.
    ========================================================= */
 .bento{
@@ -186,14 +186,14 @@ nav.pill .nav-links a.active{ color: var(--accent); font-weight: 700; }
 }
 .b-card:hover .b-caption{ opacity: 1; transform: translateY(0); }
 
-/* shapes — span sizes within the 4-col / 220px-row base grid */
+/* shapes - span sizes within the 4-col / 220px-row base grid */
 .b-big{ grid-column: span 2; grid-row: span 2; }
 .b-wide{ grid-column: span 2; grid-row: span 1; }
 .b-tall{ grid-column: span 1; grid-row: span 2; }
 .b-square{ grid-column: span 1; grid-row: span 1; }
 
 /* =========================================================
-   LOAD MORE — placeholder control for when there are more
+   LOAD MORE - placeholder control for when there are more
    shoots than fit on one screen. Currently shows everything,
    but the button is wired and ready: once there are enough
    work-N.jpg images to paginate, this can hide extras by
@@ -260,7 +260,7 @@ footer.site-footer{
     .bento{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: 200px; }
     .b-big{ grid-column: span 2; grid-row: span 2; }
     /* wide (2x1) doesn't divide cleanly into 3 columns alongside
-       a 2x2 + 1x2 mix, so it collapses to a square here — the
+       a 2x2 + 1x2 mix, so it collapses to a square here - the
        image still shows, just without the extra-wide treatment */
     .b-wide{ grid-column: span 1; grid-row: span 1; }
     .footer-grid{ grid-template-columns: 1.2fr 1fr 1fr; }
@@ -275,10 +275,10 @@ footer.site-footer{
     /* real bento on mobile too, just at a smaller scale: 2 columns
        instead of 4, shorter row height. The same shape classes
        (b-big / b-wide / b-tall / b-square) tile perfectly at 2
-       columns with zero gaps — big and wide both become full-width,
+       columns with zero gaps - big and wide both become full-width,
        tall and square both become a single column.
        b-wide is explicitly restored here because the 1024px breakpoint
-       collapses it to a square for the 3-column layout — we need it
+       collapses it to a square for the 3-column layout - we need it
        back to full-width (span 2) for the 2-column mobile grid. */
     .bento{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 10px; }
     .b-wide{ grid-column: span 2; grid-row: span 1; }
@@ -499,7 +499,7 @@ footer.site-footer{
      BENTO GALLERY
      Naming convention continues from the homepage: work1.jpg
      through work10.jpg are the same shoots shown there, and
-     work11.jpg onward are gallery-only — just keep adding
+     work11.jpg onward are gallery-only - just keep adding
      workN.jpg to assets/ and a new card below using the next
      number, picking whichever shape (b-big / b-wide / b-tall /
      b-square) keeps the mosaic balanced. Every card also needs
@@ -519,14 +519,14 @@ footer.site-footer{
             <div class="b-card b-wide" data-cat="automotive" data-full="assets/work8.jpg"><img src="assets/work8.jpg" alt="Automotive photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Automotive</div></div>
             <div class="b-card b-square" data-cat="automotive" data-full="assets/work9.jpg"><img src="assets/work9.jpg" alt="Car meet automotive photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Car Meets</div></div>
             <div class="b-card b-square" data-cat="automotive" data-full="assets/work10.jpg"><img src="assets/work10.jpg" alt="Automotive photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Automotive</div></div>
-            <div class="b-card b-square" data-cat="sports" data-full="assets/work11.jpg"><img src="assets/work11.jpg" alt="Portrait photography — Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
-            <div class="b-card b-square" data-cat="sports" data-full="assets/work12.jpg"><img src="assets/work12.jpg" alt="Portrait photography — Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
-            <div class="b-card b-square" data-cat="sports" data-full="assets/work13.jpg"><img src="assets/work13.jpg" alt="Portrait photography — Kyle Oliver by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Kyle Oliver</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work11.jpg"><img src="assets/work11.jpg" alt="Portrait photography: Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work12.jpg"><img src="assets/work12.jpg" alt="Portrait photography: Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work13.jpg"><img src="assets/work13.jpg" alt="Portrait photography: Kyle Oliver by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Kyle Oliver</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work14.jpg"><img src="assets/work14.jpg" alt="Sports motion-blur photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Motion Blur</div></div>
             <div class="b-card b-wide" data-cat="sports" data-full="assets/work15.jpg"><img src="assets/work15.jpg" alt="Team sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Team Spirit</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work16.jpg"><img src="assets/work16.jpg" alt="Sports detail photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Details</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work17.jpg"><img src="assets/work17.jpg" alt="Creative sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Pixel Stretch</div></div>
-            <div class="b-card b-wide" data-cat="sports" data-full="assets/work18.jpg"><img src="assets/work18.jpg" alt="Portrait photography — Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
+            <div class="b-card b-wide" data-cat="sports" data-full="assets/work18.jpg"><img src="assets/work18.jpg" alt="Portrait photography: Zaydaan by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Zaydaan</div></div>
             <div class="b-card b-wide" data-cat="sports" data-full="assets/work19.jpg"><img src="assets/work19.jpg" alt="Soccer photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Soccer</div></div>
             <div class="b-card b-tall" data-cat="sports" data-full="assets/work20.jpg"><img src="assets/work20.jpg" alt="Soccer photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Soccer</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work21.jpg"><img src="assets/work21.jpg" alt="Soccer photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Soccer</div></div>
@@ -548,7 +548,7 @@ footer.site-footer{
             <div class="b-card b-square" data-cat="sports" data-full="assets/work37.jpg"><img src="assets/work37.jpg" alt="Swimming sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Swimming</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work38.jpg"><img src="assets/work38.jpg" alt="Swimming sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Swimming</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work39.jpg"><img src="assets/work39.jpg" alt="Swimming sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Swimming</div></div>
-            <div class="b-card b-square" data-cat="sports" data-full="assets/work40.jpeg"><img src="assets/work40.jpeg" alt="Swimming sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Swimming</div></div>
+            <div class="b-card b-square" data-cat="sports" data-full="assets/work40.jpg"><img src="assets/work40.jpg" alt="Swimming sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Swimming</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work41.jpeg"><img src="assets/work41.jpeg" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work42.png"><img src="assets/work42.png" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work43.png"><img src="assets/work43.png" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
@@ -558,7 +558,7 @@ footer.site-footer{
             <div class="b-card b-tall" data-cat="sports" data-full="assets/work47.png"><img src="assets/work47.png" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work48.png"><img src="assets/work48.png" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
             <div class="b-card b-square" data-cat="sports" data-full="assets/work49.png"><img src="assets/work49.png" alt="Basketball sports photography by FOM Studios, Johannesburg" loading="lazy"><div class="b-caption">Basketball</div></div>
-            <div class="bento-empty" id="bentoEmpty">No shots in this category yet — check back soon.</div>
+            <div class="bento-empty" id="bentoEmpty">No shots in this category yet. Check back soon.</div>
         </div>
     </div>
 </section>
@@ -692,13 +692,13 @@ document.getElementById('galleryFilterRow').addEventListener('click', e => {
 
 
 /* WHATSAPP_NUMBER must be in international format, digits only,
-   no leading 0 or +. FOM's site phone is 073 755 3136 — assuming
+   no leading 0 or +. FOM's site phone is 073 755 3136 - assuming
    this is the WhatsApp number, the SA country code (27) replaces
    the leading 0: 27737553136. Double check this is correct and
    WhatsApp-enabled before going live. */
 const WHATSAPP_NUMBER = '27737553136';
 
-/* ---- Brevo "Book a Shoot" form — submits silently in the background,
+/* ---- Brevo "Book a Shoot" form - submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
    URL come directly from the embed code generated in Brevo. ---- */
 const BREVO_ACTION_URL = 'https://96e55b7d.sibforms.com/serve/MUIFAOGZYJ5npzv65-wsmw0rzGzlvVrsLtrpQKJJSW_0bptJOWl-2SNXPFv5mujZ6ow-7ZYMDTKyZSVbp-bmpc8OtJSwj6iXVyRfu-lFfDTwAS08ru9flWlLPXeqMj_po4yqus2W7JW-QOujQUpqkvxcm8k_8taFHN8Ib1HtA4JT2jS72FKllyMvkQiYu2B0z9xXfzU_BMLz3pfuvw==';
@@ -824,7 +824,7 @@ bookingWhatsappBtn.addEventListener('click', () => {
 <!-- ============================================================
      COOKIE CONSENT + GA4 LOADER
      GA4 (window.FOM_GA_ID, set in <head>) only loads after the
-     visitor accepts — no tracking cookies are set before consent.
+     visitor accepts - no tracking cookies are set before consent.
      Choice is remembered in localStorage.
      ============================================================ -->
 <div id="cookieConsent" class="cookie-consent" style="display:none;">
