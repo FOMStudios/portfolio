@@ -702,35 +702,29 @@ footer.site-footer{
 }
 
 /* =========================== WORKED WITH =========================== */
-/* Static logo row: all 7 logos sit in one line on desktop, and wrap
-   into a 3-up grid on phones. No animation, nothing cut off. */
+/* Logo cards: 3 x 2 grid on desktop, 2 x 3 on phones. Everything is
+   visible at once, so there is nothing to swipe or miss. */
 .worked-with-marquee{ width:100%; margin-top:20px; }
 .worked-with-track{
-    display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:nowrap; gap:20px; width:100%;
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;
 }
-.ww-item{ display:flex; align-items:center; justify-content:center; height:88px; flex:1 1 0; min-width:0; }
-.ww-item img{
-    max-height:84px; max-width:100%; width:auto; height:auto;
-    object-fit:contain; transition:transform .25s cubic-bezier(0.16,1,0.3,1);
+.ww-item{
+    display:flex; align-items:center; justify-content:center;
+    height:130px; padding:18px 24px;
+    background:var(--bg-pill); border:1px solid var(--line); border-radius:var(--radius-card);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+    transition:transform .25s cubic-bezier(0.16,1,0.3,1), box-shadow .25s;
 }
-.ww-item img:hover{ transform:scale(1.12); }
-.ww-fallback{
-    font-weight:700; font-size:17px; color:var(--ink); letter-spacing:-.01em; text-align:center;
-    transition:transform .25s cubic-bezier(0.16,1,0.3,1); display:inline-block;
-}
-.ww-item:hover .ww-fallback{ transform:scale(1.08); }
-@media (max-width: 900px){
-    .worked-with-track{ flex-wrap:wrap; justify-content:center; row-gap:14px; column-gap:0; }
-    .ww-item{ flex:0 0 33.333%; height:72px; padding:0 10px; }
-    .ww-item img{ max-height:66px; }
+.ww-item:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(0,0,0,.08); }
+.ww-item img{ max-height:76px; max-width:100%; width:auto; height:auto; object-fit:contain; }
+.ww-fallback{ font-weight:700; font-size:18px; color:var(--ink); letter-spacing:-.01em; text-align:center; }
+@media (max-width: 700px){
+    .worked-with-track{ grid-template-columns:repeat(2, 1fr); gap:12px; }
+    .ww-item{ height:96px; padding:12px 14px; border-radius:16px; }
+    .ww-item img{ max-height:56px; }
     .ww-fallback{ font-size:14px; }
 }
-
-/* =========================== FULL-BLEED IMAGE BREAK =========================== */
-.full-bleed{ width:100%; height:60vh; overflow:hidden; }
-.full-bleed img{ width:100%; height:100%; object-fit:cover; display:block; }
-@media (max-width: 700px){ .full-bleed{ height:38vh; } }
+@media (prefers-reduced-motion: reduce){ .ww-item{ transition:none; } .ww-item:hover{ transform:none; } }
 </style>
 </head>
 
@@ -857,14 +851,6 @@ footer.site-footer{
     </div>
 </section>
 
-<!-- FULL-BLEED IMAGE BREAK - a single large-format shot, edge to
-     edge, with no text. Lets the photography carry the moment
-     between sections instead of another boxed content block.
-     Replace assets/fullbleed1.jpg with a strong, wide shot. -->
-<section class="full-bleed">
-    <img src="assets/fullbleed1.jpg" alt="FOM Studios cinematic photography" loading="lazy">
-</section>
-
 <!-- VIDEOS -->
 <section id="videos" class="tight">
     <div class="wrap">
@@ -924,10 +910,12 @@ footer.site-footer{
                     <img src="assets/logo-redbull-media.png" alt="Red Bull Media" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <span class="ww-fallback" style="display:none;">Red Bull Media</span>
                 </div>
+                <!-- Custom Wear: hidden for now, remove the comment markers to bring it back
                 <div class="ww-item">
                     <img src="assets/logo-custom-wear.png" alt="Custom Wear" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <span class="ww-fallback" style="display:none;">Custom Wear</span>
                 </div>
+                -->
                 <div class="ww-item">
                     <img src="assets/logo-str-towing.png" alt="STR Towing" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <span class="ww-fallback" style="display:none;">STR Towing</span>
@@ -943,13 +931,6 @@ footer.site-footer{
             </div>
         </div>
     </div>
-</section>
-
-<!-- FULL-BLEED IMAGE BREAK #2 - replace assets/fullbleed2.jpg
-     with a strong shot, ideally a different discipline than
-     fullbleed1.jpg (e.g. automotive if the first was sports). -->
-<section class="full-bleed">
-    <img src="assets/fullbleed2.jpg" alt="FOM Studios cinematic photography" loading="lazy">
 </section>
 
 <!-- =========================================================
