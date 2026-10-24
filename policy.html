@@ -351,6 +351,7 @@ footer.site-footer{
 .booking-btn.email.sent{ background: #27ae60; cursor: default; }
 .booking-btn.email:disabled{ opacity: 0.75; cursor: default; }
 </style>
+<script src="site-data.js"></script>
 </head>
 
 <body>
@@ -599,7 +600,8 @@ document.querySelectorAll('[data-menu-link]').forEach(a => a.addEventListener('c
    this is the WhatsApp number, the SA country code (27) replaces
    the leading 0: 27737553136. Double check this is correct and
    WhatsApp-enabled before going live. */
-const WHATSAPP_NUMBER = '27737553136';
+var WHATSAPP_NUMBER = (window.FOM_SITE && FOM_SITE.wa) || '27737553136';
+document.addEventListener('fom-site', function(){ if(window.FOM_SITE && FOM_SITE.wa) WHATSAPP_NUMBER = FOM_SITE.wa; });
 
 /* ---- Brevo "Book a Shoot" form - submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action

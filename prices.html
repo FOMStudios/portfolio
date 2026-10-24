@@ -790,6 +790,7 @@ footer.site-footer{
     .pkg-detail-panel{ border-radius:var(--radius-card); max-height:88vh; }
 }
 </style>
+<script src="site-data.js"></script>
 </head>
 
 <body>
@@ -1051,7 +1052,8 @@ footer.site-footer{
 /* WHATSAPP_NUMBER must be in international format, digits only,
    no leading 0 or +. Matches the same number used on index.html -
    update both files together if this ever changes. */
-const WHATSAPP_NUMBER = '27737553136';
+var WHATSAPP_NUMBER = (window.FOM_SITE && FOM_SITE.wa) || '27737553136';
+document.addEventListener('fom-site', function(){ if(window.FOM_SITE && FOM_SITE.wa) WHATSAPP_NUMBER = FOM_SITE.wa; });
 
 /* ---- Brevo "Book a Shoot" form - submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
