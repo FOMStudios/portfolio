@@ -239,8 +239,8 @@ nav.pill .nav-links a:hover{ color: var(--ink-soft); }
    tons.bike "Show some respect for your gear" hero treatment. */
 .hero{
     position: relative;
-    height: 100vh;
-    min-height: 560px;
+    min-height: 100vh;
+    min-height: 100svh;
     width: 100%;
     overflow: hidden;
 }
@@ -266,11 +266,16 @@ nav.pill .nav-links a:hover{ color: var(--ink-soft); }
 .hero-content{
     position: relative;
     z-index: 1;
-    height: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-top: 120px; /* clears the floating pill nav */
+    /* top padding clears the floating pill nav; bottom padding clears
+       the about panel that overlaps the hero by 40px. The hero grows
+       with its content, so short screens never push text under the nav. */
+    padding-top: 130px;
+    padding-bottom: 72px;
 }
 
 .hero-copy{
@@ -367,10 +372,9 @@ section.tight{ padding: 36px 0; }
    (not a filled card) - only the border traces the tab shape. */
 .about-panel{
     background: var(--bg);
-    border: 1.5px solid var(--ink);
-    border-bottom: none;
+    border: none;
     border-radius: 40px 40px 0 0;
-    margin-top: -24px;
+    margin-top: -40px; /* equals the corner radius, so the hero photo fills the curve with no hard edge */
     position: relative;
     z-index: 2;
 }
@@ -654,8 +658,8 @@ footer.site-footer{
 }
 
 @media (max-width: 600px){
-    .hero{ height: 100vh; min-height: 100dvh; }
-    .hero-content{ padding-top: 96px; }
+    .hero{ min-height: 100vh; min-height: 100svh; }
+    .hero-content{ padding-top: 108px; padding-bottom: 64px; }
     section{ padding: 36px 0; }
     .hero-ctas{ max-width: 100%; }
 
