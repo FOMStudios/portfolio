@@ -968,6 +968,30 @@ footer.site-footer{
         </div>
     </div>
 </section>
+<!-- Featured reviews: pulled live from the dashboard's Feature button (Firestore "testimonials"). The three cards above stay as the fallback. -->
+<script>
+(function(){
+    var grid=document.querySelector('.testimonial-grid'); if(!grid) return;
+    var statics=[].slice.call(grid.children);
+    var URL_='https://firestore.googleapis.com/v1/projects/fom-studios/databases/(default)/documents/testimonials?pageSize=3&orderBy=featuredAt%20desc&key=AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A';
+    function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+    function val(f){ if(!f) return ''; return f.stringValue!=null?f.stringValue:(f.integerValue!=null?+f.integerValue:(f.doubleValue!=null?f.doubleValue:'')); }
+    fetch(URL_).then(function(r){return r.ok?r.json():null;}).then(function(d){
+        var docs=(d&&d.documents)||[]; if(!docs.length) return;
+        var cards=docs.slice(0,3).map(function(doc){
+            var f=doc.fields||{}, n=Math.max(1,Math.min(5,+val(f.rating)||5)), msg=String(val(f.message)||'').trim();
+            if(!msg) return null;
+            var el=document.createElement('div'); el.className='testimonial-card';
+            el.innerHTML='<div class="stars">'+'\u2605'.repeat(n)+'</div><p class="quote">'+esc(msg)+'</p><div class="who">'+esc(val(f.name)||'Client')+'</div><div class="role">Verified client</div>';
+            return el;
+        }).filter(Boolean);
+        if(!cards.length) return;
+        // featured reviews first, then fill any empty slots with the original quotes so the row always has 3
+        var out=cards.concat(statics).slice(0,3);
+        grid.innerHTML=''; out.forEach(function(c){grid.appendChild(c);});
+    }).catch(function(){ /* keep the static cards */ });
+})();
+</script>
 <!-- END ADDITION 1 -->
 
 <!-- =========================================================
