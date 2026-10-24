@@ -366,7 +366,12 @@ footer.site-footer{
 .contact-card p{ color: var(--ink-soft); font-size:15px; line-height:1.6; }
 .contact-card .c-action{ margin-top:auto; padding-top:14px; }
 .btn-pill.dark{ background: var(--ink); border-color: var(--ink); color:#fff; }
-.btn-pill.dark:hover{ background:#000; border-color:#000; color:#fff; }
+.contact-hero .btn-pill, .contact-card .btn-pill,
+.contact-hero .btn-pill:hover, .contact-card .btn-pill:hover,
+.contact-hero .btn-pill:focus, .contact-card .btn-pill:focus,
+.contact-hero .btn-pill:active, .contact-card .btn-pill:active,
+.contact-hero .btn-pill:visited, .contact-card .btn-pill:visited{ background:#2a2b2c; border-color:#2a2b2c; color:#fff; }
+.contact-hero .btn-pill:hover, .contact-card .btn-pill:hover{ background:#000; border-color:#000; }
 .contact-card .btn-pill{ min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
 @media (max-width: 900px){ .contact-grid{ grid-template-columns:repeat(2,1fr); } }
 @media (max-width: 600px){
@@ -429,7 +434,7 @@ footer.site-footer{
         <span class="eyebrow">Contact</span>
         <h1>Let's work together</h1>
         <p>Ready to book a shoot or just have a question? Pick whichever way suits you and we will get back to you.</p>
-        <a href="#" class="btn-pill filled" data-open-booking>Book a shoot</a>
+        <a href="#" class="btn-pill dark" data-open-booking>Book a shoot</a>
     </div>
 </div>
 
@@ -440,19 +445,19 @@ footer.site-footer{
             <span class="c-label">Book</span>
             <h2>Book a shoot</h2>
             <p>Tell us what you need and we will come back to you with availability and a quote.</p>
-            <div class="c-action"><a href="#" class="btn-pill filled" data-open-booking>Book now</a></div>
+            <div class="c-action"><a href="#" class="btn-pill dark" data-open-booking>Book now</a></div>
         </div>
         <div class="contact-card">
             <span class="c-label">Email</span>
             <h2>info@fomstudios.co.za</h2>
             <p>Best for quotes, bookings and anything with details or attachments.</p>
-            <div class="c-action"><a href="mailto:info@fomstudios.co.za" class="btn-pill">Send an email</a></div>
+            <div class="c-action"><a href="mailto:info@fomstudios.co.za" class="btn-pill dark">Send an email</a></div>
         </div>
         <div class="contact-card">
             <span class="c-label">Phone</span>
             <h2>073 755 3136</h2>
             <p>Give us a call for anything urgent.</p>
-            <div class="c-action"><a href="tel:0737553136" class="btn-pill">Call us</a></div>
+            <div class="c-action"><a href="tel:0737553136" class="btn-pill dark">Call us</a></div>
         </div>
         <div class="contact-card">
             <span class="c-label">WhatsApp</span>
