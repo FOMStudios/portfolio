@@ -19,7 +19,7 @@ body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Helvetica 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);max-width:520px;width:100%;
   padding:clamp(24px,6vw,38px);box-shadow:0 24px 60px -30px rgba(0,0,0,.3);}
 .center{text-align:center;}
-.mascot{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#fff;margin:0 auto 14px;display:block;box-shadow:0 8px 22px -10px rgba(0,0,0,.4);}
+.mascot{width:72px;height:72px;border-radius:50%;object-fit:contain;padding:6px;background:#fff;margin:0 auto 14px;display:block;box-shadow:0 8px 22px -10px rgba(0,0,0,.4);}
 .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;display:block;text-align:center;}
 h1{font-size:clamp(22px,5vw,28px);font-weight:800;letter-spacing:-.01em;margin:8px 0 6px;text-align:center;}
 .sub{color:var(--ink-soft);font-size:14.5px;margin-bottom:22px;text-align:center;}
@@ -86,8 +86,8 @@ h1{font-size:clamp(22px,5vw,28px);font-weight:800;letter-spacing:-.01em;margin:8
   <!-- ALREADY SIGNED / INVALID -->
   <div id="blocked" class="state hidden">
     <div class="big">&#128275;</div>
-    <h1 id="blockedTitle">Already signed</h1>
-    <p id="blockedMsg">This contract has already been signed, or this link is no longer valid. If you think this is a mistake, please contact FOM Studios.</p>
+    <h1 id="blockedTitle">We could not save your signature</h1>
+    <p id="blockedMsg">This contract may already be signed, or this link may be out of date. Nothing has been changed. Please contact FOM Studios and we will sort it out straight away.</p>
     <div class="foot">FOM Studios &middot; info@fomstudios.co.za</div>
   </div>
 
