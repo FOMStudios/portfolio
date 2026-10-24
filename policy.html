@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOM Studios | Policy</title>
 <meta name="description" content="FOM Studios booking, payment, cancellation and usage policy.">
+<link rel="icon" type="image/png" href="assets/mascot-head-color.png">
+<link rel="apple-touch-icon" href="assets/mascot-head-color.png">
 <link rel="canonical" href="https://www.fomstudios.co.za/policy.html">
 
 <!-- Open Graph / social share -->
@@ -365,7 +367,7 @@ footer.site-footer{
         <li><a href="gallery.html" data-menu-link>Gallery</a></li>
         <li><a href="prices.html" data-menu-link>Prices</a></li>
         <li><a href="policy.html" data-menu-link>Policy</a></li>
-        <li><a href="index.html#contact" data-menu-link>Contact</a></li>
+        <li><a href="contact.html" data-menu-link>Contact</a></li>
     </ul>
     <div class="menu-media">
         <img src="assets/mascot-head-color.png" alt="FOM Studios mascot">
@@ -390,8 +392,9 @@ footer.site-footer{
                 <li><a href="gallery.html">Gallery</a></li>
                 <li><a href="prices.html">Prices</a></li>
                 <li><a href="policy.html">Policy</a></li>
+                <li><a href="contact.html">Contact</a></li>
             </ul>
-            <a href="#" class="nav-cta" data-open-booking>Book a shoot</a>
+            <a href="contact.html" class="nav-cta" data-open-booking>Book a shoot</a>
         </div>
     </nav>
 </div>
@@ -518,6 +521,7 @@ footer.site-footer{
                     <li><a href="gallery.html">Gallery</a></li>
                     <li><a href="prices.html">Prices</a></li>
                     <li><a href="policy.html">Policy</a></li>
+                    <li><a href="contact.html">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -600,7 +604,7 @@ const WHATSAPP_NUMBER = '27737553136';
 /* ---- Brevo "Book a Shoot" form - submits silently in the background,
    no mail app opens. Field names (NAME, EMAIL, MESSAGE) and the action
    URL come directly from the embed code generated in Brevo. ---- */
-const BREVO_ACTION_URL = 'https://4a304569.sibforms.com/serve/MUIFAGG9_KYYmUxA858_I5BB08GbKHrD20b7Qu_ngdDANUgWNYUNj38NdJmLto6JJGisaMvqqWNQKxzDn8bLalLIxZIu4NvmnUFlfWCNX_-HIp9UlQxlvteCIew7yA9_9HwhZCoDlyo7ZEijWoZCEU3ODv16iUi3jp-y7IMmwZPXbLAiVpXLvP10Tf4HiaovQGskaowAbnEUANRuHg==';
+const BREVO_ACTION_URL = 'https://96e55b7d.sibforms.com/serve/MUIFAOGZYJ5npzv65-wsmw0rzGzlvVrsLtrpQKJJSW_0bptJOWl-2SNXPFv5mujZ6ow-7ZYMDTKyZSVbp-bmpc8OtJSwj6iXVyRfu-lFfDTwAS08ru9flWlLPXeqMj_po4yqus2W7JW-QOujQUpqkvxcm8k_8taFHN8Ib1HtA4JT2jS72FKllyMvkQiYu2B0z9xXfzU_BMLz3pfuvw==';
 
 /* Submits a form to Brevo via a hidden iframe so the visitor's page
    never navigates away and no mail app or new tab opens. Forms (unlike
@@ -696,7 +700,7 @@ bookingEmailBtn.addEventListener('click', async () => {
     bookingEmailBtn.disabled = true;
     bookingEmailBtnLabel.textContent = 'Sending…';
 
-    await submitToBrevo({ NAME: name, EMAIL: email, MESSAGE: message });
+    await submitToBrevo({ EMAIL: email, MESSAGE: `From ${name}: ${message}` });
 
     bookingEmailBtn.classList.add('sent');
     bookingEmailBtnLabel.textContent = 'Sent ✓';
