@@ -27,6 +27,7 @@
     if('stringValue' in v) return v.stringValue;
     if('booleanValue' in v) return v.booleanValue;
     if('integerValue' in v) return +v.integerValue;
+    if('arrayValue' in v){ return (v.arrayValue.values||[]).map(fromValue); }
     if('mapValue' in v){ var o={}, f=v.mapValue.fields||{}; for(var k in f) o[k]=fromValue(f[k]); return o; }
     return null;
   }
@@ -42,6 +43,42 @@
     if(!a.hasAttribute('data-fom-h')) a.setAttribute('data-fom-h', a.getAttribute('href') || '');
     var o = a.getAttribute('data-fom-h'), r = fn(o);
     a.setAttribute('href', r == null ? o : r);
+  }
+
+  function isoOf(dt){ return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2); }
+  function niceDay(v){ try{ return new Date(v + 'T00:00:00').toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' }); }catch(e){ return v; } }
+  function blockedFor(v){
+    var a = (S && S.blockedDates) || [];
+    for(var i = 0; i < a.length; i++){ var x = a[i]; if(x && x.from && v >= x.from && v <= (x.to || x.from)) return x; }
+    return null;
+  }
+  /* booking form: add a preferred-date field that refuses the dates you blocked on the dashboard */
+  function injectDate(){
+    var ta = document.getElementById('bookingMessage'); if(!ta) return;
+    var today = isoOf(new Date());
+    var inp = document.getElementById('fomDate'), msg, hint;
+    if(!inp){
+      var holder = ta.closest ? ta.closest('.booking-field') : null; if(!holder || !holder.parentNode) return;
+      var wrap = document.createElement('div'); wrap.className = 'booking-field'; wrap.id = 'fomDateField';
+      wrap.innerHTML = '<label for="fomDate">Preferred shoot date (optional)</label><input type="date" id="fomDate">' +
+        '<p id="fomDateMsg" style="font-size:12.5px;margin:6px 0 0;color:#c0392b;min-height:16px;"></p><p id="fomDateHint" style="font-size:12px;margin:2px 0 0;color:#6f6f6d;"></p>';
+      holder.parentNode.insertBefore(wrap, holder);
+      inp = document.getElementById('fomDate'); inp.min = today;
+      var setLine = function(v){
+        var rest = ta.value.split('\n').filter(function(l){ return !/^Preferred date:/i.test(l); }).join('\n');
+        ta.value = v ? ('Preferred date: ' + niceDay(v) + (rest ? '\n' + rest : '')) : rest;
+      };
+      inp.addEventListener('change', function(){
+        var v = inp.value, b = v && blockedFor(v), m = document.getElementById('fomDateMsg');
+        if(b){ m.textContent = 'Sorry, we are not available on that date' + (b.label ? ' (' + b.label + ')' : '') + '. Please pick another date.'; inp.value = ''; setLine(''); }
+        else if(v){ m.textContent = ''; setLine(v); }
+        else setLine('');
+      });
+    }
+    hint = document.getElementById('fomDateHint');
+    var up = ((S && S.blockedDates) || []).filter(function(x){ return x && x.from && (x.to || x.from) >= today; }).slice(0, 3);
+    hint.textContent = up.length ? 'Not available: ' + up.map(function(x){ var r = niceDay(x.from) + ((x.to && x.to !== x.from) ? ' to ' + niceDay(x.to) : ''); return r + (x.label ? ' (' + x.label + ')' : ''); }).join('; ') : '';
+    if(inp.value && blockedFor(inp.value)){ inp.value = ''; inp.dispatchEvent(new Event('change')); }
   }
 
   function apply(){
@@ -91,6 +128,8 @@
         });
       }
     });
+
+    injectDate();
 
     // ----- announcement banner -----
     var old = document.getElementById('fomBanner'); if(old) old.remove();
