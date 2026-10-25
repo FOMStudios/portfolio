@@ -52,6 +52,11 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .meta .m .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:700;}
 .meta .m .v{font-size:16px;font-weight:800;margin-top:4px;letter-spacing:.02em;color:#fff;}
 .meta .m .v.hi{color:#8fb8e8;}
+.meta .m .v.exp{color:#ffb4ae;}
+.meta .m .v small{display:block;font-size:11.5px;font-weight:600;letter-spacing:.03em;color:#ffb4ae;opacity:.85;margin-top:2px;}
+.topbar .tb-r{display:flex;align-items:center;gap:8px;}
+.topbar .back{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.topbar .back:hover{border-color:var(--ink);}
 
 /* ===== library toolbar ===== */
 .lib{padding-top:clamp(28px,6vw,52px);}
@@ -145,7 +150,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 
 <script>
 /* ============================================================
-   FOM STUDIOS — Client gallery (reads file list from the R2 Worker).
+   FOM STUDIOS, Client gallery (reads file list from the R2 Worker).
    Opens in DEMO mode (sample tiles) when no Worker/params are set.
    ============================================================ */
 const CONFIG = {
@@ -216,10 +221,11 @@ function dlAllBtn(cls){ const href = GAL.dl || '#';
 
 function renderGallery(){
   const m=meta();
+  function daysLeftTxt(iso){ const d=Math.ceil((new Date(iso+'T23:59:59')-new Date())/864e5); return d>0 ? `<small>${d} day${d===1?'':'s'} left</small>` : ''; }
   $('app').innerHTML=`
     <header class="topbar">
       <a class="mark" href="client-portal.html"><img src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">FOM STUDIOS</a>
-      ${dlAllBtn('sm')}
+      <div class="tb-r"><a class="back" href="client-portal.html">&lsaquo; Portal</a>${dlAllBtn('sm')}</div>
     </header>
 
     <section class="hero">
@@ -234,7 +240,7 @@ function renderGallery(){
           ${GAL.date?`<div class="m"><div class="k">Shoot Date</div><div class="v">${esc(niceDate(GAL.date))}</div></div>`:''}
           <div class="m"><div class="k">Files</div><div class="v">${m.count}</div></div>
           <div class="m"><div class="k">Total Size</div><div class="v hi">${fmtSize(m.total)}</div></div>
-          ${GAL.expiry?`<div class="m"><div class="k">Available Until</div><div class="v">${esc(niceDate(GAL.expiry))}</div></div>`:''}
+          ${GAL.expiry?`<div class="m"><div class="k">Available Until</div><div class="v exp">${esc(niceDate(GAL.expiry))}${daysLeftTxt(GAL.expiry)}</div></div>`:''}
         </div>
       </div>
     </section>
