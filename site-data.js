@@ -173,3 +173,56 @@
     }).catch(function(){});
   }catch(e){}
 })();
+
+/* ---- Portfolio photos, controlled from the dashboard "Photos" page ----
+   Reads Firestore siteContent/portfolio and rebuilds the homepage strip and the gallery page.
+   The photos already written in the HTML stay as the fallback, so the site never breaks. */
+(function(){
+  var KEY = 'fom.pf.v1';
+  var URL_ = 'https://firestore.googleapis.com/v1/projects/fom-studios/databases/(default)/documents/siteContent/portfolio?key=AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A';
+  var WORKER = 'https://fom-gallery.cold-moon-d65c.workers.dev';
+  var CATS = { sports:1, automotive:1, other:1 }, SIZES = { square:1, wide:1, tall:1, big:1 };
+  var last = '';
+  function esc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function srcOf(s){
+    s = String(s||'');
+    if(s.indexOf('r2:') === 0 && /^[a-z0-9._-]+$/.test(s.slice(3))) return WORKER + '/file?g=portfolio%2F&n=' + encodeURIComponent(s.slice(3));
+    return /^assets\/[A-Za-z0-9._-]+$/.test(s) ? s : '';
+  }
+  function clean(a){
+    if(!Array.isArray(a)) return [];
+    return a.map(function(p){
+      if(!p || p.hide) return null; var u = srcOf(p.src); if(!u) return null;
+      var cap = String(p.cap||'').slice(0,80);
+      return { u:u, cap:cap, cat:CATS[p.cat] ? p.cat : 'other', size:SIZES[p.size] ? p.size : 'square', home:!!p.home,
+               alt:String(p.alt || ((cap || 'Photography') + ' photography by FOM Studios, Johannesburg')).slice(0,160) };
+    }).filter(Boolean).slice(0,400);
+  }
+  function open(u){ var lb = document.getElementById('lightbox'), li = document.getElementById('lightbox-img'); if(lb && li){ li.src = u; lb.classList.add('show'); } }
+  function render(raw){
+    var list = clean(raw); if(!list.length) return;
+    var sig = JSON.stringify(list); if(sig === last) return; last = sig;
+    var sc = document.getElementById('galleryScroller'), grid = document.getElementById('bentoGrid');
+    var hide = 'onerror="var c=this.closest(\'.g-card,.b-card\');if(c)c.style.display=\'none\'"';
+    if(sc){
+      var h = list.filter(function(p){ return p.home; }); if(!h.length) h = list.slice(0,10);
+      sc.innerHTML = h.map(function(p){ return '<div class="g-card" data-full="'+esc(p.u)+'"><div class="g-media"><img src="'+esc(p.u)+'" alt="'+esc(p.alt)+'" loading="lazy" '+hide+'></div><div class="g-caption">'+esc(p.cap)+'</div></div>'; }).join('');
+      [].forEach.call(sc.querySelectorAll('.g-card'), function(c){ c.addEventListener('click', function(){ open(c.getAttribute('data-full')); }); });
+    }
+    if(grid){
+      grid.innerHTML = list.map(function(p){ return '<div class="b-card b-'+p.size+'" data-cat="'+p.cat+'" data-full="'+esc(p.u)+'"><img src="'+esc(p.u)+'" alt="'+esc(p.alt)+'" loading="lazy" '+hide+'><div class="b-caption">'+esc(p.cap)+'</div></div>'; }).join('');
+      [].forEach.call(grid.querySelectorAll('.b-card'), function(c){ c.addEventListener('click', function(){ open(c.getAttribute('data-full')); }); });
+      var on = document.querySelector('#galleryFilterRow .filter-chip.on'), cat = on ? on.getAttribute('data-cat') : 'all';
+      if(cat && cat !== 'all') [].forEach.call(grid.querySelectorAll('.b-card'), function(c){ c.classList.toggle('hide', c.getAttribute('data-cat') !== cat); });
+    }
+  }
+  function go(){
+    if(!document.getElementById('galleryScroller') && !document.getElementById('bentoGrid')) return;
+    try{ var c = JSON.parse(localStorage.getItem(KEY) || 'null'); if(c) render(c); }catch(e){}
+    fetch(URL_).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      var f = j && j.fields && j.fields.json && j.fields.json.stringValue; if(!f) return;
+      var arr = JSON.parse(f); try{ localStorage.setItem(KEY, f); }catch(e){} render(arr);
+    }).catch(function(){});
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
