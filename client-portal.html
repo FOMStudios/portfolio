@@ -29,11 +29,23 @@ button{font-family:inherit;}
 .eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;display:block;margin-bottom:10px;}
 
 /* ============================================================
-   LOGIN GATE - shown until Firebase Auth confirms the user
+   AUTH CHECK - covers the page while Firebase restores the session,
+   so a signed-in client never sees the login card flash on refresh
+   ============================================================ */
+.auth-check{position:fixed;inset:0;background:var(--bg);z-index:3500;display:flex;align-items:center;justify-content:center;}
+.auth-check .ac{text-align:center;}
+.auth-check img{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;animation:acpulse 1.4s ease-in-out infinite;}
+.auth-check b{display:block;font-size:16px;letter-spacing:.06em;}
+.auth-check span{display:block;color:var(--ink-soft);font-size:13px;margin-top:4px;}
+@keyframes acpulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.7;transform:scale(.95);}}
+@media(prefers-reduced-motion:reduce){.auth-check img{animation:none;}}
+
+/* ============================================================
+   LOGIN GATE - shown only once Firebase says nobody is signed in
    ============================================================ */
 .login-gate{
     position:fixed;inset:0;background:var(--bg);z-index:3000;
-    display:flex;align-items:center;justify-content:center;padding:20px;
+    display:none;align-items:center;justify-content:center;padding:20px;
 }
 .login-card{
     background:var(--bg-pill);border:1px solid var(--line);border-radius:var(--radius-card);
@@ -256,6 +268,14 @@ nav.pill{
 <!-- ============================================================
      LOGIN GATE
      ============================================================ -->
+<div class="auth-check" id="authCheck" aria-live="polite">
+    <div class="ac">
+        <img src="assets/mascot-head-color.png" alt="" onerror="this.style.display='none'">
+        <b>FOM STUDIOS</b>
+        <span>Opening your portal...</span>
+    </div>
+</div>
+
 <div class="login-gate" id="loginGate">
     <div class="login-card">
         <div class="mascot">
@@ -359,6 +379,14 @@ var firebaseConfig = {
   messagingSenderId: "1049126528829",
   appId:             "1:1049126528829:web:8ed0ea930e0b1579630754"
 };
+</script>
+<script>
+/* safety net: if Firebase cannot load at all (offline, blocked), do not leave the splash up forever */
+setTimeout(function(){
+  var a=document.getElementById('authCheck'); if(!a||a.style.display==='none') return;
+  a.querySelector('span').innerHTML='Could not connect. Check your internet and <a href="" style="color:#02367B;font-weight:700">try again</a>.';
+  a.querySelector('img').style.animation='none';
+}, 9000);
 </script>
 <script type="module">
 import { initializeApp, getApp }                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -641,7 +669,14 @@ function init(){
     $('lgPass').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
 
     /* --- auth state --- */
+    // the splash stays up until Firebase answers; if that takes too long, fall back to the login card
+    const hideSplash = () => { const a = $('authCheck'); if(a) a.style.display = 'none'; };
+    const splashTimer = setTimeout(() => { if(!auth.currentUser){ hideSplash(); $('loginGate').style.display = 'flex'; } }, 6000);
+    let stopOrders = null;
+    $('logoutBtn').addEventListener('click', () => signOut(auth));
     onAuthStateChanged(auth, user => {
+        clearTimeout(splashTimer); hideSplash();
+        if(stopOrders){ stopOrders(); stopOrders = null; }
         if(user){
             $('loginGate').style.display = 'none';
             $('mainApp').style.display = 'block';
@@ -653,12 +688,10 @@ function init(){
             // listen to orders in real time, filtered server-side by clientEmail
             // (must match the security rule's condition exactly, or Firestore rejects the whole read)
             const ordersQuery = query(collection(db, 'orders'), where('clientEmail', '==', user.email));
-            onSnapshot(ordersQuery, snap => {
+            stopOrders = onSnapshot(ordersQuery, snap => {
                 const orders = snap.docs.map(d => ({id:d.id, ...d.data()}));
                 renderOrders(orders, user.email);
             }, err => console.warn('Firestore:', err));
-
-            $('logoutBtn').addEventListener('click', () => signOut(auth));
         } else {
             $('loginGate').style.display = 'flex';
             $('mainApp').style.display = 'none';

@@ -41,15 +41,17 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 /* ===== hero (image band with light fade into the page) ===== */
 .hero{position:relative;min-height:clamp(380px,62vh,600px);display:flex;align-items:flex-end;overflow:hidden;background:#15161a;}
 .hero .bg{position:absolute;inset:0;background-size:cover;background-position:center;}
-.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,21,24,.15) 0%,rgba(20,21,24,.1) 30%,rgba(20,21,24,.72) 82%,var(--bg) 100%);}
+.hero .bg{filter:brightness(.72) saturate(.9);}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,15,18,.72) 0%,rgba(14,15,18,.45) 45%,rgba(14,15,18,.12) 100%),linear-gradient(180deg,rgba(14,15,18,.35) 0%,rgba(14,15,18,.3) 35%,rgba(14,15,18,.8) 84%,var(--bg) 100%);}
+@media(max-width:640px){.hero .scrim{background:linear-gradient(180deg,rgba(14,15,18,.5) 0%,rgba(14,15,18,.55) 35%,rgba(14,15,18,.85) 84%,var(--bg) 100%);}}
 .hero .inner{position:relative;z-index:2;width:100%;padding:0 var(--gutter) clamp(26px,5vw,52px);max-width:var(--container);margin:0 auto;}
 .hero .eyebrow{color:#bcd4f5;}
-.hero h1{font-size:clamp(38px,9vw,84px);font-weight:800;line-height:.98;letter-spacing:-.02em;text-transform:uppercase;color:#fff;margin:10px 0 0;text-shadow:0 2px 18px rgba(0,0,0,.3);}
+.hero h1{font-size:clamp(38px,9vw,84px);font-weight:800;line-height:.98;letter-spacing:-.02em;text-transform:uppercase;color:#fff;margin:10px 0 0;text-shadow:0 2px 24px rgba(0,0,0,.5);}
 .hero h1 .accent{color:#8fb8e8;display:block;}
-.hero .sub{color:rgba(255,255,255,.86);font-size:clamp(14px,2.4vw,16px);margin-top:14px;max-width:44ch;text-shadow:0 1px 10px rgba(0,0,0,.3);}
+.hero .sub{color:rgba(255,255,255,.94);font-size:clamp(14px,2.4vw,16px);margin-top:14px;max-width:44ch;text-shadow:0 1px 12px rgba(0,0,0,.55);}
 .hero .rule{height:1px;background:rgba(255,255,255,.25);margin:22px 0 16px;max-width:520px;}
 .meta{display:flex;flex-wrap:wrap;gap:clamp(20px,6vw,54px);}
-.meta .m .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:700;}
+.meta .m .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75);font-weight:700;}
 .meta .m .v{font-size:16px;font-weight:800;margin-top:4px;letter-spacing:.02em;color:#fff;}
 .meta .m .v.hi{color:#8fb8e8;}
 .meta .m .v.exp{color:#ffb4ae;}
@@ -72,7 +74,10 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:4px;}
 @media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}}
 @media(min-width:900px){.grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}}
-.more{display:flex;flex-direction:column;align-items:center;gap:10px;margin:26px 0 4px;color:var(--ink-soft);font-size:13px;}
+.more{display:flex;flex-direction:column;align-items:center;gap:12px;margin:26px 0 4px;color:var(--ink-soft);font-size:13px;}
+.more .mb{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.more .rv{font-size:13px;color:var(--ink-soft);}
+.more .rv a{color:var(--accent);font-weight:700;}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .2s;}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px -16px rgba(0,0,0,.35);}
 .card .thumb{position:relative;aspect-ratio:1/1;background:var(--panel-2);overflow:hidden;}
@@ -225,7 +230,7 @@ function renderGallery(){
   $('app').innerHTML=`
     <header class="topbar">
       <a class="mark" href="client-portal.html"><img src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">FOM STUDIOS</a>
-      <div class="tb-r"><a class="back" href="client-portal.html">&lsaquo; Portal</a>${dlAllBtn('sm')}</div>
+      <div class="tb-r"><a class="back" href="client-portal.html" onclick="if(/client-portal\.html/.test(document.referrer)&&history.length>1){history.back();return false;}">&lsaquo; Portal</a>${dlAllBtn('sm')}</div>
     </header>
 
     <section class="hero">
@@ -259,7 +264,7 @@ function renderGallery(){
       </div>
       <div class="grid" id="grid"></div>
 
-      <section class="thanks">
+      <section class="thanks" id="thanks">
         <img class="mascot" src="${esc(CONFIG.mascot)}" alt="FOM Studios" onerror="this.style.display='none'">
         <div class="big">Thank You</div>
         <p>It was a pleasure capturing this for you, ${esc(GAL.name)}. We hope these bring the day back every time you look at them. If you enjoyed working with us, a quick review means the world and helps other clients find FOM Studios.</p>
@@ -281,7 +286,8 @@ function renderGallery(){
   $('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;FILTER=t.dataset.f;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));renderGrid();});
   renderGrid();
 }
-const PAGE=48; let SHOWN=PAGE, IO=null;
+/* first batch is small so the Thank you and review section sits right under it; more only loads when the client asks */
+const PAGE=(innerWidth<600?12:24), STEP=(innerWidth<600?24:48); let SHOWN=PAGE;
 function visible(){return FILTER==='all'?ITEMS:ITEMS.filter(i=>i.kind===FILTER);}
 function renderGrid(reset){
   if(reset!==false) SHOWN=PAGE;
@@ -297,14 +303,15 @@ function renderGrid(reset){
       <div class="cap"><span class="nm">${esc(it.name)}</span><span class="sz">${fmtSize(it.size)}</span></div></article>`;
   }).join('');
   let more=document.getElementById('more'); if(more) more.remove();
-  if(IO){IO.disconnect();IO=null;}
   if(all.length>SHOWN){
+    const left=all.length-SHOWN;
     more=document.createElement('div'); more.id='more'; more.className='more';
-    more.innerHTML='<span>Showing '+list.length+' of '+all.length+'</span><button class="btn ghost sm" type="button">Load more</button>';
+    more.innerHTML='<span>Showing '+list.length+' of '+all.length+'</span>'
+      +'<div class="mb"><button class="btn sm" type="button" data-m="more">Show '+Math.min(STEP,left)+' more</button>'
+      +(left>STEP?'<button class="btn ghost sm" type="button" data-m="all">Show all '+all.length+'</button>':'')+'</div>'
+      +'<div class="rv">Loving them already? <a href="#thanks">Leave a review</a></div>';
     g.after(more);
-    const next=()=>{SHOWN+=PAGE;renderGrid(false);};
-    more.querySelector('button').onclick=next;
-    if('IntersectionObserver' in window){IO=new IntersectionObserver(en=>{if(en[0].isIntersecting)next();},{rootMargin:'600px'});IO.observe(more);}
+    more.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;const y=scrollY;SHOWN=b.dataset.m==='all'?all.length:SHOWN+STEP;renderGrid(false);scrollTo(0,y);};
   }
   g.onclick=e=>{const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
