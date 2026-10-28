@@ -240,6 +240,31 @@ nav.pill{
 }
 
 /* ============================================================
+   MESSAGES (one chat per booking)
+   ============================================================ */
+.msg-dot{display:inline-flex;align-items:center;gap:6px;background:#e7f0ff;color:var(--accent);border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700;white-space:nowrap;}
+.msg-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);}
+.msg-dot[hidden]{display:none;}
+.chat{border:1px solid var(--line);border-radius:16px;background:var(--bg);overflow:hidden;}
+.chat-list{max-height:360px;overflow-y:auto;padding:14px 14px 6px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;}
+.chat-empty{color:var(--ink-soft);font-size:13.5px;text-align:center;padding:14px 8px 18px;line-height:1.6;}
+.bub{max-width:84%;padding:10px 13px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;}
+.bub a{text-decoration:underline;}
+.bub small{display:block;font-size:11px;margin-top:4px;opacity:.7;}
+.bub.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
+.bub.them{align-self:flex-start;background:var(--bg-pill);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px;}
+.bub.them .who{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--accent);margin-bottom:2px;}
+.bub.sending{opacity:.6;}
+.chat-day{align-self:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 2px;}
+.chat-form{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid var(--line);background:var(--bg-pill);}
+.chat-form textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px;font-family:inherit;line-height:1.4;max-height:140px;min-height:44px;background:#fff;color:var(--ink);}
+.chat-form textarea:focus{outline:2px solid var(--accent);outline-offset:0;}
+.chat-send{flex:none;height:44px;padding:0 18px;border:0;border-radius:99px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;cursor:pointer;}
+.chat-send[disabled]{opacity:.5;pointer-events:none;}
+.chat-note{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.5;}
+.chat-err{color:#c0392b;}
+
+/* ============================================================
    FOOTER
    ============================================================ */
 .portal-footer{
@@ -392,8 +417,10 @@ setTimeout(function(){
 import { initializeApp, getApp }                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
          onAuthStateChanged, signOut }                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, query, where, onSnapshot,
-         doc, updateDoc, serverTimestamp }                           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, onSnapshot, orderBy, limitToLast,
+         doc, updateDoc, setDoc, writeBatch, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const WORKER = 'https://fom-gallery.cold-moon-d65c.workers.dev';   // sends the "new message" emails
 
 
 /* ============================================================
@@ -420,10 +447,19 @@ const slug = s => (String(s||'client').toLowerCase().replace(/[^a-z0-9]+/g,'-').
    RENDER - build booking cards from Firestore orders that
    belong to the currently signed-in client email.
    ============================================================ */
+/* chat state, kept across re-renders */
+const CHAT = {}, MSGS = {}, OPEN = new Set(), DRAFT = {}, ORDERS = {};
+const tsMs = t => t && t.toMillis ? t.toMillis() : (t && t.seconds ? t.seconds * 1000 : 0);
+const unreadFor = id => { const c = CHAT[id]; return !!(c && c.lastFrom === 'fom' && tsMs(c.lastAt) > tsMs(c.clientReadAt)); };
+let CHAT_HOOK = () => {};   // set in init(): subscribes to chat docs and messages
+
 function renderOrders(orders, userEmail){
     const list = $('bookingList');
     // filter to this client's orders (match by clientEmail field, case-insensitive)
     const mine = orders.filter(o => (o.clientEmail||'').toLowerCase() === userEmail.toLowerCase());
+    // remember drafts before the cards are rebuilt
+    list.querySelectorAll('textarea[data-draft]').forEach(t => { DRAFT[t.dataset.draft] = t.value; });
+    mine.forEach(o => { ORDERS[o.id] = o; });
 
     if(!mine.length){
         $('tapHint').style.display = 'none';
@@ -436,20 +472,47 @@ function renderOrders(orders, userEmail){
 
     list.innerHTML = mine.map(o => buildCard(o)).join('');
     $('tapHint').style.display = 'inline-flex';
-    list.querySelectorAll('.ns').forEach(n => n.addEventListener('click', () => n.closest('.booking-card').querySelector('.booking-header').click()));
-
-    // attach toggle listeners
-    list.querySelectorAll('.booking-header').forEach(hdr => {
-        hdr.addEventListener('click', () => {
-            const card = hdr.closest('.booking-card');
-            card.classList.toggle('open');
-            hdr.querySelector('.chevron').setAttribute('aria-expanded', card.classList.contains('open'));
-        });
+    mine.forEach(o => {
+        const card = list.querySelector(`.booking-card[data-oid="${o.id}"]`);
+        if(OPEN.has(o.id)){ card.classList.add('open'); card.querySelector('.chevron').setAttribute('aria-expanded','true'); }
+        const t = card.querySelector('textarea[data-draft]'); if(t && DRAFT[o.id]) t.value = DRAFT[o.id];
+        refreshCardBits(o.id); renderChat(o.id);
+        CHAT_HOOK(o.id);
     });
+}
+
+/* unread pill + next step line, updated in place when the chat changes */
+function refreshCardBits(id){
+    const card = document.querySelector(`.booking-card[data-oid="${id}"]`); if(!card) return;
+    const dot = card.querySelector('[data-dot]'); if(dot) dot.hidden = !unreadFor(id);
+    const slot = card.querySelector('[data-ns]');
+    if(slot){ const n = nextStepFor(ORDERS[id]); slot.innerHTML = n ? `<div class="ns ${n.tone}"><i></i><div><b>${esc(n.t)}</b><span>${esc(n.d)}</span></div></div>` : ''; }
+}
+
+const linkify = t => esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+const dayLbl = ms => { const d = new Date(ms), t = new Date(); t.setHours(0,0,0,0); const k = Math.round((new Date(d).setHours(0,0,0,0) - t) / 864e5);
+    return k === 0 ? 'Today' : k === -1 ? 'Yesterday' : d.toLocaleDateString('en-ZA', { weekday:'short', day:'numeric', month:'short' }); };
+const timeLbl = ms => new Date(ms).toLocaleTimeString('en-ZA', { hour:'2-digit', minute:'2-digit' });
+
+function renderChat(id){
+    const box = document.querySelector(`[data-cl="${id}"]`); if(!box) return;
+    const msgs = MSGS[id];
+    if(!msgs){ box.innerHTML = `<div class="chat-empty">${OPEN.has(id) ? 'Loading messages...' : ''}</div>`; return; }
+    if(!msgs.length){ box.innerHTML = '<div class="chat-empty">Got a question about your shoot, dates or deliverables?<br>Send FOM Studios a message here.</div>'; return; }
+    let last = '';
+    box.innerHTML = msgs.map(m => {
+        const ms = m.ms || Date.now(), k = dayKey(ms), day = k !== last ? `<div class="chat-day">${dayLbl(ms)}</div>` : ''; last = k;
+        return day + (m.from === 'client'
+            ? `<div class="bub me ${m.pending ? 'sending' : ''}">${linkify(m.text)}<small>${m.pending ? 'Sending...' : timeLbl(ms)}</small></div>`
+            : `<div class="bub them"><span class="who">FOM STUDIOS</span>${linkify(m.text)}<small>${timeLbl(ms)}</small></div>`);
+    }).join('');
+    box.scrollTop = box.scrollHeight;
 }
 
 /* what the client should do next, shown on the card without opening it */
 function nextStepFor(o){
+    if(unreadFor(o.id)){ const c = CHAT[o.id]; return { tone:'act', t:'New message from FOM Studios', d:(c.lastText ? '"' + c.lastText + (c.lastText.length >= 140 ? '...' : '') + '" ' : '') + 'Open this booking to read and reply.' }; }
     if(o.status === 'Cancelled') return null;
     const now = new Date(), today = new Date(); today.setHours(0,0,0,0);
     const out = (+o.total||0) - (+o.paid||0);
@@ -543,7 +606,7 @@ function buildCard(o){
         ? `<div class="detail-item"><div class="d-label">Outstanding</div><div class="d-val" style="color:#c0392b;">${RZA(outstanding)}</div></div>` : '';
 
     return `
-    <div class="booking-card">
+    <div class="booking-card" data-oid="${esc(o.id)}">
         <div class="booking-header">
             <div>
                 <div class="booking-id">${esc(o.orderId||'-')}</div>
@@ -551,11 +614,12 @@ function buildCard(o){
                 <div class="booking-date">${fmtDate(o.shootDate)}</div>
             </div>
             <div class="booking-meta">
+                <span class="msg-dot" data-dot="${esc(o.id)}" hidden>New message</span>
                 <span class="status-pill" style="background:${cfg.color};">${esc(o.status||'Pending')}</span>
                 <span class="chevron" aria-expanded="false">▾</span>
             </div>
         </div>
-        ${(function(){ const n = nextStepFor(o); return n ? `<div class="ns ${n.tone}"><i></i><div><b>${esc(n.t)}</b><span>${esc(n.d)}</span></div></div>` : ''; })()}
+        <div data-ns="${esc(o.id)}"></div>
         <div class="booking-body">
             <div class="booking-body-inner">
                 <div class="inner-pad">
@@ -581,6 +645,18 @@ function buildCard(o){
                     <div class="deliverables-section">
                         <h3>Deliverables</h3>
                         ${deliverables}
+                    </div>
+
+                    <div class="deliverables-section" id="msgs-${esc(o.id)}">
+                        <h3>Messages</h3>
+                        <div class="chat">
+                            <div class="chat-list" data-cl="${esc(o.id)}" aria-live="polite"></div>
+                            <form class="chat-form" data-send="${esc(o.id)}">
+                                <textarea rows="1" maxlength="2000" data-draft="${esc(o.id)}" placeholder="Message FOM Studios" aria-label="Message to FOM Studios"></textarea>
+                                <button class="chat-send" type="submit">Send</button>
+                            </form>
+                        </div>
+                        <p class="chat-note" data-cnote="${esc(o.id)}">We usually reply within a day, and you'll get an email when we do.</p>
                     </div>
                 </div>
             </div>
@@ -645,6 +721,77 @@ function init(){
     });
     $('bookingList').addEventListener('click', e=>{ const b=e.target.closest('.sign-btn'); if(b){ e.stopPropagation(); openSign(b.dataset.sign, b.dataset.curl, b.dataset.cname); } });
 
+    /* ---- open / close a booking (delegated, so it survives re-renders) ---- */
+    $('bookingList').addEventListener('click', e => {
+        const hdr = e.target.closest('.booking-header'), ns = e.target.closest('.ns');
+        if(!hdr && !ns) return;
+        const card = (hdr || ns).closest('.booking-card'), id = card.dataset.oid;
+        const opening = !card.classList.contains('open');
+        card.classList.toggle('open', opening);
+        card.querySelector('.chevron').setAttribute('aria-expanded', opening);
+        if(opening){ OPEN.add(id); watchMessages(id); markRead(id);
+            if(ns && unreadFor(id)) setTimeout(() => { const m = $('msgs-' + id); if(m) m.scrollIntoView({ behavior:'smooth', block:'center' }); }, 380); }
+        else OPEN.delete(id);
+    });
+
+    /* ---- chat ---- */
+    const chatSubs = {}, msgSubs = {};
+    CHAT_HOOK = id => {
+        if(chatSubs[id]) return;
+        chatSubs[id] = onSnapshot(doc(db, 'chat', id), snap => {
+            CHAT[id] = snap.exists() ? snap.data() : null;
+            refreshCardBits(id);
+            if(OPEN.has(id)) markRead(id);
+        }, err => console.warn('chat', err));
+        if(OPEN.has(id)) watchMessages(id);
+    };
+    function watchMessages(id){
+        if(msgSubs[id]) return;
+        renderChat(id);
+        msgSubs[id] = onSnapshot(query(collection(db, 'chat', id, 'messages'), orderBy('at'), limitToLast(300)), snap => {
+            MSGS[id] = snap.docs.map(d => { const m = d.data({ serverTimestamps:'estimate' }); return { from:m.from, text:m.text || '', ms:tsMs(m.at), pending:d.metadata.hasPendingWrites }; });
+            renderChat(id);
+        }, err => { console.warn('messages', err); MSGS[id] = []; renderChat(id); });
+    }
+    function markRead(id){
+        if(!unreadFor(id) || document.visibilityState !== 'visible') return;
+        setDoc(doc(db, 'chat', id), { clientReadAt: serverTimestamp() }, { merge:true }).catch(e => console.warn('read', e));
+    }
+    document.addEventListener('visibilitychange', () => { OPEN.forEach(markRead); });
+    async function notifyFom(id){
+        try{ const t = await auth.currentUser.getIdToken();
+            await fetch(WORKER + '/notify', { method:'POST', headers:{ Authorization:'Bearer ' + t, 'Content-Type':'application/json' }, body:JSON.stringify({ o:id }) });
+        }catch(e){ console.warn('notify', e); }
+    }
+    $('bookingList').addEventListener('submit', async e => {
+        const f = e.target.closest('[data-send]'); if(!f) return;
+        e.preventDefault();
+        const id = f.dataset.send, ta = f.querySelector('textarea'), btn = f.querySelector('button'), note = document.querySelector(`[data-cnote="${id}"]`);
+        const text = ta.value.trim(); if(!text) return;
+        btn.disabled = true; note.classList.remove('chat-err');
+        try{
+            const b = writeBatch(db);
+            b.set(doc(db, 'chat', id), { lastAt:serverTimestamp(), lastFrom:'client', lastText:text.slice(0, 140), clientReadAt:serverTimestamp() }, { merge:true });
+            b.set(doc(collection(db, 'chat', id, 'messages')), { from:'client', text:text.slice(0, 2000), at:serverTimestamp(), name:(ORDERS[id] && ORDERS[id].customer) || auth.currentUser.email });
+            await b.commit();
+            ta.value = ''; DRAFT[id] = ''; ta.style.height = '';
+            note.textContent = "Sent. We usually reply within a day, and you'll get an email when we do.";
+            notifyFom(id);
+        }catch(err){
+            console.warn('send', err); note.classList.add('chat-err');
+            note.textContent = 'Your message could not be sent. Check your connection and try again, or WhatsApp us.';
+        }
+        btn.disabled = false;
+    });
+    $('bookingList').addEventListener('input', e => {
+        const t = e.target.closest('textarea[data-draft]'); if(!t) return;
+        DRAFT[t.dataset.draft] = t.value; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px';
+    });
+    $('bookingList').addEventListener('keydown', e => {
+        const t = e.target.closest('textarea[data-draft]');
+        if(t && e.key === 'Enter' && !e.shiftKey && !matchMedia('(pointer:coarse)').matches){ e.preventDefault(); t.form.requestSubmit(); }
+    });
+
 
     /* --- password reset --- */
     $('resetLink').addEventListener('click', () => {
@@ -677,6 +824,7 @@ function init(){
     onAuthStateChanged(auth, user => {
         clearTimeout(splashTimer); hideSplash();
         if(stopOrders){ stopOrders(); stopOrders = null; }
+        if(!user){ Object.keys(chatSubs).forEach(k => { chatSubs[k](); delete chatSubs[k]; }); Object.keys(msgSubs).forEach(k => { msgSubs[k](); delete msgSubs[k]; }); }
         if(user){
             $('loginGate').style.display = 'none';
             $('mainApp').style.display = 'block';
@@ -691,6 +839,10 @@ function init(){
             stopOrders = onSnapshot(ordersQuery, snap => {
                 const orders = snap.docs.map(d => ({id:d.id, ...d.data()}));
                 renderOrders(orders, user.email);
+                const want = new URLSearchParams(location.search).get('o');
+                if(want && !OPEN.has(want) && ORDERS[want] && !window.__fomDeep){ window.__fomDeep = 1;
+                    const h = document.querySelector(`.booking-card[data-oid="${want}"] .booking-header`);
+                    if(h){ h.click(); setTimeout(() => { const m = $('msgs-' + want); if(m) m.scrollIntoView({ behavior:'smooth', block:'center' }); }, 420); } }
             }, err => console.warn('Firestore:', err));
         } else {
             $('loginGate').style.display = 'flex';
