@@ -421,6 +421,9 @@ import { getFirestore, collection, query, where, onSnapshot, orderBy, limitToLas
          doc, updateDoc, setDoc, writeBatch, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const WORKER = 'https://fom-gallery.cold-moon-d65c.workers.dev';   // sends the "new message" emails
+/* Client messages are switched OFF for now. Set to true to bring the Messages section back
+   (also set CHAT_ON in dashboard app.js and dashboard.html). */
+const CHAT_ON = false;
 
 
 /* ============================================================
@@ -647,7 +650,7 @@ function buildCard(o){
                         ${deliverables}
                     </div>
 
-                    <div class="deliverables-section" id="msgs-${esc(o.id)}">
+                    ${CHAT_ON ? `<div class="deliverables-section" id="msgs-${esc(o.id)}">
                         <h3>Messages</h3>
                         <div class="chat">
                             <div class="chat-list" data-cl="${esc(o.id)}" aria-live="polite"></div>
@@ -657,7 +660,7 @@ function buildCard(o){
                             </form>
                         </div>
                         <p class="chat-note" data-cnote="${esc(o.id)}">We usually reply within a day, and you'll get an email when we do.</p>
-                    </div>
+                    </div>` : ''}
                 </div>
             </div>
         </div>
@@ -737,7 +740,7 @@ function init(){
     /* ---- chat ---- */
     const chatSubs = {}, msgSubs = {};
     CHAT_HOOK = id => {
-        if(chatSubs[id]) return;
+        if(!CHAT_ON || chatSubs[id]) return;
         chatSubs[id] = onSnapshot(doc(db, 'chat', id), snap => {
             CHAT[id] = snap.exists() ? snap.data() : null;
             refreshCardBits(id);
@@ -746,7 +749,7 @@ function init(){
         if(OPEN.has(id)) watchMessages(id);
     };
     function watchMessages(id){
-        if(msgSubs[id]) return;
+        if(!CHAT_ON || msgSubs[id]) return;
         renderChat(id);
         msgSubs[id] = onSnapshot(query(collection(db, 'chat', id, 'messages'), orderBy('at'), limitToLast(300)), snap => {
             MSGS[id] = snap.docs.map(d => { const m = d.data({ serverTimestamps:'estimate' }); return { from:m.from, text:m.text || '', ms:tsMs(m.at), pending:d.metadata.hasPendingWrites }; });
