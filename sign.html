@@ -45,6 +45,7 @@ h1{font-size:clamp(22px,5vw,28px);font-weight:800;letter-spacing:-.01em;margin:8
 .state p{color:var(--ink-soft);font-size:15px;margin-top:8px;text-align:center;}
 .legal{font-size:11.5px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.5;}
 </style>
+<script src="brand-client.js"></script>
 </head>
 <body>
 <div class="card" id="card">
@@ -165,7 +166,8 @@ else {
         signedVia: 'link'
       });
       // send them to the confirmation page so they can see it is done
-      location.href = 'signed.html' + (name ? '?name=' + encodeURIComponent(name) : '');
+      const _b = (window.FOM_CLIENT && FOM_CLIENT.id === 'sba') ? 'b=sba' : '';
+      location.href = 'signed.html' + ((name || _b) ? '?' + [name ? 'name=' + encodeURIComponent(name) : '', _b].filter(Boolean).join('&') : '');
     }catch(e){
       console.warn('sign save failed', e);
       // permission-denied here usually means already signed or the id is wrong

@@ -131,6 +131,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .lb-count{text-align:center;padding:14px;color:rgba(255,255,255,.55);font-size:12.5px;letter-spacing:.1em;}
 @media(max-width:640px){.lb-nav{width:40px;height:40px;font-size:20px;}}
 </style>
+<script src="brand-client.js"></script>
 </head>
 <body>
 
@@ -170,6 +171,8 @@ const CONFIG = {
   instagram:'https://instagram.com/fom_studios_'
 };
 
+/* Shot by A: her details and a plain branded hero until she has her own banner photo */
+if(window.FOM_CLIENT && FOM_CLIENT.id === 'sba') Object.assign(CONFIG, { banner:'', mascot:'shotbya/logo.png', site:FOM_CLIENT.site, email:FOM_CLIENT.email, instagram:'https://instagram.com/' + FOM_CLIENT.instagram, reviewUrl:'feedback.html' });
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 const GAL = {

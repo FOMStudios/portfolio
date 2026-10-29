@@ -287,6 +287,7 @@ nav.pill{
     .timeline-step{font-size:10px;padding:8px 2px;}
 }
 </style>
+<script src="brand-client.js"></script>
 </head>
 <body>
 
@@ -462,7 +463,9 @@ let CHAT_HOOK = () => {};   // set in init(): subscribes to chat docs and messag
 function renderOrders(orders, userEmail){
     const list = $('bookingList');
     // filter to this client's orders (match by clientEmail field, case-insensitive)
-    const mine = orders.filter(o => (o.clientEmail||'').toLowerCase() === userEmail.toLowerCase());
+    // only this business's bookings (FOM Studios, or Shot by A on her portal)
+    const BIZ = (window.FOM_CLIENT && FOM_CLIENT.id) || 'fom';
+    const mine = orders.filter(o => (o.clientEmail||'').toLowerCase() === userEmail.toLowerCase() && ((o.biz === 'sba' ? 'sba' : 'fom') === BIZ));
     // remember drafts before the cards are rebuilt
     list.querySelectorAll('textarea[data-draft]').forEach(t => { DRAFT[t.dataset.draft] = t.value; });
     mine.forEach(o => { ORDERS[o.id] = o; });
@@ -554,7 +557,7 @@ function buildCard(o){
     // document buttons - once signed, "View contract" opens the signed version (contract + signature)
     const contractBtn = o.contractUrl
         ? (o.contractSigned
-            ? `<a class="doc-btn" href="contract-view.html?o=${encodeURIComponent(o.id)}" target="_blank" rel="noopener">
+            ? `<a class="doc-btn" href="contract-view.html?o=${encodeURIComponent(o.id)}${window.FOM_CLIENT && FOM_CLIENT.id === 'sba' ? '&b=sba' : ''}" target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Signed contract</a>`
             : `<a class="doc-btn" href="${esc(o.contractUrl)}" target="_blank" rel="noopener">
@@ -579,11 +582,12 @@ function buildCard(o){
     const hasDocs = contractBtn || invoiceBtn || signBlock;
 
     // gallery link (uses the admin-set folder, or falls back to the customer name slug)
-    const galFolder = o.galleryFolder || (slug(o.customer)+'/');
+    const SBA = window.FOM_CLIENT && FOM_CLIENT.id === 'sba';
+    const galFolder = o.galleryFolder || ((SBA ? 'shotbya/' : '') + slug(o.customer)+'/');
     const galLink = 'client-gallery.html?g='+encodeURIComponent(galFolder)+'&name='+encodeURIComponent(o.customer||'there')
         +(o.shootDate?'&date='+encodeURIComponent(o.shootDate):'')
         +(o.galleryExpiry?'&expiry='+encodeURIComponent(o.galleryExpiry):'')
-        +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'');
+        +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'')+(SBA?'&b=sba':'');
 
     // deliverables section
     const deliverables = (o.deliverablesReady)
