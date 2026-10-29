@@ -336,6 +336,16 @@ function paintLb(){
 }
 $('lbClose').onclick=closeLb;$('lbPrev').onclick=()=>stepLb(-1);$('lbNext').onclick=()=>stepLb(1);
 $('lbStage').addEventListener('click',e=>{if(e.target.id==='lbStage')closeLb();});
+/* swipe in the viewer: down to close, left or right for the next or previous file */
+(function(){ const st=$('lbStage'); let x0=0,y0=0,t0=0,on=false;
+  st.addEventListener('touchstart',e=>{ if(e.touches.length!==1||e.target.closest('video'))return; on=true; x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); $('lbMedia').style.transition='none'; },{passive:true});
+  st.addEventListener('touchmove',e=>{ if(!on)return; const dx=e.touches[0].clientX-x0, dy=e.touches[0].clientY-y0;
+    if(dy>0&&Math.abs(dy)>Math.abs(dx)){ $('lbMedia').style.translate='0 '+dy+'px'; $('lb').style.background='rgba(18,19,22,'+Math.max(.4,.97-dy/600)+')'; } },{passive:true});
+  st.addEventListener('touchend',e=>{ if(!on)return; on=false; const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0, m=$('lbMedia');
+    m.style.transition='translate .2s ease'; m.style.translate=''; $('lb').style.background='';
+    if(dy>110&&Math.abs(dy)>Math.abs(dx)) closeLb();
+    else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)&&Date.now()-t0<600) stepLb(dx<0?1:-1); });
+})();
 addEventListener('keydown',e=>{if(!$('lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')stepLb(1);else if(e.key==='ArrowLeft')stepLb(-1);});
 
 function stateBox(mascot,h,p){$('app').innerHTML=`<div class="state"><div class="box">${mascot?`<img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">`:''}<h3>${h}</h3><p>${p}</p><p style="margin-top:18px"><a class="btn ghost" href="client-portal.html">Back to portal</a></p></div></div>`;}

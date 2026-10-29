@@ -352,7 +352,9 @@ nav.pill{
 .sign-modal{background:var(--bg-pill);width:100%;max-width:520px;max-height:92dvh;overflow-y:auto;border-radius:22px 22px 0 0;padding:24px 22px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);}
 @media(min-width:560px){.sign-scrim{align-items:center;}.sign-modal{border-radius:22px;}}
 .sign-scrim.on .sign-modal{transform:translateY(0);}
-.sign-modal h2{font-size:20px;font-weight:800;margin-bottom:4px;}
+.sign-grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:-12px auto 14px;touch-action:none;cursor:grab;position:relative;}
+.sign-grab::after{content:"";position:absolute;inset:-14px -60px;}
+.sign-modal h2{font-size:20px;font-weight:800;margin-bottom:4px;touch-action:none;}
 .sign-modal .sm-sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:16px;line-height:1.5;}
 .sign-view{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:var(--accent);margin-bottom:16px;}
 .sign-view svg{width:16px;height:16px;}
@@ -375,6 +377,7 @@ nav.pill{
 </style>
 <div class="sign-scrim" id="signScrim">
   <div class="sign-modal" role="dialog" aria-modal="true">
+    <div class="sign-grab" aria-hidden="true"></div>
     <h2>Sign your contract</h2>
     <p class="sm-sub">Please review your contract, then sign below. Your signature, name and the date are recorded against your booking.</p>
     <a class="sign-view" id="signView" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> View the contract</a>
@@ -710,6 +713,19 @@ function init(){
         signScrim.classList.add('on'); setTimeout(()=>{ sizePad(); clearPad(); },60); }
     function closeSign(){ signScrim.classList.remove('on'); signingId=null; }
     $('signCancel').addEventListener('click',closeSign);
+    /* drag the handle or title down to close */
+    (function(){ const m = signScrim.querySelector('.sign-modal');
+      m.addEventListener('pointerdown', e => {
+        if(!e.target.closest('.sign-grab, h2')) return;
+        const y0 = e.clientY, t0 = Date.now(), id = e.pointerId; let dy = 0;
+        m.style.transition = 'none';
+        const mv = ev => { if(ev.pointerId !== id) return; dy = Math.max(0, ev.clientY - y0); m.style.translate = '0 ' + dy + 'px'; };
+        const up = ev => { if(ev.pointerId !== id) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
+          m.style.transition = '';
+          if(dy > 110 || (dy > 40 && dy / (Date.now() - t0) > .5)){ closeSign(); setTimeout(() => { m.style.transition = 'none'; m.style.translate = ''; requestAnimationFrame(() => m.style.transition = ''); }, 320); }
+          else { m.style.transition = 'translate .22s ease'; m.style.translate = ''; setTimeout(() => m.style.transition = '', 240); } };
+        addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+      }); })();
     signScrim.addEventListener('click',e=>{ if(e.target===signScrim) closeSign(); });
     addEventListener('resize',()=>{ if(signScrim.classList.contains('on')) sizePad(); });
     $('signSubmit').addEventListener('click', async ()=>{
