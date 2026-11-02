@@ -89,6 +89,24 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .dl-mini{position:absolute;top:7px;right:7px;width:34px;height:34px;border-radius:50%;background:rgba(20,21,24,.72);backdrop-filter:blur(6px);
   display:grid;place-items:center;color:#fff;transition:background .2s;}
 .dl-mini:hover{background:var(--accent);}
+/* favourites */
+.fav{position:absolute;right:7px;bottom:7px;width:36px;height:36px;border-radius:50%;background:rgba(20,21,24,.6);backdrop-filter:blur(6px);display:grid;place-items:center;color:#fff;transition:transform .15s,background .2s;z-index:2;}
+.fav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;}
+.fav.on{background:#fff;color:#e0245e;}
+.fav.on svg{fill:currentColor;}
+.fav.pop{animation:favpop .3s ease;}
+@keyframes favpop{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+.lb-fav{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;display:grid;place-items:center;}
+.lb-fav svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;}
+.lb-fav.on{background:#fff;color:#e0245e;} .lb-fav.on svg{fill:currentColor;}
+.lb-th .h{position:absolute;right:3px;top:2px;color:#ff4d7d;font-size:12px;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.fav-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:0 0 14px;font-size:13.5px;color:var(--ink-soft);}
+.fav-bar b{color:var(--ink);} .fav-bar .heart{color:#e0245e;}
+.fav-bar .st{margin-left:auto;font-size:12.5px;}
+.fav-bar .st.ok{color:#1f8a4c;} .fav-bar .st.warn{color:#b0640b;}
+.fav-empty{grid-column:1/-1;text-align:center;color:var(--ink-soft);padding:40px 10px;font-size:14px;line-height:1.7;}
+@keyframes favpop2{0%{transform:scale(.6);opacity:0}30%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:0}}
+.big-heart{position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;color:#fff;pointer-events:none;animation:favpop2 .7s ease forwards;filter:drop-shadow(0 4px 14px rgba(0,0,0,.4));}
 .dl-mini svg{width:16px;height:16px;}
 .play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;}
 .play span{width:54px;height:54px;border-radius:50%;background:rgba(20,21,24,.5);backdrop-filter:blur(4px);display:grid;place-items:center;border:1.5px solid rgba(255,255,255,.6);}
@@ -157,6 +175,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
   <div class="lb-top">
     <div class="info"><div class="nm" id="lbName"></div><div class="sz" id="lbSize"></div></div>
     <div class="acts">
+      <button class="lb-fav" id="lbFav" type="button" aria-label="Add to favourites"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg></button>
       <button class="btn sm" id="lbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download</button>
       <button class="lb-x" id="lbClose" aria-label="Close">&times;</button>
     </div>
@@ -197,7 +216,8 @@ const GAL = {
   name:   P.get('name') || 'there',
   date:   P.get('date') || '',
   expiry: P.get('expiry') || '',
-  dl:     P.get('dl') || ''
+  dl:     P.get('dl') || '',
+  order:  P.get('o') || ''        // the booking, so favourites can be sent to FOM Studios
 };
 
 const VIDEO_EXT=['mp4','webm','m4v','ogg','mov','avi','mkv'], PLAYABLE=['mp4','webm','m4v','ogg'], IMAGE_EXT=['jpg','jpeg','png','webp','gif','avif','bmp'];
@@ -244,6 +264,29 @@ function dlAllBtn(cls){ const href = GAL.dl || '#';
   return `<a class="btn ${cls}" href="${esc(href)}" ${GAL.dl?'target="_blank" rel="noopener"':'onclick="return false"'}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</a>`; }
 
+/* ===== favourites: kept on this device and, when the client is signed in to their portal, saved on their booking ===== */
+const FAV_KEY='fom.fav.'+GAL.folder;
+let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem(FAV_KEY)||'[]')); }catch(e){}
+let favSave=null;   // set by the Firebase module below when the client is signed in
+function favStatus(t,cls){ const e=$('favSt'); if(e){ e.textContent=t||''; e.className='st'+(cls?' '+cls:''); } }
+function favChanged(){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify([...FAV])); }catch(e){}
+  const n=$('favN'); if(n) n.textContent=FAV.size;
+  if(favSave) favSave([...FAV]); else if(GAL.order) favStatus('Saved on this device. Open the gallery from your portal to send your picks.','warn');
+}
+function toggleFav(it,btn){
+  if(!it) return; const on=!FAV.has(it.name);
+  if(on) FAV.add(it.name); else FAV.delete(it.name);
+  if(btn){ btn.classList.toggle('on',on); btn.setAttribute('aria-pressed',on); btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); }
+  favChanged();
+  if(FILTER==='fav' && !on && !$('lb').classList.contains('on')) renderGrid(false);
+  else document.querySelectorAll(`.fav[data-fav="${ITEMS.indexOf(it)}"]`).forEach(b=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
+  if($('lb').classList.contains('on')){ paintLbFav(); const th=$('lbStrip').querySelector(`[data-t="${LBL.indexOf(it)}"]`); if(th){ const h=th.querySelector('.h'); if(on&&!h) th.insertAdjacentHTML('beforeend','<span class="h">&#9829;</span>'); if(!on&&h) h.remove(); } }
+}
+function paintLbFav(){ const it=LBL[LBI], b=$('lbFav'); if(!it||!b) return; const on=FAV.has(it.name); b.classList.toggle('on',on); b.setAttribute('aria-label',(on?'Remove from':'Add to')+' favourites'); }
+function mergeFavs(list){ (list||[]).forEach(n=>FAV.add(n)); try{ localStorage.setItem(FAV_KEY, JSON.stringify([...FAV])); }catch(e){} const n=$('favN'); if(n) n.textContent=FAV.size; if($('grid')) renderGrid(false); }
+window.FOM_FAV={ merge:mergeFavs, setSaver:f=>{ favSave=f; }, status:favStatus, list:()=>[...FAV] };
+
 function renderGallery(){
   const m=meta();
   function daysLeftTxt(iso){ const d=Math.ceil((new Date(iso+'T23:59:59')-new Date())/864e5); return d>0 ? `<small>${d} day${d===1?'':'s'} left</small>` : ''; }
@@ -278,10 +321,12 @@ function renderGallery(){
             <button class="tab on" data-f="all">All<span class="n">${m.count}</span></button>
             ${m.photos?`<button class="tab" data-f="image">Photos<span class="n">${m.photos}</span></button>`:''}
             ${m.vids?`<button class="tab" data-f="video">Videos<span class="n">${m.vids}</span></button>`:''}
+            <button class="tab" data-f="fav">&#9829; Favourites<span class="n" id="favN">${FAV.size}</span></button>
           </div>
           ${dlAllBtn('sm')}
         </div>
       </div>
+      <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}.</span><span class="st" id="favSt"></span></div>
       <div class="grid" id="grid"></div>
 
       <section class="thanks" id="thanks">
@@ -308,7 +353,7 @@ function renderGallery(){
 }
 /* first batch is small so the Thank you and review section sits right under it; more only loads when the client asks */
 const PAGE=(innerWidth<600?12:24), STEP=(innerWidth<600?24:48); let SHOWN=PAGE;
-function visible(){return FILTER==='all'?ITEMS:ITEMS.filter(i=>i.kind===FILTER);}
+function visible(){return FILTER==='all'?ITEMS:FILTER==='fav'?ITEMS.filter(i=>FAV.has(i.name)):ITEMS.filter(i=>i.kind===FILTER);}
 function renderGrid(reset){
   if(reset!==false) SHOWN=PAGE;
   const g=$('grid'),all=visible(),list=all.slice(0,SHOWN);
@@ -319,6 +364,7 @@ function renderGrid(reset){
       :(it.kind==='image'?`<img src="${esc(it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
     const badge=isVid?`<span class="badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Video</span>`:`<span class="badge">Photo</span>`;
     return `<article class="card" data-i="${gi}"><div class="thumb">${thumb}${badge}
+      <button class="fav ${FAV.has(it.name)?'on':''}" data-fav="${gi}" type="button" aria-label="${FAV.has(it.name)?'Remove from':'Add to'} favourites" aria-pressed="${FAV.has(it.name)}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg></button>
       <button class="dl-mini" data-dl="${gi}" title="Download" aria-label="Download ${esc(it.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button></div>
       <div class="cap"><span class="nm">${esc(it.name)}</span><span class="sz">${fmtSize(it.size)}</span></div></article>`;
   }).join('');
@@ -333,7 +379,8 @@ function renderGrid(reset){
     g.after(more);
     more.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;const y=scrollY;SHOWN=b.dataset.m==='all'?all.length:SHOWN+STEP;renderGrid(false);scrollTo(0,y);};
   }
-  g.onclick=e=>{const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
+  if(!list.length&&FILTER==='fav') g.innerHTML='<div class="fav-empty">No favourites yet.<br>Tap the &#9829; on any photo to add it here.</div>';
+  g.onclick=e=>{const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
 
 function download(it){ if(!it||!it.url)return;
@@ -346,7 +393,7 @@ const thumbOf=it=>it.kind==='video'?(it.poster||''):it.url;
 function openLb(gi){
   LBL=visible(); LBI=Math.max(0,LBL.indexOf(ITEMS[gi]));
   $('lbStrip').innerHTML=LBL.map((it,i)=>{const t=thumbOf(it);
-    return `<button class="lb-th" type="button" data-t="${i}" aria-label="Open ${esc(it.name)}">${t?`<img src="${esc(t)}" loading="lazy" decoding="async" alt="">`:''}${it.kind==='video'?'<span class="v">&#9654;</span>':''}</button>`;}).join('');
+    return `<button class="lb-th" type="button" data-t="${i}" aria-label="Open ${esc(it.name)}">${t?`<img src="${esc(t)}" loading="lazy" decoding="async" alt="">`:''}${it.kind==='video'?'<span class="v">&#9654;</span>':''}${FAV.has(it.name)?'<span class="h">&#9829;</span>':''}</button>`;}).join('');
   paintLb(); $('lb').classList.add('on'); document.body.style.overflow='hidden';
 }
 function closeLb(){$('lb').classList.remove('on');$('lbMedia').innerHTML='';document.body.style.overflow='';}
@@ -371,6 +418,7 @@ function paintLb(){
   else if(it.kind==='image'&&it.url) m.innerHTML=`<img src="${esc(it.url)}" alt="${esc(it.name)}" draggable="false">`;
   else m.innerHTML=`<div class="novid"><p>No preview. Use <b>Download</b> to save this file.</p></div>`;
   $('lbDl').onclick=()=>download(it);
+  paintLbFav();
   // highlight the thumbnail and keep it centred in the strip
   const st=$('lbStrip'), on=st.querySelector('.lb-th.on'); if(on) on.classList.remove('on');
   const th=st.querySelector(`[data-t="${LBI}"]`); if(th){ th.classList.add('on'); st.scrollTo({left:th.offsetLeft-st.clientWidth/2+th.offsetWidth/2}); }
@@ -378,6 +426,7 @@ function paintLb(){
   [1,-1].forEach(d=>{ const n=LBL[(LBI+d+LBL.length)%LBL.length]; if(n&&n.kind==='image'&&n.url){ const im=new Image(); im.src=n.url; } });
 }
 $('lbStrip').addEventListener('click',e=>{const b=e.target.closest('[data-t]'); if(b) goLb(+b.dataset.t);});
+$('lbFav').onclick=()=>toggleFav(LBL[LBI],$('lbFav'));
 $('lbClose').onclick=closeLb;$('lbPrev').onclick=()=>stepLb(-1);$('lbNext').onclick=()=>stepLb(1);
 $('lbStage').addEventListener('click',e=>{if(e.target.id==='lbStage'||e.target.id==='lbMedia')closeLb();});
 /* swipe: the photo follows your finger; let go past a third of the screen (or flick) for the next one; pull down to close */
@@ -391,9 +440,12 @@ $('lbStage').addEventListener('click',e=>{if(e.target.id==='lbStage'||e.target.i
     $('lb').style.background='';
     if(axis==='x' && LBL.length>1 && (Math.abs(dx)>w/3 || (fast&&Math.abs(dx)>50))) return stepLb(dx<0?1:-1,true);
     if(axis==='y' && dy>110) return closeLb();
-    m.classList.add('slide'); m.style.transform=''; m.style.opacity=''; });
+    m.classList.add('slide'); m.style.transform=''; m.style.opacity='';
+    // double tap the photo to add it to favourites (like Instagram)
+    if(!axis && !e.target.closest('video,button')){ const now=Date.now(); if(now-(st._tap||0)<300){ st._tap=0; const it=LBL[LBI]; if(it&&!FAV.has(it.name)) toggleFav(it,$('lbFav'));
+        const h=document.createElement('div'); h.className='big-heart'; h.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg>'; st.appendChild(h); setTimeout(()=>h.remove(),750); } else st._tap=now; } });
 })();
-addEventListener('keydown',e=>{if(!$('lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')stepLb(1);else if(e.key==='ArrowLeft')stepLb(-1);});
+addEventListener('keydown',e=>{if(!$('lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')stepLb(1);else if(e.key==='ArrowLeft')stepLb(-1);else if(e.key==='f'||e.key==='F')toggleFav(LBL[LBI],$('lbFav'));});
 
 function stateBox(mascot,h,p){$('app').innerHTML=`<div class="state"><div class="box">${mascot?`<img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">`:''}<h3>${h}</h3><p>${p}</p><p style="margin-top:18px"><a class="btn ghost" href="client-portal.html">Back to portal</a></p></div></div>`;}
 function renderExpired(){stateBox(1,'This gallery has expired','To keep your files safe we remove galleries after a set time. Please contact FOM Studios if you still need your deliverables.');}
@@ -401,6 +453,50 @@ function renderEmpty(){stateBox(1,'Your gallery is being prepared','Your files a
 function renderError(){stateBox(1,'Couldn\'t load your gallery','Please check your connection and refresh. If it keeps happening, contact FOM Studios.');}
 
 load();
+</script>
+<!-- favourites: saved on the client's booking when they are signed in to the portal (same sign-in, nothing extra to do) -->
+<script>
+var firebaseConfig = {
+  apiKey:            "AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A",
+  authDomain:        "fom-studios.firebaseapp.com",
+  projectId:         "fom-studios",
+  storageBucket:     "fom-studios.firebasestorage.app",
+  messagingSenderId: "1049126528829",
+  appId:             "1:1049126528829:web:8ed0ea930e0b1579630754"
+};
+</script>
+<script type="module">
+if(GAL.order){
+  const B = (window.FOM_CLIENT && FOM_CLIENT.name) || 'FOM Studios';
+  try{
+    const { initializeApp, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const { getFirestore, doc, getDoc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    let app; try{ app = initializeApp(firebaseConfig); }catch(e){ app = getApp(); }
+    const auth = getAuth(app), db = getFirestore(app), ref = doc(db, 'orders', GAL.order);
+    onAuthStateChanged(auth, async user => {
+      if(!user){ FOM_FAV.setSaver(null); FOM_FAV.status(FOM_FAV.list().length ? 'Saved on this device. Sign in to your portal to send your picks.' : '', 'warn'); return; }
+      try{
+        const snap = await getDoc(ref);
+        if(snap.exists()) FOM_FAV.merge(snap.data().favourites || []);
+        let t = null;
+        const save = list => {
+          FOM_FAV.status('Saving...');
+          clearTimeout(t);
+          t = setTimeout(async () => {
+            try{ await updateDoc(ref, { favourites: list.slice(0, 1000), favouritesAt: serverTimestamp() }); FOM_FAV.status(list.length ? 'Saved. ' + B + ' can see your ' + list.length + ' pick' + (list.length === 1 ? '' : 's') + '.' : 'Saved.', 'ok'); }
+            catch(e){ console.warn('favourites', e); FOM_FAV.status('Saved on this device only. Please try again later.', 'warn'); }
+          }, 700);
+        };
+        FOM_FAV.setSaver(save);
+        // picks made before signing in are sent now
+        const now = FOM_FAV.list(), had = (snap.exists() && snap.data().favourites) || [];
+        if(now.length !== had.length || now.some(n => had.indexOf(n) < 0)) save(now);
+        else if(now.length) FOM_FAV.status(B + ' can see your ' + now.length + ' pick' + (now.length === 1 ? '' : 's') + '.', 'ok');
+      }catch(e){ console.warn('favourites load', e); FOM_FAV.status('', ''); }
+    });
+  }catch(e){ console.warn('favourites off', e); }
+}
 </script>
 </body>
 </html>

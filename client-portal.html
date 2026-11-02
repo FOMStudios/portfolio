@@ -584,7 +584,7 @@ function buildCard(o){
     // gallery link (uses the admin-set folder, or falls back to the customer name slug)
     const SBA = window.FOM_CLIENT && FOM_CLIENT.id === 'sba';
     const galFolder = o.galleryFolder || ((SBA ? 'shotbya/' : '') + slug(o.customer)+'/');
-    const galLink = 'client-gallery.html?g='+encodeURIComponent(galFolder)+'&name='+encodeURIComponent(o.customer||'there')
+    const galLink = 'client-gallery.html?g='+encodeURIComponent(galFolder)+'&o='+encodeURIComponent(o.id)+'&name='+encodeURIComponent(o.customer||'there')
         +(o.shootDate?'&date='+encodeURIComponent(o.shootDate):'')
         +(o.galleryExpiry?'&expiry='+encodeURIComponent(o.galleryExpiry):'')
         +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'')+(SBA?'&b=sba':'');
