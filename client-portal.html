@@ -741,6 +741,7 @@ function init(){
         $('signSubmit').disabled=true; $('signSubmit').textContent='Saving...'; $('signErr').textContent='';
         try{
             await updateDoc(doc(db,'orders',signingId), { contractSigned:true, signatureData:pad.toDataURL('image/png'), signedName:$('signName').value.trim(), signedAt:serverTimestamp() });
+            if(window.FOM_EVENT) FOM_EVENT('signed', signingId, $('signName').value.trim(), 'in the portal');
             closeSign();
         }catch(e){ $('signSubmit').disabled=false; $('signSubmit').textContent='Submit signature'; $('signErr').textContent='Could not save. Please try again.'; console.warn('sign save',e); }
     });
@@ -864,6 +865,8 @@ function init(){
             stopOrders = onSnapshot(ordersQuery, snap => {
                 const orders = snap.docs.map(d => ({id:d.id, ...d.data()}));
                 renderOrders(orders, user.email);
+                // first portal sign-in, once per booking (the Worker ignores repeats)
+                if(!window.__fomPortalEv && window.FOM_EVENT){ window.__fomPortalEv = 1; Object.keys(ORDERS).forEach(id => FOM_EVENT('portal', id, ORDERS[id].customer || user.email)); }
                 const want = new URLSearchParams(location.search).get('o');
                 if(want && !OPEN.has(want) && ORDERS[want] && !window.__fomDeep){ window.__fomDeep = 1;
                     const h = document.querySelector(`.booking-card[data-oid="${want}"] .booking-header`);

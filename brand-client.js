@@ -18,6 +18,16 @@
   }catch(e){}
   if(id !== 'sba') id = 'fom';
 
+  /* client activity: tells FOM Studios (push notification + activity log) when a client signs, opens, downloads... */
+  window.FOM_EVENT = function(t, o, n, d){
+    try{
+      var body = JSON.stringify({ t: t, o: o || '', n: n || '', d: d || '', b: id });
+      var u = 'https://fom-gallery.cold-moon-d65c.workers.dev/event';
+      if(navigator.sendBeacon && navigator.sendBeacon(u, new Blob([body], { type:'text/plain' }))) return;
+      fetch(u, { method:'POST', body: body, keepalive: true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
+    }catch(e){}
+  };
+
   var root = /\/shotbya\//.test(location.pathname) ? '../' : '';
   var B = id === 'sba'
     ? { id:'sba', name:'Shot by A', upper:'SHOT BY A', legal:'Shot by A Photography', email:'amarah.rangraze@gmail.com',

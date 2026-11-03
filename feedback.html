@@ -99,7 +99,7 @@ import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.g
 
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
-const NAME = P.get('name') || '', ORDER = P.get('order') || '';
+const NAME = P.get('name') || '', ORDER = P.get('order') || '', OID = P.get('o') || '';
 if(NAME && NAME !== 'there') $('fName').value = NAME.charAt(0).toUpperCase()+NAME.slice(1);
 
 let rating = 0;
@@ -126,6 +126,7 @@ $('sendBtn').addEventListener('click', async () => {
     });
     $('form').classList.add('hidden'); $('title').classList.add('hidden'); $('sub').classList.add('hidden');
     $('thanks').classList.remove('hidden');
+    if(window.FOM_EVENT) FOM_EVENT('review', OID, name || NAME || 'A client', rating + ' star' + (rating === 1 ? '' : 's') + (msg ? ', "' + msg.slice(0, 60) + (msg.length > 60 ? '...' : '') + '"' : ''));
     if(rating >= 4) $('thanksMsg').textContent = 'So glad you loved it! If you have a moment, sharing FOM Studios with friends means everything to a small business.';
   }catch(e){
     $('sendBtn').disabled = false; $('sendBtn').textContent = 'Send review';

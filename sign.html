@@ -169,6 +169,7 @@ else {
       });
       // send them to the confirmation page so they can see it is done
       const _b = (window.FOM_CLIENT && FOM_CLIENT.id === 'sba') ? 'b=sba' : '';
+      if(window.FOM_EVENT) FOM_EVENT('signed', ORDER, name, 'sign link');
       location.href = 'signed.html' + ((name || _b) ? '?' + [name ? 'name=' + encodeURIComponent(name) : '', _b].filter(Boolean).join('&') : '');
     }catch(e){
       console.warn('sign save failed', e);

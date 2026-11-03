@@ -273,7 +273,7 @@ async function load(){
 function meta(){const photos=ITEMS.filter(i=>i.kind==='image').length,vids=ITEMS.filter(i=>i.kind==='video').length,total=ITEMS.reduce((a,i)=>a+(+i.size||0),0);return{photos,vids,count:ITEMS.length,total};}
 
 function reviewHref(){ var u=CONFIG.reviewUrl; if(/^https?:/.test(u)) return u;
-  return u+(u.indexOf('?')>=0?'&':'?')+'name='+encodeURIComponent(GAL.name)+'&order='+encodeURIComponent(GAL.folder); }
+  return u+(u.indexOf('?')>=0?'&':'?')+'name='+encodeURIComponent(GAL.name)+'&order='+encodeURIComponent(GAL.folder)+(GAL.order?'&o='+encodeURIComponent(GAL.order):''); }
 function dlAllBtn(cls){
   return `<button class="btn ${cls}" type="button" data-dlall>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</button>`; }
@@ -284,6 +284,7 @@ let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem(FAV_KEY)||'[
 let favSave=null;   // set by the Firebase module below when the client is signed in
 function favStatus(t,cls){ const e=$('favSt'); if(e){ e.textContent=t||''; e.className='st'+(cls?' '+cls:''); } }
 function favChanged(){
+  FAV_DIRTY=true;
   try{ localStorage.setItem(FAV_KEY, JSON.stringify([...FAV])); }catch(e){}
   const n=$('favN'); if(n) n.textContent=FAV.size;
   if(favSave) favSave([...FAV]); else if(GAL.order) favStatus('Saved on this device. Open the gallery from your portal to send your picks.','warn');
@@ -301,7 +302,13 @@ function paintLbFav(){ const it=LBL[LBI], b=$('lbFav'); if(!it||!b) return; cons
 function mergeFavs(list){ (list||[]).forEach(n=>FAV.add(n)); try{ localStorage.setItem(FAV_KEY, JSON.stringify([...FAV])); }catch(e){} const n=$('favN'); if(n) n.textContent=FAV.size; if($('grid')) renderGrid(false); }
 window.FOM_FAV={ merge:mergeFavs, setSaver:f=>{ favSave=f; }, status:favStatus, list:()=>[...FAV] };
 
+let FAV_DIRTY=false;
+/* client activity for FOM Studios: gallery opened (first time), downloads, favourites picked when they leave */
+const ev=(t,d)=>{ if(window.FOM_EVENT) FOM_EVENT(t, GAL.order, GAL.name, d); };
+function sendFavs(){ if(FAV_DIRTY){ FAV_DIRTY=false; ev('favs', FAV.size+(FAV.size===1?' photo':' photos')); } }
+addEventListener('pagehide', sendFavs); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendFavs(); });
 function renderGallery(){
+  ev('gallery');
   const m=meta();
   function daysLeftTxt(iso){ const d=Math.ceil((new Date(iso+'T23:59:59')-new Date())/864e5); return d>0 ? `<small>${d} day${d===1?'':'s'} left</small>` : ''; }
   $('app').innerHTML=`
@@ -458,6 +465,7 @@ function failDl(err){
 /* ---- one file ---- */
 async function download(it){
   if(!it || !it.url) return;
+  ev('download', it.name);
   if(!USE_SHARE && !IS_ANDROID && !IS_IOS){   // computer: quick direct download
     DLC = new AbortController();
     try{ showDl('Downloading'); setDl(it.name, 3);
@@ -484,6 +492,7 @@ async function download(it){
 async function downloadAll(){
   const list = visible().filter(i => i.url);
   if(!list.length) return;
+  ev('download', (FILTER === 'fav' ? 'their ' + list.length + ' favourites' : 'all ' + list.length + ' files'));
   const label = FILTER === 'fav' ? 'favourites' : FILTER === 'image' ? 'photos' : FILTER === 'video' ? 'videos' : 'files';
   DLC = new AbortController(); const sig = DLC.signal;
   const totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
