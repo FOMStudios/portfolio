@@ -89,6 +89,18 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .dl-mini{position:absolute;top:7px;right:7px;width:34px;height:34px;border-radius:50%;background:rgba(20,21,24,.72);backdrop-filter:blur(6px);
   display:grid;place-items:center;color:#fff;transition:background .2s;}
 .dl-mini:hover{background:var(--accent);}
+/* download progress sheet */
+.dl-scrim{position:fixed;inset:0;z-index:300;background:rgba(10,10,12,.55);display:none;align-items:flex-end;justify-content:center;}
+.dl-scrim.on{display:flex;}
+.dl-box{background:var(--panel);color:var(--ink);width:100%;max-width:440px;border-radius:22px 22px 0 0;padding:22px 20px calc(18px + var(--safe-b));box-shadow:0 -10px 40px rgba(0,0,0,.25);}
+@media(min-width:600px){.dl-scrim{align-items:center;}.dl-box{border-radius:22px;}}
+.dl-h{font-size:18px;font-weight:800;}
+.dl-sub{font-size:13.5px;color:var(--ink-soft);margin:6px 0 12px;min-height:18px;word-break:break-word;}
+.dl-bar{height:8px;border-radius:9px;background:var(--panel-2);overflow:hidden;}
+.dl-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:9px;transition:width .2s;}
+.dl-acts{display:flex;gap:10px;margin-top:16px;} .dl-acts .btn{flex:1;justify-content:center;}
+.dl-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;} .dl-note a{color:var(--accent);font-weight:700;}
+button.btn{cursor:pointer;}
 /* favourites */
 .fav{position:absolute;right:7px;bottom:7px;width:36px;height:36px;border-radius:50%;background:rgba(20,21,24,.6);backdrop-filter:blur(6px);display:grid;place-items:center;color:#fff;transition:transform .15s,background .2s;z-index:2;}
 .fav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;}
@@ -260,9 +272,9 @@ function meta(){const photos=ITEMS.filter(i=>i.kind==='image').length,vids=ITEMS
 
 function reviewHref(){ var u=CONFIG.reviewUrl; if(/^https?:/.test(u)) return u;
   return u+(u.indexOf('?')>=0?'&':'?')+'name='+encodeURIComponent(GAL.name)+'&order='+encodeURIComponent(GAL.folder); }
-function dlAllBtn(cls){ const href = GAL.dl || '#';
-  return `<a class="btn ${cls}" href="${esc(href)}" ${GAL.dl?'target="_blank" rel="noopener"':'onclick="return false"'}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</a>`; }
+function dlAllBtn(cls){
+  return `<button class="btn ${cls}" type="button" data-dlall>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</button>`; }
 
 /* ===== favourites: kept on this device and, when the client is signed in to their portal, saved on their booking ===== */
 const FAV_KEY='fom.fav.'+GAL.folder;
@@ -383,9 +395,191 @@ function renderGrid(reset){
   g.onclick=e=>{const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
 
-function download(it){ if(!it||!it.url)return;
-  const a=document.createElement('a'); a.href=it.url+(it.url.includes('?')?'&':'?')+'dl=1'; a.download=it.name; a.target='_blank'; a.rel='noopener';
-  document.body.appendChild(a); a.click(); a.remove(); }
+/* ===== downloads that save straight away (no preview tab) =====
+   iPhone / iPad: the files are fetched, then one tap opens the share sheet with "Save Image" / "Save to Photos".
+   Android: each file downloads straight into the phone (Downloads / Gallery).
+   Computer: one file downloads directly; Download all builds a single .zip in the browser.
+   Files come from the R2 Worker, which allows cross-site fetches, so nothing new is needed on the server. */
+const UA = navigator.userAgent;
+const IS_IOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+const MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', webp:'image/webp', gif:'image/gif', heic:'image/heic', avif:'image/avif', mp4:'video/mp4', mov:'video/quicktime', m4v:'video/mp4', webm:'video/webm' };
+const fileUrl = it => it.url + (it.url.includes('?') ? '&' : '?') + 'dl=1';
+function canShareFiles(){ try{ return !!(navigator.canShare && navigator.canShare({ files:[ new File(['x'], 'x.jpg', { type:'image/jpeg' }) ] })); }catch(e){ return false; } }
+const USE_SHARE = IS_IOS && canShareFiles();
+async function getFile(it, signal, onProgress){
+  const r = await fetch(fileUrl(it), { signal });
+  if(!r.ok) throw new Error('Could not get ' + it.name + ' (' + r.status + ')');
+  const total = +r.headers.get('content-length') || +it.size || 0;
+  if(!r.body || !onProgress){ const b = await r.blob(); return new File([b], it.name, { type: MIME[ext(it.name)] || b.type || 'application/octet-stream' }); }
+  const rd = r.body.getReader(), parts = []; let got = 0;
+  for(;;){ const { done, value } = await rd.read(); if(done) break; parts.push(value); got += value.length; onProgress(got, total); }
+  return new File(parts, it.name, { type: MIME[ext(it.name)] || 'application/octet-stream' });
+}
+function saveBlob(file, name){
+  const u = URL.createObjectURL(file), a = document.createElement('a');
+  a.href = u; a.download = name || file.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+
+/* ---- progress sheet ---- */
+let DLC = null;   // AbortController of the running job
+function dlSheet(){
+  let el = $('dlSheet'); if(el) return el;
+  el = document.createElement('div'); el.id = 'dlSheet'; el.className = 'dl-scrim';
+  el.innerHTML = `<div class="dl-box" role="dialog" aria-modal="true" aria-labelledby="dlT"><div class="dl-h" id="dlT">Preparing your files</div>
+    <div class="dl-sub" id="dlS"></div><div class="dl-bar"><i id="dlBar"></i></div>
+    <div class="dl-acts"><button class="btn" type="button" id="dlGo" hidden></button><button class="btn ghost" type="button" id="dlX">Cancel</button></div>
+    <div class="dl-note" id="dlN"></div></div>`;
+  document.body.appendChild(el);
+  $('dlX').onclick = () => { if(DLC) DLC.abort(); closeDl(); };
+  return el;
+}
+function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
+function closeDl(){ const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
+const setDl = (sub, pct) => { $('dlS').textContent = sub; if(pct != null) $('dlBar').style.width = Math.max(2, Math.min(100, pct)) + '%'; };
+/* iPhone needs a fresh tap to open the share sheet, so preparing ends with a "Save" button */
+function waitTap(label){ return new Promise(res => { const b = $('dlGo'); b.textContent = label; b.hidden = false; b.onclick = () => { b.hidden = true; res(); }; }); }
+async function shareFiles(files){
+  try{ await navigator.share({ files }); return true; }
+  catch(e){ if(e && e.name === 'AbortError') return false; throw e; }
+}
+function failDl(err){
+  console.warn('download', err);
+  if(err && err.name === 'AbortError') return closeDl();
+  $('dlT').textContent = 'Something went wrong';
+  setDl('Check your connection and try again. ' + (err && err.message ? '(' + err.message + ')' : ''), null);
+  $('dlX').textContent = 'Close'; $('dlGo').hidden = true;
+  if(GAL.dl) $('dlN').innerHTML = `Or use the <a href="${esc(GAL.dl)}" target="_blank" rel="noopener">backup download link</a>.`;
+}
+
+/* ---- one file ---- */
+async function download(it){
+  if(!it || !it.url) return;
+  if(!USE_SHARE && !IS_ANDROID && !IS_IOS){   // computer: quick direct download
+    DLC = new AbortController();
+    try{ showDl('Downloading'); setDl(it.name, 3);
+      const f = await getFile(it, DLC.signal, (g, t) => setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : ''), t ? g / t * 100 : null));
+      saveBlob(f); closeDl(); }
+    catch(e){ failDl(e); }
+    return;
+  }
+  DLC = new AbortController();
+  try{
+    showDl(USE_SHARE ? 'Getting your ' + (it.kind === 'video' ? 'video' : 'photo') : 'Downloading'); setDl(it.name, 3);
+    const f = await getFile(it, DLC.signal, (g, t) => setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : ''), t ? g / t * 100 : null));
+    if(USE_SHARE){
+      $('dlT').textContent = 'Your ' + (it.kind === 'video' ? 'video' : 'photo') + ' is ready'; setDl(it.name, 100);
+      $('dlN').textContent = 'Tap below, then choose "' + (it.kind === 'video' ? 'Save Video' : 'Save Image') + '" to put it in your Photos.';
+      await waitTap(it.kind === 'video' ? 'Save video' : 'Save photo');
+      await shareFiles([f]);
+    } else saveBlob(f);
+    closeDl();
+  }catch(e){ failDl(e); }
+}
+
+/* ---- every file (or the current tab: All / Photos / Videos / Favourites) ---- */
+async function downloadAll(){
+  const list = visible().filter(i => i.url);
+  if(!list.length) return;
+  const label = FILTER === 'fav' ? 'favourites' : FILTER === 'image' ? 'photos' : FILTER === 'video' ? 'videos' : 'files';
+  DLC = new AbortController(); const sig = DLC.signal;
+  const totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
+  let doneBytes = 0;
+  const pct = extra => (doneBytes + (extra || 0)) / totalBytes * 100;
+  try{
+    if(USE_SHARE){
+      /* iPhone: batches of up to 20 files (or about 250 MB) so the share sheet and memory stay happy */
+      const batches = []; let cur = [], sz = 0;
+      list.forEach(i => { if(cur.length && (cur.length >= 20 || sz + (+i.size || 0) > 250e6)){ batches.push(cur); cur = []; sz = 0; } cur.push(i); sz += +i.size || 0; });
+      if(cur.length) batches.push(cur);
+      showDl('Saving ' + list.length + ' ' + label + ' to your Photos');
+      let n = 0;
+      for(let b = 0; b < batches.length; b++){
+        const files = [];
+        for(const it of batches[b]){
+          n++; setDl('Getting ' + n + ' of ' + list.length, pct());
+          files.push(await getFile(it, sig, (g) => setDl('Getting ' + n + ' of ' + list.length, pct(g))));
+          doneBytes += +it.size || 0;
+        }
+        $('dlT').textContent = batches.length > 1 ? 'Part ' + (b + 1) + ' is ready' : 'Your ' + label + ' are ready';
+        setDl(batches.length > 1 ? 'Part ' + (b + 1) + ' of ' + batches.length + ' ready (' + files.length + ' files)' : files.length + ' files ready', pct());
+        $('dlN').textContent = 'Tap below, then choose "Save ' + files.length + ' Items" to put them in your Photos.';
+        await waitTap(batches.length > 1 ? 'Save part ' + (b + 1) + ' of ' + batches.length : 'Save ' + files.length + ' to Photos');
+        await shareFiles(files);
+        $('dlN').textContent = '';
+      }
+      $('dlT').textContent = 'All done'; setDl('Everything is in your Photos. Enjoy!', 100); $('dlX').textContent = 'Close';
+      return;
+    }
+    if(IS_ANDROID){
+      /* Android: each file saves straight to the phone (Chrome may ask once to allow several downloads) */
+      showDl('Downloading ' + list.length + ' ' + label);
+      let n = 0;
+      for(const it of list){
+        n++; setDl('Saving ' + n + ' of ' + list.length, pct());
+        saveBlob(await getFile(it, sig, (g) => setDl('Saving ' + n + ' of ' + list.length, pct(g))));
+        doneBytes += +it.size || 0;
+        await new Promise(r => setTimeout(r, 350));
+      }
+      $('dlT').textContent = 'All done'; setDl('Your ' + label + ' are in your Downloads and Gallery.', 100); $('dlX').textContent = 'Close';
+      return;
+    }
+    /* computer: one .zip (split into parts above 2 GB) */
+    showDl('Preparing your download');
+    const base = (String(GAL.name || 'Gallery').trim() + ' ' + ((window.FOM_CLIENT && FOM_CLIENT.name) || 'FOM Studios')).replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-');
+    let zip = makeZip(), part = 1, n = 0;
+    const parts = [];
+    for(const it of list){
+      n++; setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct());
+      const f = await getFile(it, sig, (g) => setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct(g)));
+      if(zip.size && zip.size + f.size > 2e9){ parts.push(zip.finish()); zip = makeZip(); part++; }
+      await zip.add(f);
+      doneBytes += +it.size || 0;
+    }
+    parts.push(zip.finish());
+    parts.forEach((b, k) => saveBlob(b, base + (parts.length > 1 ? '-part' + (k + 1) : '') + '.zip'));
+    $('dlT').textContent = 'Download started'; setDl(list.length + ' ' + label + ' in ' + (parts.length > 1 ? parts.length + ' zip files' : 'one zip file') + '. Check your Downloads folder.', 100); $('dlX').textContent = 'Close';
+  }catch(e){ failDl(e); }
+}
+
+/* ---- tiny ZIP writer (stored, no compression: photos and videos are already compressed) ---- */
+const CRC_T = (() => { const t = new Uint32Array(256); for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(buf){ let c = 0xFFFFFFFF; for(let i = 0; i < buf.length; i++) c = CRC_T[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(){
+  const parts = [], central = []; let offset = 0;
+  const enc = new TextEncoder(), used = {};
+  const dosTime = d => ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF;
+  const dosDate = d => (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+  return {
+    get size(){ return offset; },
+    async add(file){
+      let name = file.name, k = 1; while(used[name]){ k++; name = file.name.replace(/(\.[^.]*)?$/, m => '-' + k + m); } used[name] = 1;
+      const data = new Uint8Array(await file.arrayBuffer()), crc = crc32(data), nm = enc.encode(name), now = new Date();
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
+      h.setUint16(10, dosTime(now), true); h.setUint16(12, dosDate(now), true); h.setUint32(14, crc, true);
+      h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+      parts.push(h, nm, file);   // the File itself, so the bytes are not held twice
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true);
+      c.setUint16(12, dosTime(now), true); c.setUint16(14, dosDate(now), true); c.setUint32(16, crc, true);
+      c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, nm.length, true);
+      c.setUint32(42, offset, true);
+      central.push(c, nm);
+      offset += 30 + nm.length + data.length;
+    },
+    finish(){
+      const cdSize = central.reduce((a, x) => a + (x.byteLength || x.length), 0), count = central.length / 2;
+      const e = new DataView(new ArrayBuffer(22));
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, count, true); e.setUint16(10, count, true);
+      e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+      return new Blob([...parts, ...central, e], { type:'application/zip' });
+    }
+  };
+}
+document.addEventListener('click', e => { if(e.target.closest('[data-dlall]')){ e.preventDefault(); downloadAll(); } });
+
 
 /* ===== viewer: swipe left/right with the photo following your finger, thumbnail strip underneath ===== */
 let LBI=0, LBL=[];                       // LBL = the files in the tab you opened from (All / Photos / Videos)
