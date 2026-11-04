@@ -31,7 +31,7 @@
   var root = /\/shotbya\//.test(location.pathname) ? '../' : '';
   var B = id === 'sba'
     ? { id:'sba', name:'Shot by A', upper:'SHOT BY A', legal:'Shot by A Photography', email:'amarah.rangraze@gmail.com',
-        phone:'073 755 3136', wa:'27737553136', site:'instagram.com/shotbya_photography', siteUrl:'https://instagram.com/shotbya_photography',
+        phone:'084 445 6657', wa:'27844456657', site:'instagram.com/shotbya_photography', siteUrl:'https://instagram.com/shotbya_photography',
         instagram:'shotbya_photography', portal:root + 'client-portal.html?b=sba', logo:root + 'shotbya/logo.png', icon:root + 'shotbya/icon.png', accent:'#780000' }
     : { id:'fom', name:'FOM Studios', upper:'FOM STUDIOS', portal:root + 'client-portal.html', accent:'#02367B' };
   window.FOM_CLIENT = B;
@@ -59,7 +59,8 @@
   var R = [
     [/Frames Of Motion \(FOM\) Studios/g, B.legal], [/info@fomstudios\.co\.za/g, B.email],
     [/FOM Studios/g, B.name], [/FOM STUDIOS/g, B.upper], [/FOM studios/g, B.name],
-    [/(^|[^\/\w.])www\.fomstudios\.co\.za(?![\/\w])/g, '$1' + B.site], [/(@?)fom_studios_/g, '$1' + B.instagram]
+    [/(^|[^\/\w.])www\.fomstudios\.co\.za(?![\/\w])/g, '$1' + B.site], [/(@?)fom_studios_/g, '$1' + B.instagram],
+    [/068 690 1120|073 755 3136/g, B.phone]
   ];
   function rb(s){ for(var i = 0; i < R.length; i++) s = s.replace(R[i][0], R[i][1]); return s; }
   window.FOM_CLIENT.rebrand = rb;
@@ -76,12 +77,14 @@
   }
   function fix(n){
     if(n.nodeType === 3){ var p = n.parentNode; if(!p || SKIP[p.nodeName]) return; var v = n.nodeValue;
-      if(/FOM|fomstudios|fom_studios_|Frames Of Motion/.test(v)){ var nv = rb(v); if(nv !== v) n.nodeValue = nv; } return; }
+      if(/FOM|fomstudios|fom_studios_|Frames Of Motion|690 1120|755 3136/.test(v)){ var nv = rb(v); if(nv !== v) n.nodeValue = nv; } return; }
     if(n.nodeType !== 1 || SKIP[n.nodeName]) return;
     if(n.nodeName === 'IMG') fixImg(n);
     if(n.nodeName === 'A'){ var h = n.getAttribute('href') || '';
       if(/^mailto:info@fomstudios/.test(h)) n.setAttribute('href', 'mailto:' + B.email);
       else if(/^https?:\/\/(www\.)?instagram\.com\/fom_studios_/.test(h)) n.setAttribute('href', 'https://instagram.com/' + B.instagram);
+      else if(/^https?:\/\/(api\.)?wa\.me\/|whatsapp\.com\/send/.test(h)) n.setAttribute('href', h.replace(/27686901120|27737553136/, B.wa));
+      else if(/^tel:/.test(h)) n.setAttribute('href', 'tel:' + B.phone.replace(/\s/g, ''));
       else if(h === '/' || /^https?:\/\/(www\.)?fomstudios\.co\.za\/?$/.test(h)) n.setAttribute('href', B.siteUrl); }
     ['alt','title','placeholder','aria-label'].forEach(function(a){ var v = n.getAttribute(a); if(v && /FOM/.test(v)) n.setAttribute(a, rb(v)); });
     var sa = n.getAttribute('style'); if(sa && TEST.test(sa)) n.setAttribute('style', swapCss(sa));

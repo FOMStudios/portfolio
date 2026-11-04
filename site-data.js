@@ -5,8 +5,8 @@
    Load this in the <head> (not deferred) so WhatsApp links are right from the first paint. */
 (function(){
   var DEF = {
-    phone: '073 755 3136', email: 'info@fomstudios.co.za', instagram: 'fom_studios_',
-    area: 'Johannesburg, South Africa', wa: '27737553136'
+    phone: '068 690 1120', email: 'info@fomstudios.co.za', instagram: 'fom_studios_',
+    area: 'Johannesburg, South Africa', wa: '27686901120'   // old number, in case you switch back: 073 755 3136 / 27737553136
   };
   var KEY = 'fom.site.v1';
   var URL_ = 'https://firestore.googleapis.com/v1/projects/fom-studios/databases/(default)/documents/siteContent/site?key=AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A';
@@ -18,7 +18,10 @@
   function esc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
   function igHandle(v){ v = String(v||'').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/^@/,'').replace(/\/.*$/,''); return v; }
 
-  var S = load();
+  /* Nov 2026 number change: a saved old number (073 755 3136) shows as the new WhatsApp Business number.
+     To switch back to the old number, delete this function's two lines and publish it on the Website page. */
+  function fixOld(d){ ['phone','whatsapp'].forEach(function(k){ if(d && digits(d[k]).replace(/^27/,'0') === '0737553136') d[k] = DEF.phone; }); return d; }
+  var S = fixOld(load());
   // Make the WhatsApp number available before page scripts read it
   window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '' };
 
@@ -166,7 +169,7 @@
       if(!j || !j.fields) return;
       var fresh = {}; for(var k in j.fields) fresh[k] = fromValue(j.fields[k]);
       var changed = JSON.stringify(fresh) !== JSON.stringify(S);
-      S = fresh; save(S);
+      S = fixOld(fresh); save(S);
       window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '' };
       try{ document.dispatchEvent(new Event('fom-site')); }catch(e){}
       if(changed){ if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run(); }
