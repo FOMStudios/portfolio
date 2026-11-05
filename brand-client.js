@@ -71,7 +71,8 @@
   var SKIP = { SCRIPT:1, STYLE:1, TEXTAREA:1, INPUT:1 };
   function fixImg(im){
     var src = im.getAttribute('src') || '';
-    if(im.closest && im.closest('.card,.grid,#lbMedia,.lb,[data-norebrand]')) return;   // never the client's own photos
+    var isLogo = im.matches && im.matches('img.mascot, .mascot img, .brand img, .mark img, .login-card img, .ac img');   // page logos, even inside cards
+    if(!isLogo && im.closest && im.closest('.card,.grid,#lbMedia,.lb,[data-norebrand]')) return;   // never the client's own photos
     if(/mascot|logo\.png/.test(src) && !im.hasAttribute('data-b')){
       im.setAttribute('data-b','');
       var small = (im.width && im.width < 70) || /topbar|mark|lb-|avatar/.test((im.parentNode && im.parentNode.className) || '');
