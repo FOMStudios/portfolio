@@ -97,7 +97,7 @@
   document.title = rb(document.title);
   document.addEventListener('DOMContentLoaded', function(){
     document.title = rb(document.title); swapStyles();
-    var ic = document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]'); for(var i = 0; i < ic.length; i++) ic[i].href = root + (ic[i].rel === 'apple-touch-icon' ? 'shotbya/touch-180.png' : 'shotbya/favicon-64.png');
+    var ic = document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]'); for(var i = 0; i < ic.length; i++) ic[i].href = root + (ic[i].rel === 'apple-touch-icon' ? 'shotbya/sba-touch-180.png?v=2' : 'shotbya/sba-favicon-32.png?v=2');
     fix(document.body); shown();
     new MutationObserver(function(ms){ ms.forEach(function(m){
       if(m.type === 'characterData') fix(m.target); else for(var j = 0; j < m.addedNodes.length; j++) fix(m.addedNodes[j]);
