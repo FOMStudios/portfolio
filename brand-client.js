@@ -1,7 +1,7 @@
 /* ============================================================
    FOM STUDIOS / SHOT BY A - client pages brand (portal, gallery, sign, contract view, feedback)
    ------------------------------------------------------------
-   Shot by A clients arrive with ?b=sba (her portal link is fomstudios.co.za/shotbya/,
+   Shot by A clients arrive with ?b=sba (her portal link is fomstudios.co.za/shotbya/portal/, her website fomstudios.co.za/shotbya/,
    and every link the dashboard makes for her adds it). The choice is remembered for the visit,
    so moving between portal, gallery and review keeps her branding.
    When she has her own domain, any host that is not fomstudios.co.za opens as Shot by A.
@@ -31,7 +31,7 @@
   var root = /\/shotbya\//.test(location.pathname) ? '../' : '';
   var B = id === 'sba'
     ? { id:'sba', name:'Shot by A', upper:'SHOT BY A', legal:'Shot by A Photography', email:'amarah.rangraze@gmail.com',
-        phone:'084 445 6657', wa:'27844456657', site:'instagram.com/shotbya_photography', siteUrl:'https://instagram.com/shotbya_photography',
+        phone:'084 445 6657', wa:'27844456657', site:'www.fomstudios.co.za/shotbya', siteUrl:'https://www.fomstudios.co.za/shotbya/',
         instagram:'shotbya_photography', portal:root + 'client-portal.html?b=sba', logo:root + 'shotbya/logo.png', icon:root + 'shotbya/icon.png', accent:'#780000' }
     : { id:'fom', name:'FOM Studios', upper:'FOM STUDIOS', portal:root + 'client-portal.html', accent:'#02367B' };
   window.FOM_CLIENT = B;
