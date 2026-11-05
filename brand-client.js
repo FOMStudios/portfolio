@@ -45,6 +45,10 @@
     + ':root[data-biz="sba"] .hero .eyebrow{color:#E8B7B3 !important;} :root[data-biz="sba"] .hero h1 .accent,:root[data-biz="sba"] .meta .m .v.hi{color:#E8B7B3 !important;}'
     + ':root[data-biz="sba"] img.sba-logo{object-fit:contain;background:transparent !important;border-radius:0 !important;box-shadow:none !important;padding:0 !important;}'
     + ':root[data-biz="sba"] .login-card .mascot img{border-radius:0;}';
+  /* no FOM flash: keep the page hidden until her logo and name are swapped in (max 1.5s, just in case) */
+  css += ':root[data-biz="sba"]{background:#E4E3D9;} :root[data-biz="sba"]:not([data-branded]) body{visibility:hidden;}';
+  var shown = function(){ document.documentElement.setAttribute('data-branded', ''); };
+  setTimeout(shown, 1500);
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   /* FOM's navy and light blues written into page styles */
@@ -94,7 +98,7 @@
   document.addEventListener('DOMContentLoaded', function(){
     document.title = rb(document.title); swapStyles();
     var ic = document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]'); for(var i = 0; i < ic.length; i++) ic[i].href = root + (ic[i].rel === 'apple-touch-icon' ? 'shotbya/touch-180.png' : 'shotbya/favicon-64.png');
-    fix(document.body);
+    fix(document.body); shown();
     new MutationObserver(function(ms){ ms.forEach(function(m){
       if(m.type === 'characterData') fix(m.target); else for(var j = 0; j < m.addedNodes.length; j++) fix(m.addedNodes[j]);
     }); }).observe(document.body, { childList:true, subtree:true, characterData:true });

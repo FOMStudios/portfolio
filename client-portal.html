@@ -847,13 +847,19 @@ function init(){
     const splashTimer = setTimeout(() => { if(!auth.currentUser){ hideSplash(); $('loginGate').style.display = 'flex'; } }, 6000);
     let stopOrders = null;
     $('logoutBtn').addEventListener('click', () => signOut(auth));
+    // Each portal only lets in that business's clients (FOM Studios here, Shot by A on her portal).
+    // Same Firebase login list for both, so a client with no booking for this business is signed out with a pointer to the right portal.
+    const BIZ_ID = (window.FOM_CLIENT && FOM_CLIENT.id) || 'fom';
+    let blockMsg = '';
+    const showBlock = () => { if(blockMsg){ const e = $('lgErr'); if(e) e.innerHTML = blockMsg; blockMsg = ''; } };
     onAuthStateChanged(auth, user => {
-        clearTimeout(splashTimer); hideSplash();
+        clearTimeout(splashTimer);
+        if(!user) hideSplash();
         if(stopOrders){ stopOrders(); stopOrders = null; }
         if(!user){ Object.keys(chatSubs).forEach(k => { chatSubs[k](); delete chatSubs[k]; }); Object.keys(msgSubs).forEach(k => { msgSubs[k](); delete msgSubs[k]; }); }
         if(user){
-            $('loginGate').style.display = 'none';
-            $('mainApp').style.display = 'block';
+            let checked = false;
+            const letIn = () => { checked = true; hideSplash(); $('loginGate').style.display = 'none'; $('mainApp').style.display = 'block'; };
 
             // personalise greeting with email name
             const name = user.displayName || user.email.split('@')[0];
@@ -864,6 +870,19 @@ function init(){
             const ordersQuery = query(collection(db, 'orders'), where('clientEmail', '==', user.email));
             stopOrders = onSnapshot(ordersQuery, snap => {
                 const orders = snap.docs.map(d => ({id:d.id, ...d.data()}));
+                if(!checked){
+                    const bizOf = o => o.biz === 'sba' ? 'sba' : 'fom';
+                    const here = orders.filter(o => bizOf(o) === BIZ_ID).length, other = orders.length - here;
+                    if(!here){
+                        blockMsg = other
+                            ? (BIZ_ID === 'sba'
+                                ? 'This email is booked with FOM Studios, not Shot by A. <a href="client-portal.html?b=fom" style="color:inherit;text-decoration:underline">Open the FOM Studios portal</a>.'
+                                : 'This email is booked with Shot by A. <a href="shotbya/portal/" style="color:inherit;text-decoration:underline">Open the Shot by A portal</a>.')
+                            : 'We could not find a booking for this email. Please use the email on your booking, or get in touch.';
+                        signOut(auth); return;
+                    }
+                    letIn();
+                }
                 renderOrders(orders, user.email);
                 // first portal sign-in, once per booking (the Worker ignores repeats)
                 if(!window.__fomPortalEv && window.FOM_EVENT){ window.__fomPortalEv = 1; Object.keys(ORDERS).forEach(id => FOM_EVENT('portal', id, ORDERS[id].customer || user.email)); }
@@ -871,10 +890,11 @@ function init(){
                 if(want && !OPEN.has(want) && ORDERS[want] && !window.__fomDeep){ window.__fomDeep = 1;
                     const h = document.querySelector(`.booking-card[data-oid="${want}"] .booking-header`);
                     if(h){ h.click(); setTimeout(() => { const m = $('msgs-' + want); if(m) m.scrollIntoView({ behavior:'smooth', block:'center' }); }, 420); } }
-            }, err => console.warn('Firestore:', err));
+            }, err => { console.warn('Firestore:', err); if(!checked) letIn(); });
         } else {
             $('loginGate').style.display = 'flex';
             $('mainApp').style.display = 'none';
+            showBlock();
         }
     });
 }
