@@ -29,4 +29,6 @@
   <url><loc>https://www.fomstudios.co.za/shotbya/gallery.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.fomstudios.co.za/shotbya/contact.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.fomstudios.co.za/shotbya/policy.html</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://www.fomstudios.co.za/shotbya/book.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.fomstudios.co.za/book.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
