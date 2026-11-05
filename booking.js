@@ -104,7 +104,7 @@
     }
     h += '<div class="bk-days" role="listbox" aria-label="Days">' + days.map(function(d){ var L = dayLabel(d.day); return '<button type="button" role="option" aria-selected="' + (S.day === d.day) + '" class="bk-day' + (S.day === d.day ? ' on' : '') + '" data-day="' + d.day + '"><small>' + L.w + '</small><b>' + L.n + '</b><small>' + L.m + '</small><i>' + d.slots.length + ' open</i></button>'; }).join('') + '</div></div>';
 
-    h += '<div class="bk-card"><div class="bk-step"><span class="bk-n">3</span><h3>Pick a time</h3><span class="bk-tz">South African time</span></div><div class="bk-times">'
+    h += '<div class="bk-card" id="bkTimes">' + (S.note ? '<p class="bk-err bk-note">' + esc(S.note) + '</p>' : '') + '<div class="bk-step"><span class="bk-n">3</span><h3>Pick a time</h3><span class="bk-tz">South African time</span></div><div class="bk-times">'
       + slots.map(function(s){ return chip(S.start && S.start.getTime() === s.getTime(), 'data-t="' + s.getTime() + '"', hm(s)); }).join('') + '</div></div>';
 
     if(S.start){
@@ -121,13 +121,15 @@
         + '<button type="button" class="bk-go" id="bkGo">Request this time</button>'
         + '<p class="bk-soft bk-small">The time is held for you. ' + esc(C.who || 'We') + ' will confirm on WhatsApp' + (S.mode === 'video' ? ' and send the video link' : '') + '.</p></div>';
     }
-    root.innerHTML = h; bind();
+    root.innerHTML = h; bind(); S.note = '';
   }
   function waBtn(t){ return '<a class="bk-go bk-wa" href="https://wa.me/' + esc(C.wa || '') + '?text=' + encodeURIComponent(t) + '" target="_blank" rel="noopener">' + ICON.wa + ' WhatsApp us</a>'; }
   function keepForm(){ var g = function(id){ var e = $('#' + id, root); return e ? e.value : undefined; }; if($('#bkName', root)){ S.name = g('bkName'); S.phone = g('bkPhone'); S.email = g('bkEmail'); S.type = g('bkType'); S.msg = g('bkMsg'); } }
   function bind(){
     root.onclick = function(e){
       var b = e.target.closest('button'); if(!b || b.disabled) return;
+      if(b.hasAttribute('data-again')){ again(false); return; }
+      if(b.hasAttribute('data-retry')){ again(true); return; }
       keepForm();
       if(b.dataset.len){ S.len = +b.dataset.len; S.start = null; render(); }
       else if(b.dataset.mode){ S.mode = b.dataset.mode; render(); }
@@ -162,15 +164,36 @@
     }catch(e){
       if(window.console) console.warn('booking', e);
       S.sending = false;
-      if(/permission/i.test(String(e && (e.code || e.message)))){
-        S.holds = await getHolds(); S.start = null; render();
-        var er = $('.bk-card:last-child', root); if(er) er.insertAdjacentHTML('afterbegin', '<p class="bk-err">Sorry, someone has just requested that time. Please pick another.</p>');
-      } else { go.disabled = false; go.textContent = 'Request this time'; err.textContent = 'Could not send just now. Check your connection and try again, or WhatsApp us.'; }
+      // was the time really taken? (someone else's hold now exists for this start) or is online booking not set up yet?
+      S.holds = await getHolds();
+      var taken = S.holds.some(function(h){ return h.start === start; });
+      if(taken){ S.start = null; S.note = 'Sorry, someone has just requested that time. Please pick another.'; render(); var tc = $('#bkTimes', root); if(tc) tc.scrollIntoView({ behavior:'smooth', block:'start' }); }
+      else failed(name, phone, email, when);
     }
   }
+  function summary(when){ return '<div class="bk-sum bk-sum-c">' + ICON.cal + '<span><b>' + esc(when) + '</b>' + lenLabel(S.len) + ' &middot; ' + (S.mode === 'video' ? 'Video call' : 'In person') + '</span></div>'; }
+  function actions(){ return '<div class="bk-acts"><button type="button" class="bk-go" data-again>Book another meeting</button><a class="bk-go bk-ghost" href="' + esc(C.home || 'index.html') + '">Back to the website</a></div>'; }
   function done(name, when){
-    root.innerHTML = '<div class="bk-card bk-center bk-done"><div class="bk-tick">' + ICON.tick + '</div><h3>Request sent</h3><p>Thanks ' + esc(name.split(' ')[0]) + '. We have held <b>' + esc(when) + '</b> for you.</p><p class="bk-soft">' + esc(C.who || 'We') + ' will confirm on WhatsApp soon' + (S.mode === 'video' ? ', with the video link' : '') + '.</p><a class="bk-go" href="' + esc(C.home || 'index.html') + '">Back to the website</a></div>';
+    S.sending = false;
+    root.innerHTML = '<div class="bk-card bk-center bk-done"><div class="bk-tick">' + ICON.tick + '</div><h3>Request sent</h3><p>Thanks ' + esc(name.split(' ')[0]) + ', your time is held:</p>' + summary(when)
+      + '<p class="bk-soft">' + esc(C.who || 'We') + ' will confirm on WhatsApp soon' + (S.mode === 'video' ? ', with the video link' : '') + '. Nothing else to do for now.</p>' + actions() + '</div>';
     root.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  // the online request could not be saved: never lose the client, send it on WhatsApp instead
+  function failed(name, phone, email, when){
+    S.sending = false;
+    var t = 'Hi, I would like to book a meeting.\n\nName: ' + name + '\nWhen: ' + when + ' (' + lenLabel(S.len) + ')\nHow: ' + (S.mode === 'video' ? 'Video call' : 'In person') + '\nShoot: ' + (S.type || 'General') + (email ? '\nEmail: ' + email : '') + (S.msg ? '\n\n' + S.msg : '');
+    root.innerHTML = '<div class="bk-card bk-center bk-done"><h3>Almost there</h3><p>We could not save your request online just now. Send it on WhatsApp instead and ' + esc(C.who || 'we') + ' will confirm:</p>' + summary(when)
+      + '<a class="bk-go bk-wa" href="https://wa.me/' + esc(C.wa || '') + '?text=' + encodeURIComponent(t) + '" target="_blank" rel="noopener">' + ICON.wa + ' Send on WhatsApp</a>'
+      + '<div class="bk-acts"><button type="button" class="bk-go bk-ghost" data-retry>Try again</button><button type="button" class="bk-go bk-ghost" data-again>Pick another time</button></div></div>';
+    root.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  async function again(keepStart){
+    S.sending = false; if(!keepStart){ S.start = null; S.msg = ''; }
+    root.innerHTML = '<div class="bk-card bk-loading">Loading open times...</div>';
+    S.holds = await getHolds(); render();
+    if(keepStart && S.start){ var f = $('#bkForm', root); if(f) f.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    else root.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
   var ICON = {
@@ -181,7 +204,7 @@
     wa:'<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm5.5-5.8c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.2c-.2.2-.3.2-.6.1-1.6-.7-2.9-2-3.7-3.6-.2-.3 0-.5.1-.6l.5-.6.3-.5V9l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.8 3.6.6.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/></svg>'
   };
 
-  var CSS = '.bk{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;max-width:100%;font-family:var(--bk-font,inherit);color:var(--bk-ink,#222)}'
+  var CSS = '.bk,.bk-card{scroll-margin-top:110px}.bk{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;max-width:100%;font-family:var(--bk-font,inherit);color:var(--bk-ink,#222)}'
     + '.bk-card{min-width:0;background:var(--bk-card,#fff);border:1px solid var(--bk-line,rgba(0,0,0,.1));border-radius:var(--bk-r,20px);padding:22px}'
     + '.bk-center{text-align:center}.bk-card h3{font-family:var(--bk-head,inherit);font-weight:var(--bk-headw,700);font-size:var(--bk-h3,19px);line-height:1.15;margin:0;color:var(--bk-headc,inherit)}'
     + '.bk-step{display:flex;align-items:center;gap:10px;margin-bottom:14px}.bk-n{width:28px;height:28px;border-radius:50%;background:var(--bk-accent,#222);color:var(--bk-on,#fff);display:grid;place-items:center;font-size:13px;font-weight:700;flex:none;font-family:var(--bk-font,inherit)}'
@@ -206,7 +229,10 @@
     + '.bk-go:disabled{opacity:.6;cursor:wait}.bk-go:hover{filter:brightness(.92)}.bk-center .bk-go{width:auto;padding:14px 28px}'
     + '.bk-err{color:#c0392b;font-size:14px;margin:10px 0 0;min-height:0}.bk-soft{color:var(--bk-soft,#777)}.bk-small{font-size:13px;margin-top:10px;text-align:center}'
     + '.bk-tick{width:64px;height:64px;border-radius:50%;background:var(--bk-accent,#222);color:var(--bk-on,#fff);display:grid;place-items:center;margin:4px auto 14px}.bk-tick svg{width:32px;height:32px}'
-    + '.bk-done p{margin:8px auto 0;max-width:420px}.bk-loading{padding:40px;text-align:center;color:var(--bk-soft,#777)}'
+    + '.bk-done p{margin:8px auto 0;max-width:420px}.bk-sum-c{max-width:420px;margin:16px auto 8px;text-align:left}'
+    + '.bk-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}.bk-acts .bk-go{margin-top:0;width:auto;flex:1 1 200px}'
+    + '.bk-ghost{background:transparent!important;color:var(--bk-ink,#222)!important;border:1px solid var(--bk-line,rgba(0,0,0,.2))!important}.bk-ghost:hover{border-color:var(--bk-accent,#222)!important}'
+    + '.bk-wa{background:#1f8a4c!important;color:#fff!important}.bk-note{margin:0 0 12px;padding:10px 12px;background:rgba(192,57,43,.08);border-radius:10px}.bk-loading{padding:40px;text-align:center;color:var(--bk-soft,#777)}'
     + '@media(max-width:560px){.bk-card{padding:18px}.bk-grid{grid-template-columns:1fr}.bk-times{grid-template-columns:repeat(3,1fr)}}';
 
   async function start(){

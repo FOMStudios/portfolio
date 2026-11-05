@@ -343,7 +343,7 @@ book = '''<section class="phead">
 '''
 BOOK_HEAD = '''<style>#bookApp{--bk-accent:#780000;--bk-on:#F3F2EC;--bk-ink:#0A100D;--bk-card:#F3F2EC;--bk-bg:#E4E3D9;--bk-line:rgba(10,16,13,.12);--bk-soft:#4b4f4a;--bk-head:'Allura',cursive;--bk-headw:400;--bk-h3:clamp(32px,8.5vw,40px);--bk-headc:#780000;--bk-font:'Jost',-apple-system,Arial,sans-serif;--bk-r:22px;--bk-btntt:uppercase;--bk-btnls:.08em}</style>
 <script>window.BOOK_CFG={biz:'sba',who:'Amarah',wa:'27844456657',home:'index.html'};</script>
-<script src="../booking.js?v=1" defer></script>
+<script src="../booking.js?v=2" defer></script>
 '''
 
 # ------------------------------------------------------------------ 404
