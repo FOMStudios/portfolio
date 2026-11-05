@@ -80,9 +80,9 @@
     }
   }
   function fix(n){
-    if(n.nodeType === 3){ var p = n.parentNode; if(!p || SKIP[p.nodeName]) return; var v = n.nodeValue;
+    if(n.nodeType === 3){ var p = n.parentNode; if(!p || SKIP[p.nodeName] || (p.closest && p.closest('[data-norebrand]'))) return; var v = n.nodeValue;
       if(/FOM|fomstudios|fom_studios_|Frames Of Motion|690 1120|755 3136/.test(v)){ var nv = rb(v); if(nv !== v) n.nodeValue = nv; } return; }
-    if(n.nodeType !== 1 || SKIP[n.nodeName]) return;
+    if(n.nodeType !== 1 || SKIP[n.nodeName] || (n.closest && n.closest('[data-norebrand]'))) return;   // e.g. the portal's wrong-business message
     if(n.nodeName === 'IMG') fixImg(n);
     if(n.nodeName === 'A'){ var h = n.getAttribute('href') || '';
       if(/^mailto:info@fomstudios/.test(h)) n.setAttribute('href', 'mailto:' + B.email);

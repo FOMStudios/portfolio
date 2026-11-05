@@ -851,7 +851,8 @@ function init(){
     // Same Firebase login list for both, so a client with no booking for this business is signed out with a pointer to the right portal.
     const BIZ_ID = (window.FOM_CLIENT && FOM_CLIENT.id) || 'fom';
     let blockMsg = '';
-    const showBlock = () => { if(blockMsg){ const e = $('lgErr'); if(e) e.innerHTML = blockMsg; blockMsg = ''; } };
+    $('lgBtn').addEventListener('click', () => { const e = $('lgErr'); if(e) e.removeAttribute('data-norebrand'); });
+    const showBlock = () => { if(blockMsg){ const e = $('lgErr'); if(e){ e.setAttribute('data-norebrand', ''); e.innerHTML = blockMsg; } blockMsg = ''; } };
     onAuthStateChanged(auth, user => {
         clearTimeout(splashTimer);
         if(!user) hideSplash();
