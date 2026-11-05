@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Your mood board</title>
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<!--
+  CLIENT MOOD BOARD (FOM Studios and Shot by A)
+  Opened from the private link made in the dashboard (Client Meetings, Share mood board):
+  moodboard.html?s=<share id>   (Shot by A links add &b=sba)
+  Reads Firestore moodShare/<id>. The client can only change clientLoved and clientAt,
+  and only until the link's expiry date (see firestore.rules). Picks send a notification.
+-->
+<style>
+:root{ --bg:#f1f0ec; --panel:#fafaf9; --ink:#2a2b2c; --ink-soft:#6f6f6d; --line:#dcdad3; --accent:#02367B; --heart:#e60023; --safe-b:env(safe-area-inset-bottom,0px); }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{max-width:100%;overflow-x:hidden;}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100dvh;}
+img{display:block;max-width:100%;}
+button{font-family:inherit;}
+.wrap{max-width:1280px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) clamp(14px,4vw,40px) calc(110px + var(--safe-b));}
+.top{display:flex;align-items:center;gap:14px;}
+.logo{height:46px;width:46px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);flex:none;}
+.brand{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;}
+h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-height:1.1;margin-top:18px;}
+.sub{color:var(--ink-soft);font-size:15px;margin-top:6px;max-width:560px;}
+.chips{display:flex;gap:8px;margin:18px 0 14px;overflow-x:auto;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:8px 15px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--ink);}
+.chip.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.masonry{column-count:2;column-gap:12px;}
+@media(min-width:640px){.masonry{column-count:3;}}
+@media(min-width:980px){.masonry{column-count:4;}}
+@media(min-width:1260px){.masonry{column-count:5;}}
+.pin{break-inside:avoid;margin-bottom:14px;cursor:zoom-in;}
+.pimg{position:relative;border-radius:16px;overflow:hidden;background:#e7e5df;}
+.pimg img{width:100%;height:100%;object-fit:cover;}
+.pcap{font-size:13px;font-weight:600;padding:6px 4px 0;line-height:1.3;}
+.tag{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;font-size:10.5px;font-weight:700;padding:2px 8px;}
+.heart{position:absolute;top:8px;right:8px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#2a2b2c;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18);transition:transform .15s;}
+.heart svg{width:21px;height:21px;}
+.heart.on{background:var(--heart);color:#fff;}
+.pop{animation:pop .35s;}
+@keyframes pop{40%{transform:scale(1.3)}}
+.bar{position:fixed;left:50%;bottom:calc(14px + var(--safe-b));transform:translateX(-50%);width:calc(100% - 28px);max-width:520px;background:#1a1a1a;color:#fff;border-radius:99px;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 20px;box-shadow:0 16px 40px -12px rgba(0,0,0,.45);z-index:50;}
+.bar .n{flex:1;font-weight:700;font-size:14.5px;}
+.bar .n small{display:block;font-weight:500;opacity:.7;font-size:12px;}
+.bar button{height:44px;padding:0 20px;border-radius:99px;border:0;background:#fff;color:#111;font-weight:800;font-size:14px;cursor:pointer;}
+.lbx{position:fixed;inset:0;z-index:100;background:rgba(10,10,10,.97);display:none;flex-direction:column;color:#fff;touch-action:none;}
+.lbx.on{display:flex;}
+.lbx .x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:24px;cursor:pointer;z-index:2;}
+.lbx .cnt{position:absolute;top:calc(24px + env(safe-area-inset-top));left:18px;font-size:13px;opacity:.75;}
+.lbx .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:calc(64px + env(safe-area-inset-top)) 14px 8px;min-height:0;}
+.lbx .stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:14px;user-select:none;-webkit-user-drag:none;transition:transform .2s;}
+.lbx .nav{position:absolute;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;cursor:pointer;}
+.lbx .nav.l{left:14px;} .lbx .nav.r{right:14px;}
+@media (hover:none),(pointer:coarse){.lbx .nav{display:none;}}
+.lbx .foot{text-align:center;padding:10px 16px calc(22px + var(--safe-b));}
+.lbx .cap{font-weight:600;min-height:22px;}
+.big{margin-top:10px;height:52px;padding:0 26px;border-radius:99px;border:0;background:#fff;color:#111;font-weight:800;font-size:15px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;}
+.big svg{width:20px;height:20px;}
+.big.on{background:var(--heart);color:#fff;}
+.hint{font-size:12px;opacity:.6;margin-top:8px;}
+.state{min-height:80dvh;display:flex;align-items:center;justify-content:center;text-align:center;}
+.state .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:34px 28px;max-width:420px;}
+.state .em{font-size:44px;}
+.state h2{font-size:22px;font-weight:800;margin:8px 0 6px;}
+.state p{color:var(--ink-soft);font-size:15px;}
+.wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;height:50px;padding:0 24px;border-radius:99px;background:#25D366;color:#fff;font-weight:800;text-decoration:none;}
+.sh{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;}
+.sh.on{display:flex;}
+.sh .in{background:var(--panel);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:28px 24px calc(28px + var(--safe-b));text-align:center;}
+@media(min-width:600px){.sh{align-items:center;} .sh .in{border-radius:24px;}}
+.sh .in h2{font-size:22px;font-weight:800;margin:6px 0;}
+.sh .in p{color:var(--ink-soft);}
+.sh .in .ghost{display:block;margin:12px auto 0;background:none;border:0;color:var(--ink-soft);font-weight:700;font-size:14px;cursor:pointer;}
+.hidden{display:none!important;}
+.skel{columns:inherit;}
+.skel div{break-inside:avoid;margin-bottom:14px;border-radius:16px;background:linear-gradient(90deg,#e7e5df,#efeee9,#e7e5df);background-size:200% 100%;animation:sk 1.2s infinite;}
+@keyframes sk{to{background-position:-200% 0}}
+</style>
+<script src="brand-client.js?v=3"></script>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="top"><img class="logo" id="logo" src="assets/mascot-head-color.jpg" alt=""><span class="brand" id="brand">Mood board</span></div>
+  <h1 id="title">Your mood board</h1>
+  <p class="sub" id="sub">Loading your ideas...</p>
+  <div class="chips hidden" id="chips"><button class="chip on" data-f="all">All ideas</button><button class="chip" data-f="mine">&#9829; My picks <span id="cMine">0</span></button></div>
+  <div class="masonry" id="grid"><div class="skel"><div style="height:260px"></div><div style="height:180px"></div><div style="height:220px"></div><div style="height:300px"></div></div></div>
+</div>
+
+<div class="state hidden" id="ended"><div class="card"><div class="em">&#128279;</div><h2 id="endT">This link has ended</h2><p id="endP">Mood board links work for a limited time. Send us a message and we will gladly share a fresh one.</p><a class="wa hidden" id="endWa" target="_blank" rel="noopener">Message us on WhatsApp</a></div></div>
+
+<div class="bar hidden" id="bar"><span class="n" id="barN">0 picked<small>Tap the hearts on ideas you love</small></span><button id="done">Done</button></div>
+
+<div class="lbx" id="lb"><span class="cnt" id="lbCnt"></span><button class="x" id="lbX" aria-label="Close">&times;</button>
+  <button class="nav l" id="lbP" aria-label="Previous">&#8249;</button><button class="nav r" id="lbN" aria-label="Next">&#8250;</button>
+  <div class="stage" id="lbS"><img id="lbI" alt=""></div>
+  <div class="foot"><div class="cap" id="lbC"></div><button class="big" id="lbH"></button><div class="hint">Double tap the picture to love it. Swipe to browse.</div></div></div>
+
+<div class="sh" id="sh"><div class="in"><div style="font-size:40px">&#10084;&#65039;</div><h2 id="shT">Thank you!</h2><p id="shP"></p><a class="wa" id="shWa" target="_blank" rel="noopener">Send a message too</a><button class="ghost" id="shBack">Keep looking</button></div></div>
+
+<script>
+var firebaseConfig = {
+  apiKey:"AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A", authDomain:"fom-studios.firebaseapp.com",
+  projectId:"fom-studios", storageBucket:"fom-studios.firebasestorage.app",
+  messagingSenderId:"1049126528829", appId:"1:1049126528829:web:8ed0ea930e0b1579630754"
+};
+</script>
+<script type="module">
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const HEART = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+const HEART_O = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6 14.9 3 12.1 3 8.6 3 6 5 4 7.6 4c1.6 0 3.2.8 4.4 2.1C13.2 4.8 14.8 4 16.4 4 19 4 21 6 21 8.6c0 3.5-3 6.3-7.8 10.6L12 20.3z"/></svg>';
+const P = new URLSearchParams(location.search), SID = (P.get('s') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+const LOCAL = P.get('local') === '1' && /^(localhost|127\.)/.test(location.hostname);   // testing only
+let D = null, loved = new Set(), filter = 'all', list = [], LI = 0, saveT = null, changed = false, lastSent = '';
+
+function ended(title, text, wa){
+  $('app').classList.add('hidden'); $('bar').classList.add('hidden'); $('ended').classList.remove('hidden');
+  if(title) $('endT').textContent = title; if(text) $('endP').textContent = text;
+  const C = window.FOM_CLIENT || {}, num = wa || C.wa || '27686901120';
+  $('endWa').href = 'https://wa.me/' + num + '?text=' + encodeURIComponent('Hi, my mood board link has ended. Could you send me a new one please?'); $('endWa').classList.remove('hidden');
+}
+
+/* ---------- data ---------- */
+let api = null;
+async function load(){
+  if(!SID){ ended('Link not recognised', 'This link looks incomplete. Please use the exact link we sent you.'); return; }
+  if(LOCAL){
+    const all = JSON.parse(localStorage.getItem('fom_moodshare') || '{}'), d = all[SID];
+    api = { save: (arr) => { all[SID].clientLoved = arr; all[SID].clientAt = new Date().toISOString(); localStorage.setItem('fom_moodshare', JSON.stringify(all)); return Promise.resolve(); } };
+    return d ? show(d) : ended();
+  }
+  const { initializeApp, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+  const { getFirestore, doc, getDoc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+  let app; try{ app = initializeApp(firebaseConfig); }catch(e){ app = getApp(); }
+  const ref = doc(getFirestore(app), 'moodShare', SID);
+  api = { save: (arr) => updateDoc(ref, { clientLoved: arr, clientAt: serverTimestamp() }) };
+  try{
+    const snap = await getDoc(ref);
+    if(!snap.exists()) return ended();
+    const d = snap.data();
+    const exp = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : null;
+    if(exp && exp < new Date()) return ended(null, null, d.brand && d.brand.wa);
+    show(d);
+  }catch(e){ console.warn(e); ended(); }
+}
+function show(d){
+  D = d;
+  const b = d.brand || {}, C = window.FOM_CLIENT || {};
+  if(b.accent) document.documentElement.style.setProperty('--accent', b.accent);
+  if(b.logo) $('logo').src = b.logo; else if(C.logo) $('logo').src = C.logo;
+  $('brand').textContent = (b.name || C.name || 'FOM Studios') + ' · Mood board';
+  document.title = (d.name ? d.name + ', your' : 'Your') + ' mood board | ' + (b.name || 'FOM Studios');
+  $('title').textContent = d.name ? 'Hi ' + d.name + ', here are your ideas' : 'Your shoot ideas';
+  $('sub').textContent = 'Tap the heart on everything you love. ' + (b.owner || 'We') + ' will see your picks straight away, so we can plan your shoot around them.';
+  // first visit: start with the ideas loved together in the meeting
+  const start = d.clientAt ? (d.clientLoved || []) : (d.picked || []);
+  const ids = new Set((d.items || []).map(i => i.id));
+  loved = new Set(start.filter(x => ids.has(x)));
+  if(!d.clientAt && loved.size) changed = true;
+  lastSent = d.clientAt ? [...loved].sort().join(',') : '';
+  $('chips').classList.remove('hidden'); $('bar').classList.remove('hidden');
+  render();
+  if(changed) queueSave();
+}
+function items(){ const all = D.items || []; return filter === 'mine' ? all.filter(i => loved.has(i.id)) : all; }
+function render(){
+  const its = items(), picked = new Set(D.picked || []);
+  $('grid').innerHTML = its.length ? its.map(i => `<div class="pin" data-id="${esc(i.id)}"><div class="pimg" style="aspect-ratio:${+i.ar || 0.8}"><img src="${esc(i.url)}" alt="${esc(i.cap || 'Idea')}" loading="lazy">
+      <button class="heart${loved.has(i.id) ? ' on' : ''}" data-h="${esc(i.id)}" aria-label="Love this">${HEART}</button>${picked.has(i.id) ? '<span class="tag">From our meeting</span>' : ''}</div>${i.cap ? `<div class="pcap">${esc(i.cap)}</div>` : ''}</div>`).join('')
+    : `<p class="sub" style="column-span:all">${filter === 'mine' ? 'No picks yet. Tap a heart on any idea.' : 'No ideas here yet.'}</p>`;
+  counts();
+}
+function counts(){
+  $('cMine').textContent = loved.size;
+  $('barN').innerHTML = loved.size + (loved.size === 1 ? ' pick' : ' picks') + '<small>' + (loved.size ? 'Saved automatically' : 'Tap the hearts on ideas you love') + '</small>';
+  document.querySelectorAll('.chips .chip').forEach(c => c.classList.toggle('on', c.dataset.f === filter));
+}
+function toggle(id){
+  loved.has(id) ? loved.delete(id) : loved.add(id);
+  changed = true; queueSave(); return loved.has(id);
+}
+function queueSave(){ clearTimeout(saveT); saveT = setTimeout(save, 700); }
+function save(){ if(!api) return; api.save([...loved].slice(0, 300)).catch(e => { console.warn(e); if(/permission/i.test(e.code || e.message || '')) ended(null, null, D && D.brand && D.brand.wa); }); }
+/* one notification when they are done (or leave the page), only if the picks changed */
+function notify(){
+  const key = [...loved].sort().join(',');
+  if(!D || !changed || key === lastSent) return;
+  lastSent = key;
+  if(window.FOM_EVENT) FOM_EVENT('favs', D.orderId || '', D.name || '', loved.size + ' mood board');
+}
+addEventListener('pagehide', () => { if(saveT){ clearTimeout(saveT); save(); } notify(); });
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden'){ if(saveT){ clearTimeout(saveT); save(); } notify(); } });
+
+/* ---------- events ---------- */
+$('grid').addEventListener('click', e => {
+  const h = e.target.closest('[data-h]');
+  if(h){ const on = toggle(h.dataset.h); h.classList.toggle('on', on); h.classList.add('pop'); setTimeout(() => h.classList.remove('pop'), 400); if(filter === 'mine' && !on) render(); else counts(); return; }
+  const p = e.target.closest('[data-id]'); if(p){ list = items(); openLB(list.findIndex(i => i.id === p.dataset.id)); }
+});
+$('chips').addEventListener('click', e => { const c = e.target.closest('[data-f]'); if(c){ filter = c.dataset.f; render(); } });
+$('done').onclick = () => {
+  if(saveT){ clearTimeout(saveT); save(); } notify();
+  const b = D.brand || {}, n = loved.size, caps = (D.items || []).filter(i => loved.has(i.id) && i.cap).map(i => i.cap).slice(0, 5);
+  $('shT').textContent = n ? 'Thank you' + (D.name ? ', ' + D.name : '') + '!' : 'No picks yet';
+  $('shP').textContent = n ? (b.owner || 'We') + ' can see your ' + n + (n === 1 ? ' pick' : ' picks') + ' now. You can come back and change them any time with the same link.' : 'Tap the heart on the ideas you love, then press Done.';
+  const num = b.wa || (window.FOM_CLIENT || {}).wa || '27686901120';
+  $('shWa').href = 'https://wa.me/' + num + '?text=' + encodeURIComponent('Hi ' + (b.owner || '') + ', I picked my favourites on the mood board' + (caps.length ? ' (' + caps.join(', ') + ')' : '') + '. ');
+  $('shWa').classList.toggle('hidden', !n);
+  $('sh').classList.add('on');
+};
+$('shBack').onclick = () => $('sh').classList.remove('on');
+$('sh').onclick = e => { if(e.target.id === 'sh') $('sh').classList.remove('on'); };
+
+/* ---------- lightbox ---------- */
+function openLB(i){ LI = i; $('lb').classList.add('on'); document.body.style.overflow = 'hidden'; drawLB(); }
+function closeLB(){ $('lb').classList.remove('on'); document.body.style.overflow = ''; render(); }
+function drawLB(){
+  const it = list[LI]; if(!it) return closeLB();
+  $('lbI').src = it.url; $('lbI').style.transform = ''; $('lbC').textContent = it.cap || ''; $('lbCnt').textContent = (LI + 1) + ' of ' + list.length;
+  const on = loved.has(it.id); $('lbH').className = 'big' + (on ? ' on' : ''); $('lbH').innerHTML = on ? HEART + ' Loved' : HEART_O + ' Love this';
+}
+const heartLB = () => { const on = toggle(list[LI].id); drawLB(); if(on){ $('lbH').classList.add('pop'); setTimeout(() => $('lbH').classList.remove('pop'), 400); } counts(); };
+$('lbH').onclick = heartLB; $('lbX').onclick = closeLB;
+$('lbP').onclick = () => { LI = (LI - 1 + list.length) % list.length; drawLB(); };
+$('lbN').onclick = () => { LI = (LI + 1) % list.length; drawLB(); };
+$('lbS').addEventListener('dblclick', heartLB);
+document.addEventListener('keydown', e => { if(!$('lb').classList.contains('on')) return; if(e.key === 'Escape') closeLB(); if(e.key === 'ArrowLeft') $('lbP').click(); if(e.key === 'ArrowRight') $('lbN').click(); });
+(() => {
+  let x0 = null, y0 = 0, dx = 0, dy = 0, tap = 0; const st = $('lbS');
+  st.addEventListener('touchstart', e => { if(e.touches.length !== 1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = dy = 0; }, { passive:true });
+  st.addEventListener('touchmove', e => { if(x0 == null) return; dx = e.touches[0].clientX - x0; dy = e.touches[0].clientY - y0; $('lbI').style.transform = Math.abs(dy) > Math.abs(dx) && dy > 0 ? `translateY(${dy}px)` : `translateX(${dx}px)`; }, { passive:true });
+  st.addEventListener('touchend', () => { if(x0 == null) return; x0 = null; $('lbI').style.transform = '';
+    if(dy > 110 && Math.abs(dy) > Math.abs(dx)) return closeLB(); if(dx < -60) return $('lbN').click(); if(dx > 60) return $('lbP').click();
+    const t = Date.now(); if(t - tap < 300 && Math.abs(dx) < 10 && Math.abs(dy) < 10) heartLB(); tap = t; });
+})();
+
+load();
+</script>
+</body>
+</html>
