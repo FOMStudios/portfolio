@@ -597,7 +597,8 @@ function buildCard(o){
     const galLink = 'client-gallery.html?g='+encodeURIComponent(galFolder)+'&o='+encodeURIComponent(o.id)+'&name='+encodeURIComponent(o.customer||'there')
         +(o.shootDate?'&date='+encodeURIComponent(o.shootDate):'')
         +(o.galleryExpiry?'&expiry='+encodeURIComponent(o.galleryExpiry):'')
-        +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'')+(SBA?'&b=sba':'');
+        +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'')
+        +(o.galleryCover&&o.galleryCover.n?'&cover='+encodeURIComponent(o.galleryCover.n)+'&fx='+(+o.galleryCover.fx||0)+'&fy='+(+o.galleryCover.fy||0):'')+(SBA?'&b=sba':'');
 
     // deliverables section
     const deliverables = (o.deliverablesReady)

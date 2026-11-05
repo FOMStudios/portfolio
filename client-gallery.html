@@ -51,7 +51,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 /* ===== hero (image band with light fade into the page) ===== */
 .hero{position:relative;min-height:clamp(380px,62vh,600px);display:flex;align-items:flex-end;overflow:hidden;background:#15161a;}
 .hero .bg{position:absolute;inset:0;background-size:cover;background-position:center;}
-.hero .bg{filter:brightness(.72) saturate(.9);}
+.hero .bg{filter:brightness(.72) saturate(.9);transition:opacity .5s ease;}
 .hero .scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,15,18,.72) 0%,rgba(14,15,18,.45) 45%,rgba(14,15,18,.12) 100%),linear-gradient(180deg,rgba(14,15,18,.35) 0%,rgba(14,15,18,.3) 35%,rgba(14,15,18,.8) 84%,var(--bg) 100%);}
 @media(max-width:640px){.hero .scrim{background:linear-gradient(180deg,rgba(14,15,18,.5) 0%,rgba(14,15,18,.55) 35%,rgba(14,15,18,.85) 84%,var(--bg) 100%);}}
 .hero .inner{position:relative;z-index:2;width:100%;padding:0 var(--gutter) clamp(26px,5vw,52px);max-width:var(--container);margin:0 auto;}
@@ -242,6 +242,43 @@ const GAL = {
   order:  P.get('o') || ''        // the booking, so favourites can be sent to FOM Studios
 };
 
+/* ---- header photo: the client's own cover (set on the Database, passed in the link as cover/fx/fy),
+   else the business header from the dashboard Website page (siteContent site / site_sba, galleryHeader),
+   else the built-in default. Fades in so clients never see the wrong picture flash first. ---- */
+const SBA_G = !!(window.FOM_CLIENT && FOM_CLIENT.id === 'sba');
+const HDR_KEY = 'fom.gh.' + (SBA_G ? 'sba' : 'fom');
+const pct = (v, d) => { const n = parseFloat(v); return isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : d; };
+const HDR = { url:CONFIG.banner || '', fx:50, fy:50, line:'', ready:false };
+const ghUrl = src => !src ? '' : String(src).indexOf('r2:') === 0 ? CONFIG.worker + '/file?g=portfolio%2F&n=' + encodeURIComponent(String(src).slice(3)) : src;
+function setBizHeader(g){
+  if(!g) return;
+  if(g.line) HDR.line = String(g.line).slice(0, 60);
+  if(P.get('cover')) return;                        // the client's own cover wins
+  if(g.src){ HDR.url = ghUrl(g.src); HDR.fx = pct(g.fx, 50); HDR.fy = pct(g.fy, 50); }
+}
+if(P.get('cover') && GAL.folder && CONFIG.worker){
+  Object.assign(HDR, { url:CONFIG.worker + '/file?g=' + encodeURIComponent(GAL.folder) + '&n=' + encodeURIComponent(P.get('cover')), fx:pct(P.get('fx'), 50), fy:pct(P.get('fy'), 40), ready:true });
+}
+try{ const c = JSON.parse(localStorage.getItem(HDR_KEY)); if(c){ setBizHeader(c); HDR.ready = true; } }catch(e){}
+function applyHeader(){
+  const bg = document.querySelector('.hero .bg');
+  if(bg){ bg.style.backgroundImage = HDR.url ? 'url("' + HDR.url.replace(/"/g, '%22') + '")' : 'none'; bg.style.backgroundPosition = HDR.fx + '% ' + HDR.fy + '%'; if(HDR.ready) bg.style.opacity = 1; }
+  const eb = document.querySelector('.hero .eyebrow'); if(eb && HDR.line) eb.textContent = HDR.line;
+}
+(function loadBizHeader(){
+  const fv = v => !v ? null : ('stringValue' in v) ? v.stringValue : ('integerValue' in v) ? +v.integerValue : ('doubleValue' in v) ? +v.doubleValue : null;
+  const done = () => { HDR.ready = true; applyHeader(); };
+  const t = setTimeout(done, 2500);
+  fetch('https://firestore.googleapis.com/v1/projects/fom-studios/databases/(default)/documents/siteContent/' + (SBA_G ? 'site_sba' : 'site') + '?key=AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A')
+    .then(r => r.ok ? r.json() : null).then(j => {
+      const f = j && j.fields && j.fields.galleryHeader && j.fields.galleryHeader.mapValue && j.fields.galleryHeader.mapValue.fields;
+      const g = f ? { src:fv(f.src) || '', fx:fv(f.fx), fy:fv(f.fy), line:fv(f.line) || '' } : { src:'', line:'' };
+      try{ localStorage.setItem(HDR_KEY, JSON.stringify(g)); }catch(e){}
+      if(!g.src && !P.get('cover')) HDR.url = CONFIG.banner || '';
+      setBizHeader(g);
+    }).catch(() => {}).then(() => { clearTimeout(t); done(); });
+})();
+
 const VIDEO_EXT=['mp4','webm','m4v','ogg','mov','avi','mkv'], PLAYABLE=['mp4','webm','m4v','ogg'], IMAGE_EXT=['jpg','jpeg','png','webp','gif','avif','bmp'];
 const ext=n=>(n.split('.').pop()||'').toLowerCase();
 const kindOf=n=>VIDEO_EXT.includes(ext(n))?'video':IMAGE_EXT.includes(ext(n))?'image':'file';
@@ -326,7 +363,7 @@ function renderGallery(){
     </header>
 
     <section class="hero">
-      <div class="bg" style="background-image:url('${esc(CONFIG.banner)}')"></div>
+      <div class="bg" style="opacity:0"></div>
       <div class="scrim"></div>
       <div class="inner">
         <span class="eyebrow">FOM Studios &middot; Your Gallery</span>
@@ -376,6 +413,7 @@ function renderGallery(){
       <a href="${esc(CONFIG.instagram)}" target="_blank" rel="noopener">Instagram</a> &middot;
       <a href="mailto:${esc(CONFIG.email)}">${esc(CONFIG.email)}</a> &middot; ${esc(CONFIG.phone)}
     </footer>`;
+  applyHeader();
 
   $('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;FILTER=t.dataset.f;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));renderGrid();});
   renderGrid();
