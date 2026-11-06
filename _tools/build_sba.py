@@ -117,7 +117,7 @@ def footer():
 
 def page(name, title, desc, body, extra=''):
     html = head(title, desc, name, extra) + header(name) + body + footer()
-    assert '—' not in html and '&mdash;' not in html, 'no em dashes'
+    assert '\u2014' not in html and '&mdash;' not in html, 'no em dashes'
     with open(os.path.join(OUT, name), 'w') as f:
         f.write(html)
     print('wrote', name, len(html))
@@ -332,7 +332,7 @@ book = '''<section class="phead">
   <div class="wrap">
     <span class="label rv">Book a meeting</span>
     <h1 class="script rv d1">Let&#39;s meet</h1>
-    <p class="lead rv d2">Pick a time that suits you to chat about your shoot, in person or on a video call. Amarah will confirm on WhatsApp.</p>
+    <p class="lead rv d2">Pick a time that suits you to chat about your shoot on a phone call or video call. Amarah will confirm on WhatsApp.</p>
   </div>
 </section>
 <section style="padding-top:0">
@@ -343,7 +343,7 @@ book = '''<section class="phead">
 '''
 BOOK_HEAD = '''<style>#bookApp{--bk-accent:#780000;--bk-on:#F3F2EC;--bk-ink:#0A100D;--bk-card:#F3F2EC;--bk-bg:#E4E3D9;--bk-line:rgba(10,16,13,.12);--bk-soft:#4b4f4a;--bk-head:'Allura',cursive;--bk-headw:400;--bk-h3:clamp(32px,8.5vw,40px);--bk-headc:#780000;--bk-font:'Jost',-apple-system,Arial,sans-serif;--bk-r:22px;--bk-btntt:uppercase;--bk-btnls:.08em}</style>
 <script>window.BOOK_CFG={biz:'sba',who:'Amarah',wa:'27844456657',home:'index.html'};</script>
-<script src="../booking.js?v=2" defer></script>
+<script src="../booking.js?v=3" defer></script>
 '''
 
 # ------------------------------------------------------------------ 404
@@ -363,5 +363,5 @@ page('index.html', 'Shot by A Photography | Events, Birthdays, Corporate & Famil
 page('gallery.html', 'Gallery | Shot by A Photography', 'Browse Shot by A&#39;s photography: events, birthdays, corporate and wellness days, and family portraits.', gallery)
 page('contact.html', 'Book a shoot | Shot by A Photography', 'Book Shot by A for your event, birthday, corporate or wellness day, or family portrait session. Send your details on WhatsApp or email.', contact)
 page('policy.html', 'Booking policy | Shot by A Photography', 'Shot by A booking terms: payment, cancellations, rescheduling, delivery and usage rights.', policy)
-page('book.html', 'Book a meeting | Shot by A Photography', 'Book a meeting with Shot by A: pick a time for a chat in person or on a video call about your event, birthday, corporate or family shoot.', book, BOOK_HEAD)
+page('book.html', 'Book a meeting | Shot by A Photography', 'Book a meeting with Shot by A: pick a time for a phone or video call about your event, birthday, corporate or family shoot.', book, BOOK_HEAD)
 page('404.html', 'Page not found | Shot by A Photography', 'This page does not exist.', notfound, '<meta name="robots" content="noindex">\n')

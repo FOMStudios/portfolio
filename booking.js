@@ -24,7 +24,7 @@
   var TZ = 'Africa/Johannesburg';
   var DEF = { on:true, lengths:[30,45,60], buffer:15, notice:24, ahead:30,
     days:{ '1':['17:30','20:00'], '2':['17:30','20:00'], '3':['17:30','20:00'], '4':['17:30','20:00'], '5':['17:30','20:00'], '6':['09:00','13:00'] },
-    inPerson:{ on:true, place:'' }, video:{ on:true }, busy:[] };
+    inPerson:{ on:false, place:'' }, phone:{ on:true }, video:{ on:true }, busy:[] };
   var TYPES = BIZ === 'sba'
     ? [['Corporate / Event','Event or corporate'],['Birthday / Party','Birthday or party'],['Family / Portrait','Family or portrait'],['General','Something else']]
     : [['Wedding','Wedding'],['Corporate / Event','Event or corporate'],['Birthday / Party','Birthday or party'],['Family / Portrait','Family or portrait'],['Sports','Sports'],['Product / Brand','Product or brand'],['General','Something else']];
@@ -56,6 +56,8 @@
   function hm(d){ return d.toLocaleTimeString('en-GB', { timeZone:TZ, hour:'2-digit', minute:'2-digit' }); }
   function dayLabel(day){ var d = new Date(day + 'T12:00:00+02:00'); return { w:d.toLocaleDateString('en-ZA', { timeZone:TZ, weekday:'short' }), n:d.toLocaleDateString('en-ZA', { timeZone:TZ, day:'numeric' }), m:d.toLocaleDateString('en-ZA', { timeZone:TZ, month:'short' }) }; }
   function longDay(d){ return d.toLocaleDateString('en-ZA', { timeZone:TZ, weekday:'long', day:'numeric', month:'long' }); }
+  var MODE = { phone:'Phone call', video:'Video call', inperson:'In person' };
+  function modeLabel(m){ return MODE[m] || 'Phone call'; }
   function lenLabel(n){ return n === 60 ? '1 hour' : n + ' min'; }
 
   var S = { cfg:DEF, blocked:[], holds:[], len:0, mode:'', day:'', start:null, busy:[], sending:false };
@@ -86,7 +88,11 @@
     if(!S.cfg.on){ root.innerHTML = '<div class="bk-card bk-center"><h3>Online booking is paused</h3><p>Send a message instead and we will find a time together.</p>' + waBtn('Hi, I would like to book a meeting.') + '</div>'; return; }
     var lens = (S.cfg.lengths || [30,45,60]).filter(function(n){ return [30,45,60].indexOf(+n) > -1; }).map(Number);
     if(lens.indexOf(S.len) < 0) S.len = lens[0] || 30;
-    var modes = []; if(!S.cfg.inPerson || S.cfg.inPerson.on !== false) modes.push(['inperson','In person', (S.cfg.inPerson && S.cfg.inPerson.place) || '']); if(!S.cfg.video || S.cfg.video.on !== false) modes.push(['video','Video call','Link sent when we confirm']);
+    var modes = [];
+    // In person is hidden for now (6 Nov 2026). To bring it back, remove the // on the next line and turn it on in Bookings.
+    // if(S.cfg.inPerson && S.cfg.inPerson.on === true) modes.push(['inperson','In person', S.cfg.inPerson.place || '']);
+    if(!S.cfg.phone || S.cfg.phone.on !== false) modes.push(['phone','Phone call','We call you on your WhatsApp number']);
+    if(!S.cfg.video || S.cfg.video.on !== false) modes.push(['video','Video call','Link sent when we confirm']);
     if(!modes.some(function(m){ return m[0] === S.mode; })) S.mode = modes[0] ? modes[0][0] : '';
     S.busy = busyRanges();
     var days = openDays(); if(!days.some(function(d){ return d.day === S.day; })) { S.day = days[0] ? days[0].day : ''; S.start = null; }
@@ -95,7 +101,7 @@
 
     var h = '<div class="bk-card"><div class="bk-step"><span class="bk-n">1</span><h3>How long, and how?</h3></div>'
       + '<div class="bk-chips">' + lens.map(function(n){ return chip(S.len === n, 'data-len="' + n + '"', lenLabel(n)); }).join('') + '</div>'
-      + '<div class="bk-modes">' + modes.map(function(m){ return '<button type="button" class="bk-mode' + (S.mode === m[0] ? ' on' : '') + '" data-mode="' + m[0] + '">' + (m[0] === 'video' ? ICON.video : ICON.pin) + '<span><b>' + m[1] + '</b>' + (m[2] ? '<small>' + esc(m[2]) + '</small>' : '') + '</span></button>'; }).join('') + '</div></div>';
+      + '<div class="bk-modes">' + modes.map(function(m){ return '<button type="button" class="bk-mode' + (S.mode === m[0] ? ' on' : '') + '" data-mode="' + m[0] + '">' + (m[0] === 'video' ? ICON.video : m[0] === 'phone' ? ICON.phone : ICON.pin) + '<span><b>' + m[1] + '</b>' + (m[2] ? '<small>' + esc(m[2]) + '</small>' : '') + '</span></button>'; }).join('') + '</div></div>';
 
     h += '<div class="bk-card"><div class="bk-step"><span class="bk-n">2</span><h3>Pick a day</h3></div>';
     if(!days.length){
@@ -110,7 +116,7 @@
     if(S.start){
       var end = new Date(S.start.getTime() + S.len * 60e3);
       h += '<div class="bk-card" id="bkForm"><div class="bk-step"><span class="bk-n">4</span><h3>Your details</h3></div>'
-        + '<div class="bk-sum">' + ICON.cal + '<span><b>' + esc(longDay(S.start)) + '</b>' + hm(S.start) + ' to ' + hm(end) + ' &middot; ' + (S.mode === 'video' ? 'Video call' : 'In person') + '</span></div>'
+        + '<div class="bk-sum">' + ICON.cal + '<span><b>' + esc(longDay(S.start)) + '</b>' + hm(S.start) + ' to ' + hm(end) + ' &middot; ' + modeLabel(S.mode) + '</span></div>'
         + '<div class="bk-grid">'
         + '<label class="bk-f"><span>Your name</span><input id="bkName" autocomplete="name" maxlength="110" value="' + esc(S.name || '') + '"></label>'
         + '<label class="bk-f"><span>WhatsApp number</span><input id="bkPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="082 123 4567" value="' + esc(S.phone || '') + '"></label>'
@@ -119,7 +125,7 @@
         + '<label class="bk-f bk-w"><span>Anything we should know? (optional)</span><textarea id="bkMsg" maxlength="1400" placeholder="Date of the event, venue, what you have in mind">' + esc(S.msg || '') + '</textarea></label>'
         + '</div><p class="bk-err" id="bkErr" role="alert"></p>'
         + '<button type="button" class="bk-go" id="bkGo">Request this time</button>'
-        + '<p class="bk-soft bk-small">The time is held for you. ' + esc(C.who || 'We') + ' will confirm on WhatsApp' + (S.mode === 'video' ? ' and send the video link' : '') + '.</p></div>';
+        + '<p class="bk-soft bk-small">The time is held for you. ' + esc(C.who || 'We') + ' will confirm on WhatsApp' + (S.mode === 'video' ? ' and send the video link' : S.mode === 'phone' ? ' and call you at that time' : '') + '.</p></div>';
     }
     root.innerHTML = h; bind(); S.note = '';
   }
@@ -159,7 +165,7 @@
       batch.set(req, { biz:BIZ, start:start, len:S.len, mode:S.mode, name:name.slice(0, 110), phone:phone.slice(0, 30), email:email.slice(0, 110),
         type:String(S.type || 'General').slice(0, 40), msg:String(S.msg || '').trim().slice(0, 1400), status:'new', hold:holdId, at:F.serverTimestamp() });
       await batch.commit();
-      try{ fetch(WORKER + '/event', { method:'POST', keepalive:true, headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ t:'meeting', o:req.id, n:name, b:BIZ, d:when + ', ' + lenLabel(S.len) + ', ' + (S.mode === 'video' ? 'video call' : 'in person') }) }).catch(function(){}); }catch(e){}
+      try{ fetch(WORKER + '/event', { method:'POST', keepalive:true, headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ t:'meeting', o:req.id, n:name, b:BIZ, d:when + ', ' + lenLabel(S.len) + ', ' + modeLabel(S.mode).toLowerCase() }) }).catch(function(){}); }catch(e){}
       done(name, when);
     }catch(e){
       if(window.console) console.warn('booking', e);
@@ -171,18 +177,18 @@
       else failed(name, phone, email, when);
     }
   }
-  function summary(when){ return '<div class="bk-sum bk-sum-c">' + ICON.cal + '<span><b>' + esc(when) + '</b>' + lenLabel(S.len) + ' &middot; ' + (S.mode === 'video' ? 'Video call' : 'In person') + '</span></div>'; }
+  function summary(when){ return '<div class="bk-sum bk-sum-c">' + ICON.cal + '<span><b>' + esc(when) + '</b>' + lenLabel(S.len) + ' &middot; ' + modeLabel(S.mode) + '</span></div>'; }
   function actions(){ return '<div class="bk-acts"><button type="button" class="bk-go" data-again>Book another meeting</button><a class="bk-go bk-ghost" href="' + esc(C.home || 'index.html') + '">Back to the website</a></div>'; }
   function done(name, when){
     S.sending = false;
     root.innerHTML = '<div class="bk-card bk-center bk-done"><div class="bk-tick">' + ICON.tick + '</div><h3>Request sent</h3><p>Thanks ' + esc(name.split(' ')[0]) + ', your time is held:</p>' + summary(when)
-      + '<p class="bk-soft">' + esc(C.who || 'We') + ' will confirm on WhatsApp soon' + (S.mode === 'video' ? ', with the video link' : '') + '. Nothing else to do for now.</p>' + actions() + '</div>';
+      + '<p class="bk-soft">' + esc(C.who || 'We') + ' will confirm on WhatsApp soon' + (S.mode === 'video' ? ', with the video link' : S.mode === 'phone' ? ' and call you on ' + esc(phoneOf()) : '') + '. Nothing else to do for now.</p>' + actions() + '</div>';
     root.scrollIntoView({ behavior:'smooth', block:'start' });
   }
   // the online request could not be saved: never lose the client, send it on WhatsApp instead
   function failed(name, phone, email, when){
     S.sending = false;
-    var t = 'Hi, I would like to book a meeting.\n\nName: ' + name + '\nWhen: ' + when + ' (' + lenLabel(S.len) + ')\nHow: ' + (S.mode === 'video' ? 'Video call' : 'In person') + '\nShoot: ' + (S.type || 'General') + (email ? '\nEmail: ' + email : '') + (S.msg ? '\n\n' + S.msg : '');
+    var t = 'Hi, I would like to book a meeting.\n\nName: ' + name + '\nWhen: ' + when + ' (' + lenLabel(S.len) + ')\nHow: ' + modeLabel(S.mode) + '\nShoot: ' + (S.type || 'General') + (email ? '\nEmail: ' + email : '') + (S.msg ? '\n\n' + S.msg : '');
     root.innerHTML = '<div class="bk-card bk-center bk-done"><h3>Almost there</h3><p>We could not save your request online just now. Send it on WhatsApp instead and ' + esc(C.who || 'we') + ' will confirm:</p>' + summary(when)
       + '<a class="bk-go bk-wa" href="https://wa.me/' + esc(C.wa || '') + '?text=' + encodeURIComponent(t) + '" target="_blank" rel="noopener">' + ICON.wa + ' Send on WhatsApp</a>'
       + '<div class="bk-acts"><button type="button" class="bk-go bk-ghost" data-retry>Try again</button><button type="button" class="bk-go bk-ghost" data-again>Pick another time</button></div></div>';
@@ -196,7 +202,9 @@
     else root.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
+  function phoneOf(){ return (S.phone || '').trim() || 'your number'; }
   var ICON = {
+    phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg>',
     video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>',
     pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
     cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
