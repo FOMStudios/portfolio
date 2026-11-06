@@ -19,7 +19,7 @@
   CLIENT MOOD BOARD (FOM Studios and Shot by A)
   Opened from the private link made in the dashboard (Client Meetings, Share mood board):
   moodboard.html?s=<share id>   (Shot by A links add &b=sba)
-  Reads Firestore moodShare/<id>. The client can only change clientLoved and clientAt,
+  Reads Firestore moodShare/<id>. The client can only change clientLoved, clientInspo (their own inspiration, up to 30) and clientAt,
   and only until the link's expiry date (see firestore.rules). Picks send a notification.
 -->
 <style>
@@ -89,6 +89,18 @@ h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-he
 .sh .in p{color:var(--ink-soft);}
 .sh .in .ghost{display:block;margin:12px auto 0;background:none;border:0;color:var(--ink-soft);font-weight:700;font-size:14px;cursor:pointer;}
 .hidden{display:none!important;}
+.addtile{break-inside:avoid;margin-bottom:14px;width:100%;min-height:150px;border:2px dashed var(--line);border-radius:16px;background:transparent;color:var(--ink);font-weight:800;font-size:14.5px;cursor:pointer;display:grid;place-items:center;gap:4px;padding:18px;}
+.addtile small{display:block;font-weight:600;color:var(--ink-soft);font-size:12.5px;}
+.addbtn{margin-top:10px;border:0;border-radius:99px;background:#1a1a1a;color:#fff;font-weight:800;font-size:13.5px;padding:10px 16px;cursor:pointer;}
+.yours{position:absolute;left:8px;top:8px;background:#7a4cc2;color:#fff;border-radius:99px;font-size:10.5px;font-weight:700;padding:2px 8px;}
+.rm{position:absolute;left:8px;bottom:8px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:18px;line-height:1;cursor:pointer;}
+.ish .in{text-align:left;}
+.ish .in h2{text-align:center;}
+.ish textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:14px;padding:12px;font:inherit;font-size:14px;margin-top:8px;background:#fff;}
+.ish .row{display:flex;gap:8px;margin-top:10px;}
+.ish .pri{flex:1;height:50px;border:0;border-radius:99px;background:#1a1a1a;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
+.ish .pri:disabled{opacity:.5;}
+.ish .msg{font-size:13px;color:var(--ink-soft);margin-top:10px;min-height:18px;text-align:center;}
 .skel{columns:inherit;}
 .skel div{break-inside:avoid;margin-bottom:14px;border-radius:16px;background:linear-gradient(90deg,#e7e5df,#efeee9,#e7e5df);background-size:200% 100%;animation:sk 1.2s infinite;}
 @keyframes sk{to{background-position:-200% 0}}
@@ -100,7 +112,7 @@ h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-he
   <div class="top"><img class="logo" id="logo" src="assets/mascot-head-color.jpg" alt=""><span class="brand" id="brand">Mood board</span></div>
   <h1 id="title">Your mood board</h1>
   <p class="sub" id="sub">Loading your ideas...</p>
-  <div class="chips hidden" id="chips"><button class="chip on" data-f="all">All ideas</button><button class="chip hidden" data-f="ins" id="chIns">Inspiration</button><button class="chip" data-f="mine">&#9829; My picks <span id="cMine">0</span></button></div>
+  <div class="chips hidden" id="chips"><button class="chip on" data-f="all">All ideas</button><button class="chip" data-f="ins" id="chIns">Inspiration</button><button class="chip" data-f="mine">&#9829; My picks <span id="cMine">0</span></button></div>
   <div class="masonry" id="grid"><div class="skel"><div style="height:260px"></div><div style="height:180px"></div><div style="height:220px"></div><div style="height:300px"></div></div></div>
 </div>
 
@@ -113,6 +125,15 @@ h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-he
   <div class="stage" id="lbS"><img id="lbI" alt=""></div>
   <div class="foot"><div class="cap" id="lbC"></div><button class="big" id="lbH"></button><div class="hint">Double tap the picture to love it. Swipe to browse.</div></div></div>
 
+<div class="sh ish" id="ish"><div class="in"><div style="font-size:36px;text-align:center">&#128161;</div><h2>Add your own inspiration</h2>
+  <p style="text-align:center">Show us pictures of the style you love. Only you and <span id="ishOwner">us</span> can see them.</p>
+  <div class="row"><button class="pri" id="ishUp">Upload pictures</button></div>
+  <p style="margin-top:14px;font-size:13.5px;font-weight:700">Or paste picture links</p>
+  <textarea id="ishLinks" placeholder="On Pinterest: open the pin, press and hold the picture, then Copy image address. Paste one link per line."></textarea>
+  <div class="row"><button class="pri" id="ishAdd" style="background:#fff;color:#111;border:1px solid var(--line)">Add links</button></div>
+  <div class="msg" id="ishMsg"></div>
+  <button class="ghost" id="ishX">Close</button>
+  <input type="file" id="ishFile" accept="image/*" multiple hidden></div></div>
 <div class="sh" id="sh"><div class="in"><div style="font-size:40px">&#10084;&#65039;</div><h2 id="shT">Thank you!</h2><p id="shP"></p><a class="wa" id="shWa" target="_blank" rel="noopener">Send a message too</a><button class="ghost" id="shBack">Keep looking</button></div></div>
 
 <script>
@@ -144,14 +165,16 @@ async function load(){
   if(!SID){ ended('Link not recognised', 'This link looks incomplete. Please use the exact link we sent you.'); return; }
   if(LOCAL){
     const all = JSON.parse(localStorage.getItem('fom_moodshare') || '{}'), d = all[SID];
-    api = { save: (arr) => { all[SID].clientLoved = arr; all[SID].clientAt = new Date().toISOString(); localStorage.setItem('fom_moodshare', JSON.stringify(all)); return Promise.resolve(); } };
+    api = { save: (arr) => { all[SID].clientLoved = arr; all[SID].clientAt = new Date().toISOString(); localStorage.setItem('fom_moodshare', JSON.stringify(all)); return Promise.resolve(); },
+      saveInspo: (arr) => { all[SID].clientInspo = arr; all[SID].clientAt = new Date().toISOString(); localStorage.setItem('fom_moodshare', JSON.stringify(all)); return Promise.resolve(); } };
     return d ? show(d) : ended();
   }
   const { initializeApp, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
   const { getFirestore, doc, getDoc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
   let app; try{ app = initializeApp(firebaseConfig); }catch(e){ app = getApp(); }
   const ref = doc(getFirestore(app), 'moodShare', SID);
-  api = { save: (arr) => updateDoc(ref, { clientLoved: arr, clientAt: serverTimestamp() }) };
+  api = { save: (arr) => updateDoc(ref, { clientLoved: arr, clientAt: serverTimestamp() }),
+          saveInspo: (arr) => updateDoc(ref, { clientInspo: arr, clientAt: serverTimestamp() }) };
   try{
     const snap = await getDoc(ref);
     if(!snap.exists()) return ended();
@@ -172,27 +195,38 @@ function show(d){
   $('sub').textContent = 'Tap the heart on everything you love. ' + (b.owner || 'We') + ' will see your picks straight away, so we can plan your shoot around them.';
   // first visit: start with the ideas loved together in the meeting
   const start = d.clientAt ? (d.clientLoved || []) : (d.picked || []);
-  const ids = new Set((d.items || []).map(i => i.id));
+  const ids = new Set(allItems().map(i => i.id));
   loved = new Set(start.filter(x => ids.has(x)));
   if(!d.clientAt && loved.size) changed = true;
   lastSent = d.clientAt ? [...loved].sort().join(',') : '';
   $('chips').classList.remove('hidden'); $('bar').classList.remove('hidden');
-  $('chIns').classList.toggle('hidden', !(d.items || []).some(i => i.ins));
+  $('ishOwner').textContent = b.owner || b.name || 'us';
   render();
   if(changed) queueSave();
 }
 /* your own work first; inspiration (ins) in its own section, or on its own under the Inspiration chip */
-function items(){ const all = D.items || [], own = all.filter(i => !i.ins), ins = all.filter(i => i.ins);
+const theirs = () => Array.isArray(D.clientInspo) ? D.clientInspo : [];
+function allItems(){
+  const base = D.items || [], seen = new Set(base.map(i => i.id));
+  return base.concat(theirs().filter(i => !seen.has(i.id)).map(i => ({ id:i.id, url:i.url, ar:i.ar, cap:'', ins:true })));
+}
+const isTheirs = id => theirs().some(i => i.id === id);
+function items(){ const all = allItems(), own = all.filter(i => !i.ins), ins = all.filter(i => i.ins);
   if(filter === 'mine') return own.concat(ins).filter(i => loved.has(i.id));
   if(filter === 'ins') return ins;
   return own.concat(ins); }
 function render(){
   const its = items(), picked = new Set(D.picked || []);
   const firstIns = filter === 'all' && its.some(i => !i.ins) ? its.findIndex(i => i.ins) : -1;
-  const secHead = '<div class="sec"><h2>Inspiration</h2><p>Ideas from around the web to show the style, not our own work.</p></div>';
-  $('grid').innerHTML = its.length ? its.map((i, n) => (n === firstIns ? secHead : '') + `<div class="pin" data-id="${esc(i.id)}"><div class="pimg" style="aspect-ratio:${+i.ar || 0.8}"><img src="${esc(i.url)}" alt="${esc(i.cap || 'Idea')}" loading="lazy">
-      <button class="heart${loved.has(i.id) ? ' on' : ''}" data-h="${esc(i.id)}" aria-label="Love this">${HEART}</button>${picked.has(i.id) ? '<span class="tag">From our meeting</span>' : ''}</div>${i.cap ? `<div class="pcap">${esc(i.cap)}</div>` : ''}</div>`).join('')
-    : `<p class="sub" style="column-span:all">${filter === 'mine' ? 'No picks yet. Tap a heart on any idea.' : 'No ideas here yet.'}</p>`;
+  const full = theirs().length >= MAX_THEIRS;
+  const secHead = `<div class="sec"><h2>Inspiration</h2><p>Ideas to show the style, not our own work. Got your own? Add pictures or Pinterest links.</p>${full ? '' : '<button class="addbtn" data-add="1">+ Add your own inspiration</button>'}</div>`;
+  const tile = full ? '' : '<button class="addtile" data-add="1">+ Add your own inspiration<small>Upload pictures or paste Pinterest links</small></button>';
+  const pin = i => `<div class="pin" data-id="${esc(i.id)}"><div class="pimg" style="aspect-ratio:${+i.ar || 0.8}"><img src="${esc(i.url)}" alt="${esc(i.cap || 'Idea')}" loading="lazy">
+      <button class="heart${loved.has(i.id) ? ' on' : ''}" data-h="${esc(i.id)}" aria-label="Love this">${HEART}</button>${picked.has(i.id) ? '<span class="tag">From our meeting</span>' : ''}${isTheirs(i.id) ? `<span class="yours">Yours</span><button class="rm" data-rm="${esc(i.id)}" aria-label="Remove">&times;</button>` : ''}</div>${i.cap ? `<div class="pcap">${esc(i.cap)}</div>` : ''}</div>`;
+  let html = its.map((i, n) => (n === firstIns ? secHead : '') + pin(i)).join('');
+  if(filter === 'all' && !its.some(i => i.ins)) html += secHead;               // no inspiration yet: still offer to add some
+  if(filter === 'ins') html = tile + html;
+  $('grid').innerHTML = html || `<p class="sub" style="column-span:all">${filter === 'mine' ? 'No picks yet. Tap a heart on any idea.' : 'No ideas here yet.'}</p>`;
   counts();
 }
 function counts(){
@@ -218,6 +252,8 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 
 /* ---------- events ---------- */
 $('grid').addEventListener('click', e => {
+  if(e.target.closest('[data-add]')){ openAdd(); return; }
+  const rm = e.target.closest('[data-rm]'); if(rm){ e.stopPropagation(); removeTheirs(rm.dataset.rm); return; }
   const h = e.target.closest('[data-h]');
   if(h){ const on = toggle(h.dataset.h); h.classList.toggle('on', on); h.classList.add('pop'); setTimeout(() => h.classList.remove('pop'), 400); if(filter === 'mine' && !on) render(); else counts(); return; }
   const p = e.target.closest('[data-id]'); if(p){ list = items(); openLB(list.findIndex(i => i.id === p.dataset.id)); }
@@ -225,7 +261,7 @@ $('grid').addEventListener('click', e => {
 $('chips').addEventListener('click', e => { const c = e.target.closest('[data-f]'); if(c){ filter = c.dataset.f; render(); } });
 $('done').onclick = () => {
   if(saveT){ clearTimeout(saveT); save(); } notify();
-  const b = D.brand || {}, n = loved.size, caps = (D.items || []).filter(i => loved.has(i.id) && i.cap).map(i => i.cap).slice(0, 5);
+  const b = D.brand || {}, n = loved.size, caps = allItems().filter(i => loved.has(i.id) && i.cap).map(i => i.cap).slice(0, 5);
   $('shT').textContent = n ? 'Thank you' + (D.name ? ', ' + D.name : '') + '!' : 'No picks yet';
   $('shP').textContent = n ? (b.owner || 'We') + ' can see your ' + n + (n === 1 ? ' pick' : ' picks') + ' now. You can come back and change them any time with the same link.' : 'Tap the heart on the ideas you love, then press Done.';
   const num = b.wa || (window.FOM_CLIENT || {}).wa || '27686901120';
@@ -236,7 +272,64 @@ $('done').onclick = () => {
 $('shBack').onclick = () => $('sh').classList.remove('on');
 $('sh').onclick = e => { if(e.target.id === 'sh') $('sh').classList.remove('on'); };
 
+/* ---------- the client's own inspiration (uploads go to the gallery Worker, links are kept as they are) ---------- */
+const WORKER = 'https://fom-gallery.cold-moon-d65c.workers.dev', MAX_THEIRS = 30;
+const imsg = t => { $('ishMsg').textContent = t || ''; };
+function openAdd(){ imsg(''); $('ishLinks').value = ''; $('ish').classList.add('on'); }
+function closeAdd(){ $('ish').classList.remove('on'); }
+$('ishX').onclick = closeAdd; $('ish').onclick = e => { if(e.target.id === 'ish') closeAdd(); };
+$('ishUp').onclick = () => $('ishFile').click();
+const rid = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const ratioOf = url => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth ? +(i.naturalWidth / i.naturalHeight).toFixed(3) : 0.8); i.onerror = () => r(0); i.src = url; setTimeout(() => r(0.8), 8000); });
+function shrink(file){ return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file);
+  img.onload = () => { const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? res({ b, ar:+(c.width / c.height).toFixed(3) }) : rej(new Error('read')), 'image/jpeg', 0.85); };
+  img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('read')); }; img.src = u; }); }
+async function addTheirs(list){
+  if(!list.length) return false;
+  D.clientInspo = theirs().concat(list).slice(0, MAX_THEIRS);
+  try{ await api.saveInspo(D.clientInspo); }catch(e){ console.warn(e); imsg('Could not save. Please try again.'); return false; }
+  if(window.FOM_EVENT) FOM_EVENT('inspo', D.orderId || '', D.name || '', String(list.length));
+  filter = 'ins'; render(); return true;
+}
+$('ishFile').addEventListener('change', async e => {
+  const files = Array.from(e.target.files || []).slice(0, MAX_THEIRS - theirs().length); e.target.value = ''; if(!files.length){ imsg('You have added the most pictures we can keep (' + MAX_THEIRS + ').'); return; }
+  $('ishUp').disabled = true; const out = []; let bad = 0;
+  for(let i = 0; i < files.length; i++){
+    imsg('Uploading ' + (i + 1) + ' of ' + files.length + '...');
+    let p; try{ p = await shrink(files[i]); }catch(err){ bad++; continue; }
+    try{
+      if(LOCAL){ const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(p.b); }); out.push({ id:rid(), url, ar:p.ar, at:Date.now() }); continue; }
+      const r = await fetch(WORKER + '/mood/upload?s=' + SID, { method:'POST', headers:{ 'Content-Type':'image/jpeg' }, body:p.b });
+      const j = await r.json().catch(() => ({}));
+      if(!r.ok || !j.ok) throw new Error(j.error || 'Upload failed');
+      out.push({ id:rid(), url:j.url, n:j.name, ar:p.ar, at:Date.now() });
+    }catch(err){ imsg(err.message + (out.length ? ' (' + out.length + ' added)' : '')); break; }
+  }
+  $('ishUp').disabled = false;
+  if(out.length && await addTheirs(out)){ closeAdd(); }
+  else if(bad && !out.length) imsg('Those pictures could not be read. Try a JPEG or PNG.');
+});
+$('ishAdd').onclick = async () => {
+  const urls = $('ishLinks').value.split(/\s+/).filter(u => /^https:\/\//i.test(u)).slice(0, MAX_THEIRS - theirs().length);
+  if(!urls.length){ imsg('Paste a picture link that starts with https://'); return; }
+  $('ishAdd').disabled = true; imsg('Checking pictures...');
+  const out = [];
+  for(const u of urls){ const ar = await ratioOf(u); if(ar) out.push({ id:rid(), url:u, ar, at:Date.now() }); }
+  $('ishAdd').disabled = false;
+  if(!out.length){ imsg('That link is not a picture. On Pinterest, press and hold the picture and choose Copy image address.'); return; }
+  if(await addTheirs(out)){ closeAdd(); }
+};
+async function removeTheirs(id){
+  const it = theirs().find(i => i.id === id); if(!it || !confirm('Remove this picture?')) return;
+  D.clientInspo = theirs().filter(i => i.id !== id); loved.delete(id);
+  try{ await api.saveInspo(D.clientInspo); }catch(e){ console.warn(e); }
+  if(it.n && !LOCAL) fetch(WORKER + '/mood/delete?s=' + SID + '&n=' + encodeURIComponent(it.n), { method:'POST' }).catch(() => {});
+  render();
+}
+
 /* ---------- lightbox ---------- */
+
 function openLB(i){ LI = i; $('lb').classList.add('on'); document.body.style.overflow = 'hidden'; drawLB(); }
 function closeLB(){ $('lb').classList.remove('on'); document.body.style.overflow = ''; render(); }
 function drawLB(){
