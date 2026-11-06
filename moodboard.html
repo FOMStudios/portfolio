@@ -44,6 +44,9 @@ h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-he
 @media(min-width:980px){.masonry{column-count:4;}}
 @media(min-width:1260px){.masonry{column-count:5;}}
 .pin{break-inside:avoid;margin-bottom:14px;cursor:zoom-in;}
+.sec{column-span:all;margin:14px 0 12px;padding-top:16px;border-top:1px solid var(--line);}
+.sec h2{font-size:20px;font-weight:800;margin:0;}
+.sec p{margin:4px 0 0;font-size:13.5px;color:var(--ink-soft,#666);}
 .pimg{position:relative;border-radius:16px;overflow:hidden;background:#e7e5df;}
 .pimg img{width:100%;height:100%;object-fit:cover;}
 .pcap{font-size:13px;font-weight:600;padding:6px 4px 0;line-height:1.3;}
@@ -97,7 +100,7 @@ h1{font-size:clamp(26px,6vw,38px);font-weight:800;letter-spacing:-.015em;line-he
   <div class="top"><img class="logo" id="logo" src="assets/mascot-head-color.jpg" alt=""><span class="brand" id="brand">Mood board</span></div>
   <h1 id="title">Your mood board</h1>
   <p class="sub" id="sub">Loading your ideas...</p>
-  <div class="chips hidden" id="chips"><button class="chip on" data-f="all">All ideas</button><button class="chip" data-f="mine">&#9829; My picks <span id="cMine">0</span></button></div>
+  <div class="chips hidden" id="chips"><button class="chip on" data-f="all">All ideas</button><button class="chip hidden" data-f="ins" id="chIns">Inspiration</button><button class="chip" data-f="mine">&#9829; My picks <span id="cMine">0</span></button></div>
   <div class="masonry" id="grid"><div class="skel"><div style="height:260px"></div><div style="height:180px"></div><div style="height:220px"></div><div style="height:300px"></div></div></div>
 </div>
 
@@ -174,13 +177,20 @@ function show(d){
   if(!d.clientAt && loved.size) changed = true;
   lastSent = d.clientAt ? [...loved].sort().join(',') : '';
   $('chips').classList.remove('hidden'); $('bar').classList.remove('hidden');
+  $('chIns').classList.toggle('hidden', !(d.items || []).some(i => i.ins));
   render();
   if(changed) queueSave();
 }
-function items(){ const all = D.items || []; return filter === 'mine' ? all.filter(i => loved.has(i.id)) : all; }
+/* your own work first; inspiration (ins) in its own section, or on its own under the Inspiration chip */
+function items(){ const all = D.items || [], own = all.filter(i => !i.ins), ins = all.filter(i => i.ins);
+  if(filter === 'mine') return own.concat(ins).filter(i => loved.has(i.id));
+  if(filter === 'ins') return ins;
+  return own.concat(ins); }
 function render(){
   const its = items(), picked = new Set(D.picked || []);
-  $('grid').innerHTML = its.length ? its.map(i => `<div class="pin" data-id="${esc(i.id)}"><div class="pimg" style="aspect-ratio:${+i.ar || 0.8}"><img src="${esc(i.url)}" alt="${esc(i.cap || 'Idea')}" loading="lazy">
+  const firstIns = filter === 'all' && its.some(i => !i.ins) ? its.findIndex(i => i.ins) : -1;
+  const secHead = '<div class="sec"><h2>Inspiration</h2><p>Ideas from around the web to show the style, not our own work.</p></div>';
+  $('grid').innerHTML = its.length ? its.map((i, n) => (n === firstIns ? secHead : '') + `<div class="pin" data-id="${esc(i.id)}"><div class="pimg" style="aspect-ratio:${+i.ar || 0.8}"><img src="${esc(i.url)}" alt="${esc(i.cap || 'Idea')}" loading="lazy">
       <button class="heart${loved.has(i.id) ? ' on' : ''}" data-h="${esc(i.id)}" aria-label="Love this">${HEART}</button>${picked.has(i.id) ? '<span class="tag">From our meeting</span>' : ''}</div>${i.cap ? `<div class="pcap">${esc(i.cap)}</div>` : ''}</div>`).join('')
     : `<p class="sub" style="column-span:all">${filter === 'mine' ? 'No picks yet. Tap a heart on any idea.' : 'No ideas here yet.'}</p>`;
   counts();
