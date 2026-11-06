@@ -93,6 +93,9 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .card .thumb{position:relative;aspect-ratio:1/1;background:var(--panel-2);overflow:hidden;}
 .card .thumb img,.card .thumb video{width:100%;height:100%;object-fit:cover;}
 .card .thumb .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-dim);font-size:34px;}
+/* video stills: a frame from about half a second in, loaded only when the card scrolls into view */
+video.vstill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;opacity:0;transition:opacity .35s;}
+video.vstill.ready{opacity:1;}
 .badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;
   background:rgba(20,21,24,.72);backdrop-filter:blur(6px);font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;}
 .badge svg{width:12px;height:12px;}
@@ -179,7 +182,7 @@ button.btn{cursor:pointer;}
 .lb-strip::-webkit-scrollbar{display:none;}
 .lb-th{flex:none;width:54px;height:54px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.08);border:0;padding:0;opacity:.45;transition:opacity .2s,transform .2s,outline-color .2s;outline:2px solid transparent;outline-offset:-2px;position:relative;cursor:pointer;}
 .lb-th img{width:100%;height:100%;object-fit:cover;}
-.lb-th .v{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:16px;}
+.lb-th .v{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:16px;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.6);}
 .lb-th.on{opacity:1;outline-color:#fff;transform:scale(1.06);}
 .lb-th:hover{opacity:.85;}
 @media(min-width:900px){.lb-th{width:66px;height:66px;}}
@@ -279,7 +282,7 @@ function applyHeader(){
     }).catch(() => {}).then(() => { clearTimeout(t); done(); });
 })();
 
-const VIDEO_EXT=['mp4','webm','m4v','ogg','mov','avi','mkv'], PLAYABLE=['mp4','webm','m4v','ogg'], IMAGE_EXT=['jpg','jpeg','png','webp','gif','avif','bmp'];
+const VIDEO_EXT=['mp4','webm','m4v','ogg','mov','avi','mkv'], PLAYABLE=['mp4','webm','m4v','ogg','mov'], IMAGE_EXT=['jpg','jpeg','png','webp','gif','avif','bmp'];
 const ext=n=>(n.split('.').pop()||'').toLowerCase();
 const kindOf=n=>VIDEO_EXT.includes(ext(n))?'video':IMAGE_EXT.includes(ext(n))?'image':'file';
 const playable=n=>PLAYABLE.includes(ext(n));
@@ -427,7 +430,7 @@ function renderGrid(reset){
   g.innerHTML=list.map(it=>{
     const gi=ITEMS.indexOf(it),isVid=it.kind==='video';
     const thumb=isVid
-      ?(it.poster?`<img src="${esc(it.poster)}" loading="lazy" alt="">`:`<div class="ph">&#127909;</div>`)+`<div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>`
+      ?(it.poster?`<img src="${esc(it.poster)}" loading="lazy" alt="">`:`<div class="ph">&#127909;</div>`+stillHtml(it))+`<div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>`
       :(it.kind==='image'?`<img src="${esc(it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
     const badge=isVid?`<span class="badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Video</span>`:`<span class="badge">Photo</span>`;
     return `<article class="card" data-i="${gi}"><div class="thumb">${thumb}${badge}
@@ -446,6 +449,7 @@ function renderGrid(reset){
     g.after(more);
     more.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;const y=scrollY;SHOWN=b.dataset.m==='all'?all.length:SHOWN+STEP;renderGrid(false);scrollTo(0,y);};
   }
+  watchStills(g);
   if(!list.length&&FILTER==='fav') g.innerHTML='<div class="fav-empty">No favourites yet.<br>Tap the &#9829; on any photo to add it here.</div>';
   g.onclick=e=>{const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
@@ -638,14 +642,30 @@ function makeZip(){
 document.addEventListener('click', e => { if(e.target.closest('[data-dlall]')){ e.preventDefault(); downloadAll(); } });
 
 
+/* ===== video stills: show a frame of each video in the grid and the viewer strip, like the photos =====
+   Only the start of the file is fetched (the Worker answers Range requests), and only once the card is near the screen. */
+const stillHtml=it=>it.url&&playable(it.name)?`<video class="vstill" data-vs="${esc(it.url)}" muted playsinline preload="none" disablepictureinpicture disableremoteplayback tabindex="-1" aria-hidden="true"></video>`:'';
+const stillIO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){stillIO.unobserve(e.target);loadStill(e.target);}}),{rootMargin:'300px'}):null;
+function loadStill(v){
+  if(v.dataset.on) return; v.dataset.on='1';
+  const show=()=>{v.classList.add('ready');const ph=v.parentElement&&v.parentElement.querySelector('.ph');if(ph)ph.style.visibility='hidden';};
+  v.addEventListener('loadeddata',show,{once:true});
+  v.addEventListener('seeked',show,{once:true});
+  v.addEventListener('loadedmetadata',()=>{ if(v.duration&&isFinite(v.duration)&&v.currentTime<0.1){ try{v.currentTime=Math.min(0.5,v.duration/3);}catch(_){} } },{once:true});
+  v.addEventListener('error',()=>v.remove(),{once:true});   // keeps the camera icon
+  v.addEventListener('loadedmetadata',()=>{ if(!v.videoWidth) v.remove(); },{once:true});
+  v.preload='metadata'; v.src=v.dataset.vs+'#t=0.5';
+}
+function watchStills(root){ root.querySelectorAll('video.vstill:not([data-on])').forEach(v=>stillIO?stillIO.observe(v):loadStill(v)); }
+
 /* ===== viewer: swipe left/right with the photo following your finger, thumbnail strip underneath ===== */
 let LBI=0, LBL=[];                       // LBL = the files in the tab you opened from (All / Photos / Videos)
 const thumbOf=it=>it.kind==='video'?(it.poster||''):it.url;
 function openLb(gi){
   LBL=visible(); LBI=Math.max(0,LBL.indexOf(ITEMS[gi]));
   $('lbStrip').innerHTML=LBL.map((it,i)=>{const t=thumbOf(it);
-    return `<button class="lb-th" type="button" data-t="${i}" aria-label="Open ${esc(it.name)}">${t?`<img src="${esc(t)}" loading="lazy" decoding="async" alt="">`:''}${it.kind==='video'?'<span class="v">&#9654;</span>':''}${FAV.has(it.name)?'<span class="h">&#9829;</span>':''}</button>`;}).join('');
-  paintLb(); $('lb').classList.add('on'); document.body.style.overflow='hidden';
+    return `<button class="lb-th" type="button" data-t="${i}" aria-label="Open ${esc(it.name)}">${t?`<img src="${esc(t)}" loading="lazy" decoding="async" alt="">`:(it.kind==='video'?stillHtml(it):'')}${it.kind==='video'?'<span class="v">&#9654;</span>':''}${FAV.has(it.name)?'<span class="h">&#9829;</span>':''}</button>`;}).join('');
+  watchStills($('lbStrip')); paintLb(); $('lb').classList.add('on'); document.body.style.overflow='hidden';
 }
 function closeLb(){$('lb').classList.remove('on');$('lbMedia').innerHTML='';document.body.style.overflow='';}
 function stepLb(d,swiped){
@@ -664,8 +684,15 @@ function paintLb(){
   $('lbName').textContent=it.name;$('lbSize').textContent=fmtSize(it.size);$('lbCount').textContent=(LBI+1)+' of '+LBL.length;
   $('lbProg').style.width=((LBI+1)/LBL.length*100)+'%';
   const m=$('lbMedia');
-  if(it.kind==='video'&&it.url&&playable(it.name)) m.innerHTML=`<video src="${esc(it.url)}" controls autoplay playsinline ${it.poster?`poster="${esc(it.poster)}"`:''}></video>`;
-  else if(it.kind==='video') m.innerHTML=`<div class="novid">${it.poster?`<img src="${esc(it.poster)}" alt="" style="max-height:60vh;border-radius:8px;margin:0 auto 16px">`:''}<p>Preview isn't available for this format in the browser.<br>Use <b>Download</b> to save the full-quality video.</p></div>`;
+  const noVid=()=>`<div class="novid">${it.poster?`<img src="${esc(it.poster)}" alt="" style="max-height:60vh;border-radius:8px;margin:0 auto 16px">`:''}<p>This video can't play on this device.<br>Use <b>Download</b> to save the full-quality video.</p></div>`;
+  if(it.kind==='video'&&it.url&&playable(it.name)){
+    // MOV is tried too: iPhone and H.264 MOVs play in most browsers. If this device can't play it, show the download message instead.
+    m.innerHTML=`<video src="${esc(it.url)}" controls autoplay playsinline ${it.poster?`poster="${esc(it.poster)}"`:''}></video>`;
+    const v=m.querySelector('video'), fail=()=>{ if(m.contains(v)) m.innerHTML=noVid(); };
+    v.addEventListener('error',fail,{once:true});
+    v.addEventListener('loadedmetadata',()=>{ if(!v.videoWidth) fail(); },{once:true});   // sound but no picture means the video codec is not supported
+  }
+  else if(it.kind==='video') m.innerHTML=noVid();
   else if(it.kind==='image'&&it.url) m.innerHTML=`<img src="${esc(it.url)}" alt="${esc(it.name)}" draggable="false">`;
   else m.innerHTML=`<div class="novid"><p>No preview. Use <b>Download</b> to save this file.</p></div>`;
   $('lbDl').onclick=()=>download(it);
