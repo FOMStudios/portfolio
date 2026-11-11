@@ -1339,6 +1339,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDetail()
 pkgBookBtn.addEventListener('click', () => {
     const g = currentGroup, t = g ? g.tiers[currentTierIndex] : null;
     closeDetail();
+    if(window.FOM_BOOK){ FOM_BOOK.open({ pkg: g ? (t.name ? g.name + ' ' + t.name : g.name) : '' }); return; }   // step-by-step form (book-steps.js)
     openBooking(g ? `Hi FOM Studios, I'm interested in the ${t.name ? t.name + ' ' + g.name : g.name} package.` : '');
 });
 
@@ -1411,5 +1412,6 @@ renderPackages();
 })();
 </script>
 
+<script src="book-steps.js?v=1"></script>
 </body>
 </html>

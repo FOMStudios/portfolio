@@ -24,7 +24,7 @@
   function fixOld(d){ ['phone','whatsapp'].forEach(function(k){ if(d && digits(d[k]).replace(/^27/,'0') === '0737553136') d[k] = DEF.phone; }); return d; }
   var S = fixOld(load());
   // Make the WhatsApp number available before page scripts read it
-  window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '' };
+  window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '', bookingForm: S.bookingForm || null, blocked: S.blockedDates || [] };
 
   function fromValue(v){
     if(!v) return null;
@@ -187,7 +187,7 @@
       var fresh = {}; for(var k in j.fields) fresh[k] = fromValue(j.fields[k]);
       var changed = JSON.stringify(fresh) !== JSON.stringify(S);
       S = fixOld(fresh); save(S);
-      window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '' };
+      window.FOM_SITE = { wa: intl(S.whatsapp || S.phone) || '', bookingForm: S.bookingForm || null, blocked: S.blockedDates || [] };
       try{ document.dispatchEvent(new Event('fom-site')); }catch(e){}
       if(changed){ if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run(); }
     }).catch(function(){});
