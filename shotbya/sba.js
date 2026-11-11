@@ -46,7 +46,7 @@
     return null;
   }
   function fetchDoc(id){
-    return fetch(BASE + id + '?key=' + KEY).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    return fetch(BASE + id + '?key=' + KEY, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       if(!j || !j.fields) return null; var o = {}; for(var k in j.fields) o[k] = fromValue(j.fields[k]); return o;
     }).catch(function(){ return null; });
   }

@@ -182,7 +182,7 @@
 
   // fetch the latest, update cache, re-apply if it changed (again whenever the visitor comes back to the page, see the end of this file)
   function refresh(){ try{
-    fetch(URL_).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    fetch(URL_, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       if(!j || !j.fields) return;
       var fresh = {}; for(var k in j.fields) fresh[k] = fromValue(j.fields[k]);
       var changed = JSON.stringify(fresh) !== JSON.stringify(S);
@@ -241,7 +241,7 @@
   function go(){
     if(!document.getElementById('galleryScroller') && !document.getElementById('bentoGrid')) return;
     try{ var c = JSON.parse(localStorage.getItem(KEY) || 'null'); if(c) render(c); }catch(e){}
-    fetch(URL_).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    fetch(URL_, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       var f = j && j.fields && j.fields.json && j.fields.json.stringValue; if(!f) return;
       var arr = JSON.parse(f); try{ localStorage.setItem(KEY, f); }catch(e){} render(arr);
     }).catch(function(){});
