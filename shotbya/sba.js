@@ -308,9 +308,23 @@
   function start(){
     shell(); stripControls(); contactForm();
     try{ renderAll(); }catch(e){ if(window.console) console.warn('sba', e); }
+    refresh();
+  }
+  /* fetch the live details, photos and reviews; again when the visitor comes back (see comeBack below) */
+  function refresh(){
     fetchDoc('site_sba').then(function(d){ if(!d) return; delete d.updatedAt; if(JSON.stringify(d) === JSON.stringify(S)) return; S = d; keep('site', d); applySite(); renderAbout(); renderServices(); try{ document.dispatchEvent(new Event('sba-site')); }catch(e){} });
     fetchDoc('portfolio_sba').then(function(d){ if(!d || !d.json) return; var a; try{ a = JSON.parse(d.json); }catch(e){ return; } keep('photos', a); var n = cleanPhotos(a); if(JSON.stringify(n) === JSON.stringify(photos)) return; photos = n; renderPrints(); renderAbout(); renderServices(); renderStrip(); renderGallery(); });
     fetchDoc('testimonials_sba').then(function(d){ if(!d || !d.json) return; var a; try{ a = JSON.parse(d.json); }catch(e){ return; } if(!Array.isArray(a)) return; keep('reviews', a); R = a; renderReviews(); });
   }
+  /* iPhone home screen apps reopen the old page without loading it again: refetch after a minute away,
+     reload a home screen app after 30 minutes away (not while a form is being filled in) */
+  (function comeBack(){
+    var hiddenAt = 0;
+    function standalone(){ return window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }
+    function typing(){ var a = document.activeElement; return !!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) || !!document.querySelector('.bk-form input:not(:placeholder-shown)'); }
+    function back(away){ if(away < 60e3) return; if(standalone() && away >= 30 * 60e3 && !typing()){ location.reload(); return; } refresh(); }
+    document.addEventListener('visibilitychange', function(){ if(document.hidden){ hiddenAt = Date.now(); return; } var away = hiddenAt ? Date.now() - hiddenAt : 0; hiddenAt = 0; back(away); });
+    addEventListener('pageshow', function(e){ if(e.persisted){ var away = hiddenAt ? Date.now() - hiddenAt : 60e3; hiddenAt = 0; back(away); } });
+  })();
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

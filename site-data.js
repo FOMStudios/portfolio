@@ -180,8 +180,8 @@
   function run(){ try{ apply(); }catch(e){ if(window.console) console.warn('site-data', e); } }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
 
-  // fetch the latest, update cache, re-apply if it changed
-  try{
+  // fetch the latest, update cache, re-apply if it changed (again whenever the visitor comes back to the page, see the end of this file)
+  function refresh(){ try{
     fetch(URL_).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       if(!j || !j.fields) return;
       var fresh = {}; for(var k in j.fields) fresh[k] = fromValue(j.fields[k]);
@@ -191,7 +191,9 @@
       try{ document.dispatchEvent(new Event('fom-site')); }catch(e){}
       if(changed){ if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run(); }
     }).catch(function(){});
-  }catch(e){}
+  }catch(e){} }
+  refresh();
+  document.addEventListener('fom-refresh', refresh);
 })();
 
 /* ---- Portfolio photos, controlled from the dashboard "Photos" page ----
@@ -245,4 +247,27 @@
     }).catch(function(){});
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+  document.addEventListener('fom-refresh', go);
+})();
+
+/* ---- Coming back to the site (Nov 2026) ----
+   iPhone home screen apps (and tabs left open) reopen the page exactly as it was, without loading it again,
+   so changes published on the dashboard Website and Photos pages did not show. Now:
+   - back after a minute or more: the live details and photos are fetched again and re-applied;
+   - a home screen app back after 30 minutes or more: the page reloads, so new site code shows too
+     (never while the Book a shoot form is open, so nothing typed is lost). */
+(function(){
+  var hiddenAt = 0;
+  function standalone(){ return window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }
+  function busy(){ var o = document.getElementById('bookingOverlay'); return !!(o && o.classList.contains('show')); }
+  function back(away){
+    if(away < 60e3) return;
+    if(standalone() && away >= 30 * 60e3 && !busy()){ location.reload(); return; }
+    try{ document.dispatchEvent(new Event('fom-refresh')); }catch(e){}
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){ hiddenAt = Date.now(); return; }
+    var away = hiddenAt ? Date.now() - hiddenAt : 0; hiddenAt = 0; back(away);
+  });
+  window.addEventListener('pageshow', function(e){ if(e.persisted){ var away = hiddenAt ? Date.now() - hiddenAt : 60e3; hiddenAt = 0; back(away); } });
 })();
