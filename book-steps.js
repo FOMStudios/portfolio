@@ -259,7 +259,7 @@
       });
       id = ref.id;
     }catch(e){ if(window.console) console.warn('enquiry not saved to Leads', e); }
-    try{ fetch(WORKER + '/event', { method:'POST', keepalive:true, headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ t:'enquiry', o:id, n:name, b:'fom', d:sum }) }).catch(function(){}); }catch(e){}
+    try{ fetch(WORKER + '/event', { method:'POST', keepalive:true, headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ t:'enquiry', o:id, n:name, b:'fom', d:sum, x:text.slice(0, 1500), p:S.phone.trim().slice(0, 20), e:S.email.trim().slice(0, 100) }) }).catch(function(){}); }catch(e){}
   }
 
   /* ---------- open and close ---------- */
