@@ -57,8 +57,18 @@
     return null;
   }
   /* booking form: add a preferred-date field that refuses the dates you blocked on the dashboard */
+  /* iPhone: date boxes ignore width:100% and run off the edge, and any box under 16px makes Safari zoom in on tap */
+  function dateStyle(){
+    if(document.getElementById('fomDateCss')) return;
+    var st = document.createElement('style'); st.id = 'fomDateCss';
+    st.textContent = '.booking-field input,.booking-field textarea,.booking-field select{font-size:16px}' +
+      '#fomDate{-webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:48px;line-height:1.3;text-align:left}' +
+      '#fomDate::-webkit-date-and-time-value{text-align:left;margin:0}';
+    document.head.appendChild(st);
+  }
   function injectDate(){
     var ta = document.getElementById('bookingMessage'); if(!ta) return;
+    dateStyle();
     var today = isoOf(new Date());
     var inp = document.getElementById('fomDate'), msg, hint;
     if(!inp){
