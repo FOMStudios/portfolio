@@ -58,7 +58,7 @@
   function longDay(d){ return d.toLocaleDateString('en-ZA', { timeZone:TZ, weekday:'long', day:'numeric', month:'long' }); }
   var MODE = { phone:'Phone call', video:'Video call', inperson:'In person' };
   function modeLabel(m){ return MODE[m] || 'Phone call'; }
-  function lenLabel(n){ return n === 60 ? '1 hour' : n + ' min'; }
+  function lenLabel(n){ n = Math.round(+n) || 0; var h = Math.floor(n / 60), m = n % 60; return !h ? m + ' min' : h + (h === 1 ? ' hour' : ' hours') + (m ? ' ' + m + ' min' : ''); }
 
   var S = { cfg:DEF, blocked:[], holds:[], len:0, mode:'', day:'', start:null, busy:[], sending:false };
 
@@ -86,7 +86,8 @@
   function chip(on, attr, html, dis){ return '<button type="button" class="bk-chip' + (on ? ' on' : '') + '" ' + attr + (dis ? ' disabled' : '') + '>' + html + '</button>'; }
   function render(){
     if(!S.cfg.on){ root.innerHTML = '<div class="bk-card bk-center"><h3>Online booking is paused</h3><p>Send a message instead and we will find a time together.</p>' + waBtn('Hi, I would like to book a meeting.') + '</div>'; return; }
-    var lens = (S.cfg.lengths || [30,45,60]).filter(function(n){ return [30,45,60].indexOf(+n) > -1; }).map(Number);
+    var lens = (S.cfg.lengths || [30,45,60]).map(function(n){ return Math.round(+n); }).filter(function(n){ return n >= 5 && n <= 240; })   // any length from the Bookings page (rules allow 5 to 240)
+      .filter(function(n, i, a){ return a.indexOf(n) === i; }).sort(function(a, b){ return a - b; });
     if(lens.indexOf(S.len) < 0) S.len = lens[0] || 30;
     var modes = [];
     // In person is hidden for now (6 Nov 2026). To bring it back, remove the // on the next line and turn it on in Bookings.
