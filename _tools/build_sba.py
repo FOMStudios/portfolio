@@ -105,11 +105,12 @@ def footer():
         </ul>
       </div>
     </div>
-    <div class="bottom"><span>&copy; <span data-year>2026</span> Shot by A Photography. All rights reserved.</span><span class="by">Part of the <a href="../index.html">FOM Studios</a> family</span></div>
+    <div class="bottom"><span>&copy; <span data-year>2026</span> Shot by A Photography. All rights reserved.</span><span class="by" data-sister><a href="../index.html" data-sister-text>Part of the FOM Studios family</a></span></div>
   </div>
 </footer>
 <a class="wa-fab" data-l="wa" href="https://wa.me/27844456657" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_SVG}</a>
-<script src="sba.js?v=3"></script>
+<script src="sba.js?v=4"></script>
+<script src="../studios.js?v=1"></script>
 </body>
 </html>
 '''
@@ -207,6 +208,8 @@ home = '''<section class="hero" style="padding-top:20px">
     <div class="reviews" id="revGrid"></div>
   </div>
 </section>
+
+<section id="studios"></section>
 
 <section class="cta">
   <div class="wrap">

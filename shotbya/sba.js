@@ -116,7 +116,7 @@
     var d = S || {};
     var phone = (d.phone || DEF.phone).trim(), email = (d.email || DEF.email).trim(), ig = igHandle(d.instagram) || DEF.instagram;
     var wa = intl(d.whatsapp || phone), area = (d.area || DEF.area).trim();
-    window.SBA_SITE = { phone:phone, email:email, wa:wa, ig:ig, area:area, blocked:d.blockedDates || [] };
+    window.SBA_SITE = { phone:phone, email:email, wa:wa, ig:ig, area:area, blocked:d.blockedDates || [], studios:d.studios || null };
     $$('[data-l]').forEach(function(a){
       var k = a.getAttribute('data-l');
       if(k === 'wa'){ var t = a.getAttribute('data-wa-text') || 'Hi Amarah, I found you on your website and would like to ask about a shoot.'; a.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(t); }
