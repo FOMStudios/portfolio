@@ -46,7 +46,7 @@
     '.st-card:hover .st-btn{filter:brightness(1.12)}' +
     (BIZ === 'sba'
       ? '#studios{--st-accent:var(--red,#780000);--st-card:var(--paper,#F3F2EC);--st-tint:var(--stone,#E4E3D9);--st-line:var(--line,rgba(10,16,13,.12))}#studios .st-body h3{font-family:var(--sans);font-weight:600}'
-      : '#studios{--st-accent:var(--accent,#02367B);--st-tint:#eef1f6}#studios .st-body h3{font-weight:700}');
+      : '#studios{--st-accent:#111;--st-tint:transparent}#studios .st-body h3{font-weight:700}#studios .st-img.logo{padding-top:18px}');
   (document.head || document.documentElement).appendChild(css);
 
   function logoLike(src){ return /logo|mascot|icon/i.test(src); }
