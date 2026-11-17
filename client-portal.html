@@ -297,7 +297,7 @@ nav.pill{
     .timeline-step{font-size:10px;padding:8px 2px;}
 }
 </style>
-<script src="brand-client.js?v=4"></script>
+<script src="brand-client.js?v=5"></script>
 </head>
 <body>
 
@@ -318,7 +318,7 @@ nav.pill{
             <img src="assets/mascot-head-color.png" alt="FOM Studios" onerror="this.style.display='none'">
         </div>
         <div class="brand">FOM STUDIOS</div>
-        <div class="brand-sub">Client Portal - sign in to view your project</div>
+        <div class="brand-sub" id="lgSub">Client Portal - sign in to view your project</div>
         <input type="email" id="lgEmail" placeholder="Email address" autocomplete="username">
         <input type="password" id="lgPass" placeholder="Password" autocomplete="current-password">
         <button class="btn" id="lgBtn">Sign in</button>
@@ -432,12 +432,21 @@ import { initializeApp, getApp }                                    from 'https:
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
          onAuthStateChanged, signOut }                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, query, where, onSnapshot, orderBy, limitToLast,
-         doc, updateDoc, setDoc, writeBatch, serverTimestamp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+         doc, getDoc, updateDoc, setDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const WORKER = 'https://fom-gallery.cold-moon-d65c.workers.dev';   // sends the "new message" emails
 /* Client messages are switched OFF for now. Set to true to bring the Messages section back
    (also set CHAT_ON in dashboard app.js and dashboard.html). */
 const CHAT_ON = false;
+
+/* ============================================================
+   PREVIEW AS CLIENT (?preview=<order id>, opened from the dashboard Database)
+   Signed in as admin, this shows that client's real portal, read-only:
+   no activity events (brand-client.js), no signing, no read receipts,
+   and their gallery opens in preview too (hearts are not saved).
+   ============================================================ */
+const PREVIEW = new URLSearchParams(location.search).get('preview') || '';
+const DASH = 'https://fomstudios.github.io/dashboard/';
 
 
 /* ============================================================
@@ -598,7 +607,7 @@ function buildCard(o){
         +(o.shootDate?'&date='+encodeURIComponent(o.shootDate):'')
         +(o.galleryExpiry?'&expiry='+encodeURIComponent(o.galleryExpiry):'')
         +(o.deliverablesUrl?'&dl='+encodeURIComponent(o.deliverablesUrl):'')
-        +(o.galleryCover&&o.galleryCover.n?'&cover='+encodeURIComponent(o.galleryCover.n)+'&fx='+(+o.galleryCover.fx||0)+'&fy='+(+o.galleryCover.fy||0):'')+(SBA?'&b=sba':'');
+        +(o.galleryCover&&o.galleryCover.n?'&cover='+encodeURIComponent(o.galleryCover.n)+'&fx='+(+o.galleryCover.fx||0)+'&fy='+(+o.galleryCover.fy||0):'')+(SBA?'&b=sba':'')+(PREVIEW?'&preview=1':'');
 
     // deliverables section
     const deliverables = (o.deliverablesReady)
@@ -747,6 +756,7 @@ function init(){
         if(!hasInk){ $('signErr').textContent='Please sign in the box above.'; return; }
         if(!$('signName').value.trim()){ $('signErr').textContent='Please type your full name.'; return; }
         if(!$('signAgree').checked){ $('signErr').textContent='Please tick to agree to the terms.'; return; }
+        if(PREVIEW){ $('signErr').textContent='Preview: signing is turned off here. Nothing was saved.'; return; }
         $('signSubmit').disabled=true; $('signSubmit').textContent='Saving...'; $('signErr').textContent='';
         try{
             await updateDoc(doc(db,'orders',signingId), { contractSigned:true, signatureData:pad.toDataURL('image/png'), signedName:$('signName').value.trim(), signedAt:serverTimestamp() });
@@ -790,7 +800,7 @@ function init(){
     }
     function markRead(id){
         if(!unreadFor(id) || document.visibilityState !== 'visible') return;
-        setDoc(doc(db, 'chat', id), { clientReadAt: serverTimestamp() }, { merge:true }).catch(e => console.warn('read', e));
+        if(!PREVIEW) setDoc(doc(db, 'chat', id), { clientReadAt: serverTimestamp() }, { merge:true }).catch(e => console.warn('read', e));
     }
     document.addEventListener('visibilitychange', () => { OPEN.forEach(markRead); });
     async function notifyFom(id){
@@ -870,6 +880,14 @@ function init(){
         if(user){
             let checked = false;
             const letIn = () => { checked = true; hideSplash(); $('loginGate').style.display = 'none'; $('mainApp').style.display = 'block'; };
+            if(PREVIEW && !user.__pvChecked){
+                // only admins can preview: anyone else just sees their own portal as normal
+                getDoc(doc(db, 'admins', user.uid)).then(a => {
+                    if(a.exists()) stopOrders = startPreview(db, letIn);
+                    else { user.__pvChecked = true; blockMsg = 'Preview needs your admin login. You are signed in as a client.'; signOut(auth); }
+                }).catch(() => { blockMsg = 'Preview needs your admin login. Sign in with it to see this client.'; signOut(auth); });
+                return;
+            }
 
             // personalise greeting with email name
             const name = user.displayName || user.email.split('@')[0];
@@ -909,6 +927,74 @@ function init(){
     });
 }
 
+/* ---------- preview as client ---------- */
+function startPreview(db, letIn){
+    let opened = false;
+    if(PREVIEW){ const ls = $('lgSub'); if(ls) ls.textContent = 'Preview: sign in with your admin login'; }
+    return onSnapshot(doc(db, 'orders', PREVIEW), snap => {
+        if(!snap.exists()){ letIn(); $('bookingList').innerHTML = '<p style="padding:30px 0;color:var(--ink-soft)">This booking no longer exists.</p>'; previewBar(null); return; }
+        const o = { id:snap.id, ...snap.data() }, biz = o.biz === 'sba' ? 'sba' : 'fom';
+        const here = (window.FOM_CLIENT && FOM_CLIENT.id) || 'fom';
+        if(biz !== here){ location.replace('client-portal.html?preview=' + encodeURIComponent(PREVIEW) + '&b=' + biz); return; }
+        letIn();
+        const first = String(o.customer || 'there').trim().split(/\s+/)[0];
+        $('greetingName').textContent = 'Welcome, ' + first.charAt(0).toUpperCase() + first.slice(1);
+        const em = String(o.clientEmail || 'preview@preview.local').toLowerCase();
+        renderOrders([Object.assign({}, o, { clientEmail:em })], em);
+        previewBar(o);
+        if(!opened){ opened = true; const h = document.querySelector('.booking-card[data-oid="' + o.id + '"] .booking-header'); if(h && !OPEN.has(o.id)) h.click(); }
+    }, err => { console.warn('preview', err); letIn(); $('bookingList').innerHTML = '<p style="padding:30px 0;color:var(--ink-soft)">Could not load this booking. Check that you are signed in with your admin login.</p>'; });
+}
+function previewBar(o){
+    let bar = $('pvBar');
+    if(!bar){
+        bar = document.createElement('div'); bar.id = 'pvBar';
+        const st = document.createElement('style');
+        st.textContent = '#pvBar{background:#111;color:#fff;font:14px/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;padding:12px var(--gutter,20px);position:relative;z-index:1100}'
+          + '#pvBar .pv-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1100px;margin:0 auto}'
+          + '#pvBar .pv-t{flex:1;min-width:200px}#pvBar .pv-t b{font-weight:800}#pvBar .pv-t small{display:block;opacity:.7;font-size:12.5px}'
+          + '#pvBar button,#pvBar a.pv-btn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:99px;padding:7px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap}'
+          + '#pvBar .pv-sum.ok{background:#1f8a4c;border-color:#1f8a4c}#pvBar .pv-sum.warn{background:#c0392b;border-color:#c0392b}'
+          + '#pvBar ul{list-style:none;margin:10px auto 0;padding:0;max-width:1100px;display:grid;gap:6px}#pvBar li{display:flex;gap:10px;align-items:center;justify-content:space-between;background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px}'
+          + '#pvBar li.ok{opacity:.7}#pvBar li span{flex:1}#pvBar li a{color:#fff;font-weight:800;white-space:nowrap}'
+          + '#logoutBtn,#cookieConsent{display:none!important}';
+        document.head.appendChild(st);
+        document.body.insertBefore(bar, document.body.firstChild);
+    }
+    if(!o){ bar.innerHTML = '<div class="pv-top"><div class="pv-t"><b>&#128065; Preview</b><small>This booking was not found.</small></div><a class="pv-btn" href="' + DASH + 'database.html">Back to the Database</a></div>'; return; }
+    const biz = o.biz === 'sba' ? 'sba' : 'fom', fix = f => DASH + 'database.html?biz=' + biz + '&open=' + encodeURIComponent(o.id) + '&f=' + f;
+    const today = new Date().toISOString().slice(0, 10), items = [];
+    const nice = d => { const x = new Date(d + 'T00:00:00'); return isNaN(x) ? d : x.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' }); };
+    const add = (ok, text, f) => items.push({ ok, text, f });
+    add(!!o.clientEmail, o.clientEmail ? 'Email: ' + o.clientEmail : 'No client email, so they cannot sign in', 'clientEmail');
+    if(o.clientEmail) add(!!o.portalLoginAt, o.portalLoginAt ? 'Portal login created' : 'Portal login not created yet', 'login');
+    add(!!o.shootDate, o.shootDate ? 'Shoot date set' : 'No shoot date', 'shootDate');
+    add(!!(o.contractSigned || o.contractUrl), o.contractSigned ? 'Contract signed' : o.contractUrl ? 'Contract sent, not signed yet' : 'No contract link', 'contractUrl');
+    add(!!o.galleryFolder, o.galleryFolder ? 'Gallery folder: ' + o.galleryFolder : 'No gallery folder', 'galleryFolder');
+    add(!!o.deliverablesReady, o.deliverablesReady ? 'Gallery is live in the portal' : 'Gallery is set to Not ready', 'deliverablesReady');
+    if(o.deliverablesReady){
+        const ex = o.galleryExpiry || '';
+        add(!!ex && ex >= today, !ex ? 'No gallery expiry date' : ex < today ? 'Gallery expired on ' + nice(ex) : 'Gallery open until ' + nice(ex), 'galleryExpiry');
+    }
+    const bad = items.filter(x => !x.ok).length, name = o.customer || 'this client', open = bar.dataset.open === '1' || (bar.dataset.open == null && bad > 0);
+    bar.dataset.open = open ? '1' : '0';
+    bar.innerHTML = '<div class="pv-top"><div class="pv-t"><b>&#128065; Preview: ' + esc(name) + '&#39;s portal</b><small>Exactly what they see. Nothing here is saved, sent or counted as them.</small></div>'
+        + '<button type="button" class="pv-sum ' + (bad ? 'warn' : 'ok') + '" id="pvToggle">' + (bad ? bad + ' to check' : '&#10003; Ready to send') + '</button>'
+        + '<a class="pv-btn" href="' + DASH + 'database.html?biz=' + biz + '&open=' + encodeURIComponent(o.id) + '">Back to the Database</a></div>'
+        + (open ? '<ul>' + items.map(x => '<li class="' + (x.ok ? 'ok' : '') + '"><span>' + (x.ok ? '&#10003; ' : '&#9888;&#65039; ') + esc(x.text) + '</span>' + (x.ok ? '' : '<a href="' + fix(x.f) + '">Fix &#8250;</a>') + '</li>').join('') + '<li class="ok" id="pvFiles"><span>Checking the gallery folder...</span></li></ul>' : '');
+    $('pvToggle').onclick = () => { bar.dataset.open = open ? '0' : '1'; previewBar(o); };
+    // is the gallery folder empty? (cheap public list from the gallery Worker)
+    const pf = $('pvFiles');
+    if(pf){
+        const SBA = biz === 'sba', folder = o.galleryFolder || ((SBA ? 'shotbya/' : '') + slug(o.customer) + '/');
+        fetch(WORKER + '/list?g=' + encodeURIComponent(folder)).then(r => r.json()).then(j => {
+            const n = (j.files || []).filter(f => !/\.(pdf|zip|docx?)$/i.test(f.name)).length;
+            pf.className = n ? 'ok' : ''; pf.innerHTML = n ? '<span>&#10003; ' + n + ' photos and videos in the gallery folder</span>' : '<span>&#9888;&#65039; The gallery folder is empty</span><a href="' + fix('galleryFolder') + '">Fix &#8250;</a>';
+        }).catch(() => { pf.innerHTML = '<span>Could not check the gallery folder</span>'; });
+    }
+}
+
+if(PREVIEW){ const ls = $('lgSub'); if(ls) ls.textContent = 'Preview: sign in with your admin login to see this client'; }
 init();
 
 </script>

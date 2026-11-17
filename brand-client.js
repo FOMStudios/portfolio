@@ -27,6 +27,9 @@
       fetch(u, { method:'POST', body: body, keepalive: true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
     }catch(e){}
   };
+  /* Preview as client (?preview=... from the dashboard): read-only, so nothing reaches the activity log or your phone */
+  window.FOM_PREVIEW = /[?&]preview=/.test(location.search);
+  if(window.FOM_PREVIEW) window.FOM_EVENT = function(){};
 
   var root = /\/shotbya\//.test(location.pathname) ? '../' : '';
   var B = id === 'sba'

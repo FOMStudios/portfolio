@@ -57,7 +57,7 @@ h1{font-size:clamp(23px,5vw,29px);font-weight:800;letter-spacing:-.01em;margin:8
 .link-btn{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:999px;border:1.5px solid var(--line);font-weight:700;font-size:13.5px;color:var(--ink);text-decoration:none;}
 .link-btn:hover{border-color:var(--ink);}
 </style>
-<script src="brand-client.js?v=4"></script>
+<script src="brand-client.js?v=5"></script>
 </head>
 <body>
 <div class="card" id="card">
@@ -125,6 +125,7 @@ const db = getFirestore(app);
 $('sendBtn').addEventListener('click', async () => {
   const msg = $('fMsg').value.trim(), name = $('fName').value.trim();
   if(!rating){ $('msg').textContent = 'Please tap a star rating first.'; return; }
+  if(window.FOM_PREVIEW){ $('msg').textContent = 'Preview: reviews are not sent from here. This is what the client sees.'; return; }
   $('sendBtn').disabled = true; $('sendBtn').textContent = 'Sending...'; $('msg').textContent='';
   try{
     await addDoc(collection(db, 'feedback'), {
