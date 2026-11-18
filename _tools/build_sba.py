@@ -111,6 +111,7 @@ def footer():
 <a class="wa-fab" data-l="wa" href="https://wa.me/27844456657" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_SVG}</a>
 <script src="sba.js?v=4"></script>
 <script src="../studios.js?v=2"></script>
+<script src="../track.js?v=1"></script>
 </body>
 </html>
 '''
@@ -346,7 +347,7 @@ book = '''<section class="phead">
 '''
 BOOK_HEAD = '''<style>#bookApp{--bk-accent:#780000;--bk-on:#F3F2EC;--bk-ink:#0A100D;--bk-card:#F3F2EC;--bk-bg:#E4E3D9;--bk-line:rgba(10,16,13,.12);--bk-soft:#4b4f4a;--bk-head:'Allura',cursive;--bk-headw:400;--bk-h3:clamp(32px,8.5vw,40px);--bk-headc:#780000;--bk-font:'Jost',-apple-system,Arial,sans-serif;--bk-r:22px;--bk-btntt:uppercase;--bk-btnls:.08em}</style>
 <script>window.BOOK_CFG={biz:'sba',who:'Amarah',wa:'27844456657',home:'index.html'};</script>
-<script src="../booking.js?v=4" defer></script>
+<script src="../booking.js?v=5" defer></script>
 '''
 
 # ------------------------------------------------------------------ 404

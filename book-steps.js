@@ -163,7 +163,7 @@
   function keep(){
     ['Date','Area','Name','Phone','Email','Note'].forEach(function(k){ var el = $('bw' + k); if(el) S[k.toLowerCase()] = el.value; });
   }
-  function go(n){ keep(); S.step = n; render(); if(modal.scrollTo) modal.scrollTo(0, 0); }
+  function go(n){ keep(); S.step = n; if(window.FOM_TRACK) FOM_TRACK('book_step' + n); render(); if(modal.scrollTo) modal.scrollTo(0, 0); }
   function bind(){
     root.onclick = function(e){
       var t = e.target.closest('[data-type],[data-pkg],[data-next],[data-back],[data-go],[data-nodate],[data-close]');
@@ -219,7 +219,7 @@
     if(S.sending || !check(false)) return;
     var text = message(false);
     window.open('https://wa.me/' + wa() + '?text=' + encodeURIComponent(text), '_blank');   // must open straight from the tap
-    saveLead('whatsapp', text);
+    saveLead('whatsapp', text); if(window.FOM_TRACK) FOM_TRACK('book_sent_wa');
     S.sent = 'wa'; render();
   }
   async function sendMail(){
@@ -227,7 +227,7 @@
     S.sending = true; var b = $('bwMail'), l = $('bwMailL'); if(b) b.disabled = true; if(l) l.textContent = 'Sending...';
     var text = message(false);
     try{ await brevo({ EMAIL:S.email.trim(), MESSAGE:'From ' + S.name.trim() + ': ' + text.replace(/\n/g, ' | ') }); }catch(e){}
-    await saveLead('email', text);
+    await saveLead('email', text); if(window.FOM_TRACK) FOM_TRACK('book_sent_email');
     S.sending = false; S.sent = 'email'; render();
   }
   function brevo(fields){
@@ -265,6 +265,7 @@
   /* ---------- open and close ---------- */
   function open(opts){
     if(S.sent) S = fresh();
+    if(window.FOM_TRACK) FOM_TRACK('book_open');
     if(opts && opts.pkg){ var want = String(opts.pkg).toLowerCase().replace(/\s+/g, ' ').trim(), list = cfg().pkgs;
       var words = function(p){ return p.name.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); };
       var hit = list.filter(function(p){ return p.name.toLowerCase() === want; })[0] ||

@@ -141,7 +141,7 @@
       if(b.dataset.len){ S.len = +b.dataset.len; S.start = null; render(); }
       else if(b.dataset.mode){ S.mode = b.dataset.mode; render(); }
       else if(b.dataset.day){ S.day = b.dataset.day; S.start = null; render(); }
-      else if(b.dataset.t){ S.start = new Date(+b.dataset.t); render(); var f = $('#bkForm', root); if(f) f.scrollIntoView({ behavior:'smooth', block:'start' }); }
+      else if(b.dataset.t){ S.start = new Date(+b.dataset.t); if(window.FOM_TRACK) FOM_TRACK('meet_open'); render(); var f = $('#bkForm', root); if(f) f.scrollIntoView({ behavior:'smooth', block:'start' }); }
       else if(b.id === 'bkGo') send();
     };
     var dd = $('.bk-day.on', root); if(dd && dd.scrollIntoView) dd.scrollIntoView({ block:'nearest', inline:'center' });
@@ -181,7 +181,7 @@
   function summary(when){ return '<div class="bk-sum bk-sum-c">' + ICON.cal + '<span><b>' + esc(when) + '</b>' + lenLabel(S.len) + ' &middot; ' + modeLabel(S.mode) + '</span></div>'; }
   function actions(){ return '<div class="bk-acts"><button type="button" class="bk-go" data-again>Book another meeting</button><a class="bk-go bk-ghost" href="' + esc(C.home || 'index.html') + '">Back to the website</a></div>'; }
   function done(name, when){
-    S.sending = false;
+    S.sending = false; if(window.FOM_TRACK) FOM_TRACK('meet_sent');
     root.innerHTML = '<div class="bk-card bk-center bk-done"><div class="bk-tick">' + ICON.tick + '</div><h3>Request sent</h3><p>Thanks ' + esc(name.split(' ')[0]) + ', your time is held:</p>' + summary(when)
       + '<p class="bk-soft">' + esc(C.who || 'We') + ' will confirm on WhatsApp soon' + (S.mode === 'video' ? ', with the video link' : S.mode === 'phone' ? ' and call you on ' + esc(phoneOf()) : '') + '. Nothing else to do for now.</p>' + actions() + '</div>';
     root.scrollIntoView({ behavior:'smooth', block:'start' });
