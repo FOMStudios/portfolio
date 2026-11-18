@@ -31,7 +31,8 @@
   /* where this visit came from: link tag, in-app browser, or the site that linked here */
   function source(){
     var q = new URLSearchParams(location.search), u = (q.get('utm_source') || q.get('src') || '').toLowerCase();
-    var map = { ig:'Instagram', instagram:'Instagram', fb:'Facebook', facebook:'Facebook', tiktok:'TikTok', google:'Google', wa:'WhatsApp', whatsapp:'WhatsApp', youtube:'YouTube', linkedin:'LinkedIn', email:'Email', newsletter:'Email', pinterest:'Pinterest' };
+    // keep in step with the Tracked links on the dashboard Traffic page
+    var map = { ig:'Instagram', instagram:'Instagram', igs:'Instagram stories', fb:'Facebook', facebook:'Facebook', tt:'TikTok', tiktok:'TikTok', google:'Google', gbp:'Google Business', wa:'WhatsApp', whatsapp:'WhatsApp', qr:'QR code', youtube:'YouTube', linkedin:'LinkedIn', email:'Email', newsletter:'Email', pinterest:'Pinterest' };
     if(u) return map[u] || u.slice(0, 30);
     if(q.get('fbclid')) return /Instagram/i.test(ua) ? 'Instagram' : 'Facebook';
     if(q.get('gclid')) return 'Google';
@@ -85,7 +86,7 @@
 
   /* Microsoft Clarity heatmaps and visit recordings: only after the visitor accepts cookies
      (FOM's cookie banner, or the small one below on pages without it). Set CLARITY_ID to switch it on. */
-  var CLARITY_ID = '';
+  var CLARITY_ID = 'zfic33ye0e';
   function loadClarity(){
     if(!CLARITY_ID || window.clarity) return;
     (function(c,l,a,r,i,t,y){ c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)}; t=l.createElement(r); t.async=1; t.src='https://www.clarity.ms/tag/'+i; y=l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t,y); })(window, document, 'clarity', 'script', CLARITY_ID);
