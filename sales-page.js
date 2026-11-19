@@ -94,7 +94,7 @@ function orderView(){
 /* ---------- list of events ---------- */
 function eventsView(){
   app.innerHTML = '<div class="sa-wrap"><div class="sa-empty">Loading events...</div></div>';
-  get('/sales/events').then(function(j){
+  get('/sales/events' + (Q.get('preview') ? '?preview=1' : '')).then(function(j){
     var list = j.events || [];
     app.innerHTML = '<div class="sa-wrap">' + (list.length ? '<div class="sa-events">' + list.map(function(e){
       return '<a class="sa-card" href="photos.html?ev=' + esc(e.id) + '"><div class="im">' + (e.cover ? '<img src="' + img(e.id, 't', e.cover) + '" alt="" loading="lazy">' : '') + '</div><div class="tx"><b>' + esc(e.title) + '</b><div class="sa-soft">' + esc(nice(e.date)) + (e.place ? ', ' + esc(e.place) : '') + '</div><div class="sa-soft">' + e.count + ' photos</div></div></a>';
