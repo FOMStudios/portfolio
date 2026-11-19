@@ -6,7 +6,7 @@
 (function(){
   var DEF = {
     phone: '068 690 1120', email: 'info@fomstudios.co.za', instagram: 'fom_studios_',
-    channel: 'https://whatsapp.com/channel/0029Vb8y9mxAYlURQF4cUD3h',   // WhatsApp Channel (the Website page link wins once published)
+    channel: 'https://chat.whatsapp.com/EwI9Zg2tjfhGX8gISj1TpA',   // WhatsApp Group invite (the Website page link wins once published)
     area: 'Johannesburg, South Africa', wa: '27686901120'   // old number, in case you switch back: 073 755 3136 / 27737553136
   };
   var KEY = 'fom.site.v1';
@@ -111,8 +111,10 @@
       else if(d.whatsappCommunity && /chat\.whatsapp\.com\//i.test(h)) mapHref(a, function(){ return d.whatsappCommunity; });
     });
 
-    // ----- WhatsApp channel: hidden until a link is set on the dashboard Website page -----
+    // ----- WhatsApp group: hidden until a link is set on the dashboard Website page -----
+    // Nov 2026: the old Channel link (still saved on the Website page) now points to the group.
     var ch = String(d.whatsappChannel || DEF.channel || '').trim();
+    if(/0029Vb8y9mxAYlURQF4cUD3h/.test(ch)) ch = DEF.channel;
     if(!/^https:\/\/(www\.)?(whatsapp\.com\/channel\/|chat\.whatsapp\.com\/)/i.test(ch)) ch = '';
     [].forEach.call(document.querySelectorAll('[data-wa-ch]'), function(el){ el.style.display = ch ? '' : 'none'; });
     [].forEach.call(document.querySelectorAll('a[data-wa-ch-link]'), function(a){ a.setAttribute('href', ch || '#'); });
