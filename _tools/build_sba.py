@@ -111,7 +111,7 @@ def footer():
 <a class="wa-fab" data-l="wa" href="https://wa.me/27844456657" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{WA_SVG}</a>
 <script src="sba.js?v=4"></script>
 <script src="../studios.js?v=2"></script>
-<script src="../track.js?v=3"></script>
+<script src="../track.js?v=4"></script>
 </body>
 </html>
 '''

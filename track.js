@@ -32,7 +32,7 @@
   function source(){
     var q = new URLSearchParams(location.search), u = (q.get('utm_source') || q.get('src') || '').toLowerCase();
     // keep in step with the Tracked links on the dashboard Traffic page
-    var map = { ig:'Instagram', instagram:'Instagram', igs:'Instagram stories', fb:'Facebook', facebook:'Facebook', tt:'TikTok', tiktok:'TikTok', google:'Google', gbp:'Google Business', wa:'WhatsApp', whatsapp:'WhatsApp', qr:'QR code', youtube:'YouTube', linkedin:'LinkedIn', email:'Email', newsletter:'Email', pinterest:'Pinterest' };
+    var map = { wach:'WhatsApp channel', ig:'Instagram', instagram:'Instagram', igs:'Instagram stories', fb:'Facebook', facebook:'Facebook', tt:'TikTok', tiktok:'TikTok', google:'Google', gbp:'Google Business', wa:'WhatsApp', whatsapp:'WhatsApp', qr:'QR code', youtube:'YouTube', linkedin:'LinkedIn', email:'Email', newsletter:'Email', pinterest:'Pinterest' };
     // printed QR codes from the dashboard: qr-card, qr-flyer, qr-sign, qr-print
     var qr = { card:'business card', flyer:'flyer', sign:'shoot-day sign', print:'prints' };
     if(/^qr-[a-z]{1,12}$/.test(u)) return 'QR: ' + (qr[u.slice(3)] || u.slice(3));
