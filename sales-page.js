@@ -63,7 +63,14 @@ function orderView(){
   app.innerHTML = '<div class="sa-wrap"><div class="sa-empty">Confirming your payment... 💳</div></div>';
   (function poll(){
     get('/sales/order?o=' + encodeURIComponent(OID) + '&k=' + encodeURIComponent(KEY)).then(function(o){
-      if(o.status === 'paid'){
+      if(o.status === 'paid' && o.type === 'print'){
+        track('print_paid'); if(window.FOM_PRINT) FOM_PRINT.clear();
+        var stages = { 'new':'We have your order and are getting it printed.', ordered:'Your print is at the lab.', ready:'Your print is ready.', out:'Your print is on its way.', delivered:'Delivered. Enjoy it!' };
+        app.innerHTML = '<div class="sa-wrap"><div class="sa-head"><div><h2>Thank you for your order 🎉</h2><p class="sa-soft">' + esc(o.label) + ' · ' + R(o.amount) + '. We emailed you a copy' + ((o.prints || []).length ? ' and will WhatsApp you as your print moves along' : '') + '.</p></div></div>' +
+          ((o.prints || []).length ? '<div class="sa-empty" style="text-align:left;margin-bottom:14px"><b>' + esc(stages[o.stage] || stages['new']) + '</b>' + (o.delivery ? '<div class="sa-soft">' + esc(o.delivery) + '</div>' : '') + '<div class="sa-dl" style="margin-top:12px">' + o.prints.map(function(p){ return '<div style="font-size:13px"><img src="' + esc(p.thumb) + '" alt="" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px"><div style="padding:6px 2px">' + esc(p.label) + '</div></div>'; }).join('') + '</div></div>' : '') +
+          ((o.items || []).length ? '<h3 style="margin:10px 0">Your digital photos</h3><div class="sa-dl">' + o.items.map(function(x, i){ return '<a href="' + esc(x.url) + '" download><img src="' + esc(x.thumb) + '" alt="Photo ' + (i + 1) + '" loading="lazy"><span>⬇ Download</span></a>'; }).join('') + '</div>' : '') +
+          '<p style="margin-top:18px"><a class="sa-btn alt" href="prints.html" style="text-decoration:none;display:inline-block">See more prints</a></p></div>';
+      } else if(o.status === 'paid'){
         track('sale_paid', o.label);
         app.innerHTML = '<div class="sa-wrap"><div class="sa-head"><div><h2>Your photos are ready 🎉</h2><p class="sa-soft">' + esc(o.label) + ' from ' + esc(o.evTitle) + '. We also emailed you this link. It works for 60 days.</p></div>' +
           '<button class="sa-btn" id="saAll" type="button">Download all ' + o.items.length + '</button></div>' +
@@ -124,10 +131,10 @@ function lightbox(n){
   var list = (NUM ? matches() : EV.photos), i = list.findIndex(function(p){ return p.n === n; });
   var lb = D.createElement('div'); lb.className = 'sa-lb';
   function draw(){ var p = list[i], on = CART.indexOf(p.n) >= 0;
-    lb.innerHTML = '<button class="sa-x" type="button" aria-label="Close">&times;</button><img src="' + img(EV.id, 'p', p.n) + '" alt="Preview"><div class="row"><button class="sa-btn alt" type="button" data-m="-1">‹</button><button class="sa-btn" type="button" data-t="1" style="' + (on ? 'background:#25D366;color:#0b1f12' : 'background:#fff;color:#111') + '">' + (on ? '✓ In your cart' : '+ Add to cart') + '</button><button class="sa-btn alt" type="button" data-m="1">›</button></div>'; }
+    lb.innerHTML = '<button class="sa-x" type="button" aria-label="Close">&times;</button><img src="' + img(EV.id, 'p', p.n) + '" alt="Preview"><div class="row"><button class="sa-btn alt" type="button" data-m="-1">‹</button><button class="sa-btn" type="button" data-t="1" style="' + (on ? 'background:#25D366;color:#0b1f12' : 'background:#fff;color:#111') + '">' + (on ? '✓ In your cart' : '+ Add to cart') + '</button><button class="sa-btn alt" type="button" data-m="1">›</button></div>' + (window.FOM_PRINT ? '<button class="sa-btn alt" type="button" data-pr="1" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)">🖼 Order a print or frame</button>' : ''); }
   lb.onclick = function(e){ var b = e.target.closest('button');
     if(e.target === lb || (b && b.classList.contains('sa-x'))){ lb.remove(); drawEvent(); return; }
-    if(!b) return; if(b.dataset.m){ i = (i + +b.dataset.m + list.length) % list.length; draw(); } if(b.dataset.t){ toggle(list[i].n); draw(); } };
+    if(!b) return; if(b.dataset.pr){ var pp = list[i]; FOM_PRINT.open({ src:'ev', ev:EV.id, n:pp.n, thumb:img(EV.id, 't', pp.n), preview:img(EV.id, 'p', pp.n), title:EV.title }); return; } if(b.dataset.m){ i = (i + +b.dataset.m + list.length) % list.length; draw(); } if(b.dataset.t){ toggle(list[i].n); draw(); } };
   draw(); D.body.appendChild(lb);
 }
 function checkout(sel, label, amount){

@@ -201,6 +201,7 @@ button.btn{cursor:pointer;}
     <div class="info"><div class="nm" id="lbName"></div><div class="sz" id="lbSize"></div></div>
     <div class="acts">
       <button class="lb-fav" id="lbFav" type="button" aria-label="Add to favourites"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg></button>
+      <button class="btn sm" id="lbPrint" type="button" hidden>🖼 Print</button>
       <button class="btn sm" id="lbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download</button>
       <button class="lb-x" id="lbClose" aria-label="Close">&times;</button>
     </div>
@@ -696,6 +697,8 @@ function paintLb(){
   else if(it.kind==='image'&&it.url) m.innerHTML=`<img src="${esc(it.url)}" alt="${esc(it.name)}" draggable="false">`;
   else m.innerHTML=`<div class="novid"><p>No preview. Use <b>Download</b> to save this file.</p></div>`;
   $('lbDl').onclick=()=>download(it);
+  // order a print or frame of this photo (print-cart.js, FOM only)
+  const pb=$('lbPrint'); if(pb){ pb.hidden=!(window.FOM_PRINT&&it.kind==='image'); pb.onclick=()=>FOM_PRINT.open({src:'gallery',g:GAL.folder,n:it.name,thumb:it.url,preview:it.url,title:'Your photo'}); }
   paintLbFav();
   // highlight the thumbnail and keep it centred in the strip
   const st=$('lbStrip'), on=st.querySelector('.lb-th.on'); if(on) on.classList.remove('on');
@@ -785,5 +788,6 @@ if(GAL.order){
   }catch(e){ console.warn('favourites off', e); }
 }
 </script>
+<script src="print-cart.js?v=1"></script>
 </body>
 </html>
