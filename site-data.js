@@ -10,6 +10,19 @@
     area: 'Johannesburg, South Africa', wa: '27686901120'   // old number, in case you switch back: 073 755 3136 / 27737553136
   };
   var KEY = 'fom.site.v1';
+  /* Photo sales and prints master switch (dashboard, Photo Sales, Live on my website).
+     Off: the Event photos and Prints links stay hidden. Remembered so returning visitors see no flicker. */
+  (function(){
+    var on = false; try{ on = localStorage.getItem('fom.sales.live') === '1'; }catch(e){}
+    var st = document.createElement('style');
+    st.textContent = 'html:not(.sales-on) li:has(> a[href^="photos.html"]),html:not(.sales-on) li:has(> a[href^="prints.html"]),html:not(.sales-on) a[href^="photos.html"],html:not(.sales-on) a[href^="prints.html"],html:not(.sales-on) [data-sales]{display:none!important}';
+    document.head.appendChild(st);
+    if(on) document.documentElement.classList.add('sales-on');
+    fetch('https://fom-gallery.cold-moon-d65c.workers.dev/sales/live').then(function(r){ return r.json(); }).then(function(j){
+      document.documentElement.classList.toggle('sales-on', !!j.live); try{ localStorage.setItem('fom.sales.live', j.live ? '1' : '0'); }catch(e){}
+      window.FOM_SALES_LIVE = !!j.live; document.dispatchEvent(new Event('fom-sales-live'));
+    }).catch(function(){});
+  })();
   var URL_ = 'https://firestore.googleapis.com/v1/projects/fom-studios/databases/(default)/documents/siteContent/site?key=AIzaSyCbRXQmIxzVWuFS0CRmDY33qYuzpcVL80A';
 
   function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }

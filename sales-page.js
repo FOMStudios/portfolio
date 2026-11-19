@@ -63,7 +63,12 @@ function orderView(){
   app.innerHTML = '<div class="sa-wrap"><div class="sa-empty">Confirming your payment... 💳</div></div>';
   (function poll(){
     get('/sales/order?o=' + encodeURIComponent(OID) + '&k=' + encodeURIComponent(KEY)).then(function(o){
-      if(o.status === 'paid' && o.type === 'print'){
+      if(o.status === 'paid' && o.type === 'voucher'){
+        track('gift_paid'); var v = o.voucher || {};
+        app.innerHTML = '<div class="sa-wrap"><div class="sa-head"><div><h2>Your gift voucher is ready 🎁</h2><p class="sa-soft">We emailed it to you' + (v.to ? ' (and to ' + esc(v.to) + ' if you gave their email)' : '') + '. Screenshot it, forward the email or print it.</p></div></div>' +
+          '<div style="background:#111;color:#fff;border-radius:24px;padding:30px 24px;text-align:center;max-width:460px"><div style="letter-spacing:.2em;font-size:12px;opacity:.7">FOM STUDIOS GIFT VOUCHER</div><div style="font-size:44px;font-weight:800;margin:10px 0">' + R(o.amount) + '</div><div>' + esc(v.label || '') + '</div>' + (v.to ? '<div style="margin-top:12px">For ' + esc(v.to) + (v.from ? ', from ' + esc(v.from) : '') + '</div>' : '') + (v.msg ? '<div style="margin-top:8px;font-style:italic;opacity:.85">"' + esc(v.msg) + '"</div>' : '') +
+          '<div style="margin-top:18px;background:#fff;color:#111;border-radius:12px;padding:12px;font-size:24px;font-weight:800;letter-spacing:.08em">' + esc(v.code) + '</div><div style="font-size:12px;opacity:.7;margin-top:10px">Valid until ' + esc(v.expires || '') + '. Quote the code when booking on WhatsApp 068 690 1120 or the website.</div></div></div>';
+      } else if(o.status === 'paid' && o.type === 'print'){
         track('print_paid'); if(window.FOM_PRINT) FOM_PRINT.clear();
         var stages = { 'new':'We have your order and are getting it printed.', ordered:'Your print is at the lab.', ready:'Your print is ready.', out:'Your print is on its way.', delivered:'Delivered. Enjoy it!' };
         app.innerHTML = '<div class="sa-wrap"><div class="sa-head"><div><h2>Thank you for your order 🎉</h2><p class="sa-soft">' + esc(o.label) + ' · ' + R(o.amount) + '. We emailed you a copy' + ((o.prints || []).length ? ' and will WhatsApp you as your print moves along' : '') + '.</p></div></div>' +
@@ -131,7 +136,7 @@ function lightbox(n){
   var list = (NUM ? matches() : EV.photos), i = list.findIndex(function(p){ return p.n === n; });
   var lb = D.createElement('div'); lb.className = 'sa-lb';
   function draw(){ var p = list[i], on = CART.indexOf(p.n) >= 0;
-    lb.innerHTML = '<button class="sa-x" type="button" aria-label="Close">&times;</button><img src="' + img(EV.id, 'p', p.n) + '" alt="Preview"><div class="row"><button class="sa-btn alt" type="button" data-m="-1">‹</button><button class="sa-btn" type="button" data-t="1" style="' + (on ? 'background:#25D366;color:#0b1f12' : 'background:#fff;color:#111') + '">' + (on ? '✓ In your cart' : '+ Add to cart') + '</button><button class="sa-btn alt" type="button" data-m="1">›</button></div>' + (window.FOM_PRINT ? '<button class="sa-btn alt" type="button" data-pr="1" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)">🖼 Order a print or frame</button>' : ''); }
+    lb.innerHTML = '<button class="sa-x" type="button" aria-label="Close">&times;</button><img src="' + img(EV.id, 'p', p.n) + '" alt="Preview"><div class="row"><button class="sa-btn alt" type="button" data-m="-1">‹</button><button class="sa-btn" type="button" data-t="1" style="' + (on ? 'background:#25D366;color:#0b1f12' : 'background:#fff;color:#111') + '">' + (on ? '✓ In your cart' : '+ Add to cart') + '</button><button class="sa-btn alt" type="button" data-m="1">›</button></div>' + (window.FOM_PRINT && FOM_PRINT.live() ? '<button class="sa-btn alt" type="button" data-pr="1" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)">🖼 Order a print or frame</button>' : ''); }
   lb.onclick = function(e){ var b = e.target.closest('button');
     if(e.target === lb || (b && b.classList.contains('sa-x'))){ lb.remove(); drawEvent(); return; }
     if(!b) return; if(b.dataset.pr){ var pp = list[i]; FOM_PRINT.open({ src:'ev', ev:EV.id, n:pp.n, thumb:img(EV.id, 't', pp.n), preview:img(EV.id, 'p', pp.n), title:EV.title }); return; } if(b.dataset.m){ i = (i + +b.dataset.m + list.length) % list.length; draw(); } if(b.dataset.t){ toggle(list[i].n); draw(); } };
@@ -155,7 +160,7 @@ function checkout(sel, label, amount){
     try{ localStorage.setItem('fom.buyer', JSON.stringify(buyer)); }catch(x){}
     var btn = D.getElementById('sbPay'); btn.disabled = true; btn.textContent = 'Opening secure payment...';
     track('sale_checkout', label + ' ' + R(amount));
-    fetch(W + '/sales/checkout', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(Object.assign({ ev:EV.id, buyer:buyer }, sel)) })
+    fetch(W + '/sales/checkout', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(Object.assign({ ev:EV.id, buyer:buyer, preview:/[?&]preview=1/.test(location.search) }, sel)) })
       .then(function(r){ return r.json(); }).then(function(j){ if(j.redirectUrl) location.href = j.redirectUrl; else throw new Error(j.error || 'Could not start the payment.'); })
       .catch(function(x){ D.getElementById('sbErr').textContent = x.message; btn.disabled = false; btn.textContent = 'Pay ' + R(amount) + ' with card'; });
   };
@@ -171,5 +176,7 @@ function eventView(){
     drawEvent();
   }).catch(function(){ app.innerHTML = '<div class="sa-wrap"><div class="sa-empty">This event is not on sale. <a href="photos.html">See all events</a>.</div></div>'; });
 }
-if(OID && KEY) orderView(); else if(EVID) eventView(); else eventsView();
+function soon(){ app.innerHTML = '<div class="sa-wrap"><div class="sa-empty">Event photo sales open soon 📸 Follow <a href="https://instagram.com/fom_studios_" target="_blank" rel="noopener">@fom_studios_</a> to know when.</div></div>'; }
+function route(){ if(OID && KEY) orderView(); else if(!(Q.get('preview') || D.documentElement.classList.contains('sales-on'))) soon(); else if(EVID) eventView(); else eventsView(); }
+fetch(W + '/sales/live').then(function(r){ return r.json(); }).then(function(j){ D.documentElement.classList.toggle('sales-on', !!j.live); route(); }).catch(route);
 })();

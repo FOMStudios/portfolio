@@ -382,7 +382,7 @@ footer.site-footer{
     .contact-card{ min-height:0; }
 }
 </style>
-<script src="site-data.js?v=20261119"></script>
+<script src="site-data.js?v=20261120"></script>
 <script src="studios.js?v=2"></script>
 <script src="track.js?v=5"></script>
 </head>
@@ -447,6 +447,7 @@ footer.site-footer{
 
 <!-- PRINTS SHOP (photos from the dashboard Photo Sales page, Prints shop) -->
 <div class="wrap" style="padding-bottom:110px">
+    <div id="gift" class="pr-gift" hidden></div>
     <div id="prGrid" class="pr-grid"><p class="pr-empty">Loading prints...</p></div>
     <p class="pr-soft" style="margin-top:26px">Want a print of your own shoot? Open your gallery and tap <b>Order a print</b> on any photo. Looking for event photos? <a href="photos.html">Find them here</a>.</p>
 </div>
@@ -456,6 +457,10 @@ footer.site-footer{
 .pr-card img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#ddd}
 .pr-card .tx{padding:14px 16px}.pr-card b{display:block;font-size:16px}
 .pr-soft,.pr-card small{color:var(--ink-soft);font-size:14px}
+.pr-gift{background:#111;color:#fff;border-radius:24px;padding:22px 22px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.pr-gift h2{font-size:24px;margin:0}.pr-gift p{opacity:.8;margin:4px 0 0}
+.pr-gift .gv{display:flex;flex-wrap:wrap;gap:8px}.pr-gift button{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:800;cursor:pointer;background:#fff;color:#111}
+.pr-ed{display:inline-block;margin-top:6px;background:#111;color:#fff;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:800}.pr-ed.out{background:#b3261e}
 .pr-empty{padding:28px;text-align:center;color:var(--ink-soft);border:1px dashed var(--line);border-radius:20px;grid-column:1/-1}
 </style>
 <script>
@@ -465,13 +470,17 @@ footer.site-footer{
   function img(v, n){ return W + '/file?g=' + encodeURIComponent('sales/shop/' + v + '/') + '&n=' + encodeURIComponent(n); }
   function go(){
     if(!window.FOM_PRINT){ return setTimeout(go, 100); }
+    if(!/[?&]preview=1/.test(location.search) && !window.__liveChecked){ return fetch(W + '/sales/live').then(function(r){ return r.json(); }).then(function(j){ window.__liveChecked = 1; document.documentElement.classList.toggle('sales-on', !!j.live); if(!j.live){ document.getElementById('prGrid').innerHTML = '<p class="pr-empty">Prints and frames open soon 🖼 Follow <a href="https://instagram.com/fom_studios_" target="_blank" rel="noopener">@fom_studios_</a> to know when.</p>'; return; } go(); }).catch(function(){ window.__liveChecked = 1; go(); }); }
     FOM_PRINT.cfg().then(function(cfg){
       var shop = FOM_PRINT.shop, g = document.getElementById('prGrid');
       var low = Infinity; Object.keys(cfg.prices || {}).forEach(function(k){ var v = +cfg.prices[k]; if(v && v < low) low = v; });
+      var gv = cfg.vouchers || [], gb = document.getElementById('gift');
+      if(gv.length || cfg.voucherCustom){ gb.hidden = false; gb.innerHTML = '<div><h2>Gift vouchers 🎁</h2><p>For shoots or prints. Emailed instantly, valid for 12 months.</p></div><div class="gv">' + gv.map(function(v){ return '<button type="button" data-gv="' + esc(v.id) + '">' + esc(v.label) + ' · R' + v.amount + '</button>'; }).join('') + (cfg.voucherCustom ? '<button type="button" data-gv="custom">Own amount</button>' : '') + '</div>';
+        gb.onclick = function(e){ var b = e.target.closest('[data-gv]'); if(b) FOM_PRINT.gift(b.dataset.gv); }; if(location.hash === '#gift') gb.scrollIntoView(); }
       if(!shop || !(shop.photos || []).length){ g.innerHTML = '<p class="pr-empty">New prints are coming soon. Follow <a href="https://instagram.com/fom_studios_" target="_blank" rel="noopener">@fom_studios_</a> to see them first.</p>'; return; }
-      g.innerHTML = shop.photos.map(function(p, i){ return '<button type="button" class="pr-card" data-i="' + i + '"><img src="' + img('p', p.n) + '" alt="' + esc(p.title || 'Print') + '" loading="lazy"><div class="tx"><b>' + esc(p.title || 'Untitled') + '</b><small>' + (low < Infinity ? 'From R' + low : 'Prints and frames') + '</small></div></button>'; }).join('');
+      g.innerHTML = shop.photos.map(function(p, i){ var left = p.edition ? Math.max(0, p.edition - (p.sold || 0)) : null; return '<button type="button" class="pr-card" data-i="' + i + '"><img src="' + img('p', p.n) + '" alt="' + esc(p.title || 'Print') + '" loading="lazy"><div class="tx"><b>' + esc(p.title || 'Untitled') + '</b><small>' + (low < Infinity ? 'From R' + low : 'Prints and frames') + '</small>' + (p.edition ? '<br><span class="pr-ed' + (left ? '' : ' out') + '">' + (left ? 'Limited: ' + left + ' of ' + p.edition + ' left' : 'Sold out') + '</span>' : '') + '</div></button>'; }).join('');
       g.onclick = function(e){ var c = e.target.closest('.pr-card'); if(!c) return; var p = shop.photos[+c.dataset.i];
-        FOM_PRINT.open({ src:'ev', ev:'shop', n:p.n, thumb:img('t', p.n), preview:img('p', p.n), title:p.title || 'Print', digital:(shop.prices && shop.prices.photo) || 0 }); };
+        FOM_PRINT.open({ src:'ev', ev:'shop', n:p.n, thumb:img('t', p.n), preview:img('p', p.n), title:p.title || 'Print', digital:(shop.prices && shop.prices.photo) || 0, edition:p.edition || 0, sold:p.sold || 0 }); };
     }).catch(function(){ document.getElementById('prGrid').innerHTML = '<p class="pr-empty">Could not load prints. Please refresh.</p>'; });
   }
   go();
@@ -766,7 +775,7 @@ bookingWhatsappBtn.addEventListener('click', () => {
 })();
 </script>
 
-<script src="print-cart.js?v=1"></script>
+<script src="print-cart.js?v=2"></script>
 <script src="book-steps.js?v=3"></script>
 </body>
 </html>

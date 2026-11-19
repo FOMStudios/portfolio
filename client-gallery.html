@@ -698,7 +698,7 @@ function paintLb(){
   else m.innerHTML=`<div class="novid"><p>No preview. Use <b>Download</b> to save this file.</p></div>`;
   $('lbDl').onclick=()=>download(it);
   // order a print or frame of this photo (print-cart.js, FOM only)
-  const pb=$('lbPrint'); if(pb){ pb.hidden=!(window.FOM_PRINT&&it.kind==='image'); pb.onclick=()=>FOM_PRINT.open({src:'gallery',g:GAL.folder,n:it.name,thumb:it.url,preview:it.url,title:'Your photo'}); }
+  const pb=$('lbPrint'); if(pb){ pb.hidden=!(window.FOM_PRINT&&FOM_PRINT.live()&&it.kind==='image'); pb.onclick=()=>FOM_PRINT.open({src:'gallery',g:GAL.folder,n:it.name,thumb:it.url,preview:it.url,title:'Your photo'}); }
   paintLbFav();
   // highlight the thumbnail and keep it centred in the strip
   const st=$('lbStrip'), on=st.querySelector('.lb-th.on'); if(on) on.classList.remove('on');
@@ -788,6 +788,6 @@ if(GAL.order){
   }catch(e){ console.warn('favourites off', e); }
 }
 </script>
-<script src="print-cart.js?v=1"></script>
+<script src="print-cart.js?v=2"></script>
 </body>
 </html>
