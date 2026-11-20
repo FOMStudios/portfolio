@@ -96,23 +96,30 @@ h2{font-size:14px;margin:18px 0 8px;font-weight:700}
       cards:[ { id:'events', label:'Event', icon:'🎈' }, { id:'birthdays', label:'Birthday', icon:'🎂' }, { id:'corporate', label:'Corporate & wellness', icon:'🧘' }, { id:'family', label:'Family & portraits', icon:'👨‍👩‍👧' } ],
       pkgs:[] }
   };
-  var LENGTHS = ['1 hour','2 hours','Half day','Full day','Not sure'];
-  var GUESTS = ['Just us','Under 20','20 to 50','50 to 100','100+'];
-  var VIBES = ['Bright and natural','Moody and cinematic','Candid and fun','Classic and posed'];
-  var USES = ['Instagram','TikTok','Website','Ads','LinkedIn','Print'];
-  var MUST = [
-    [/wed/i, ['Getting ready','Ceremony','Rings','First kiss','Family groups','Couple portraits','First dance','Speeches','Decor and details']],
-    [/birth|party/i, ['Cake and candles','Decor','Guests arriving','Group photos','Games and dancing','Gifts','Candid moments']],
-    [/corp|event|well/i, ['Speakers','Branding and banners','Networking candids','Team photo','Headshots','Venue and decor','Highlight reel']],
-    [/fam|portrait/i, ['Whole family','Kids on their own','Parents','Siblings','Candid play','Pets']],
-    [/prod|brand/i, ['Product close-ups','Lifestyle in use','Flat lays','Behind the scenes','Team at work','Short reels']],
-    [/sport|padel/i, ['Action shots','Team photo','Celebrations','Supporters','Coach and bench','Individual players','Highlight reel']]
-  ];
-  var B = BIZ.fom, info = null, photos = [], A = {}, step = 1, TOTAL = 6, sending = false;
+  /* pages and tap options: the "Client brief link" card on the dashboard Website page (briefForm). Keep DEF_BR in step with website.html. */
+  var DEF_BR = { steps:{ pkg:true, when:true, must:false, look:false, note:true }, photos:true,
+    intro:"A few quick taps so I can send you the right quote. Skip anything you're not sure about.", thanks:"Got everything. I'll send your quote on WhatsApp soon.",
+    lengths:['1 hour','2 hours','Half day','Full day','Not sure'], guests:['Just us','Under 20','20 to 50','50 to 100','100+'], uses:['Instagram','TikTok','Website','Ads','LinkedIn','Print'], vibes:['Bright and natural','Moody and cinematic','Candid and fun','Classic and posed'],
+    must:{ wedding:['Getting ready','Ceremony','Rings','First kiss','Family groups','Couple portraits','First dance','Speeches','Decor and details'], party:['Cake and candles','Decor','Guests arriving','Group photos','Games and dancing','Gifts','Candid moments'],
+      corporate:['Speakers','Branding and banners','Networking candids','Team photo','Headshots','Venue and decor','Highlight reel'], family:['Whole family','Kids on their own','Parents','Siblings','Candid play','Pets'],
+      product:['Product close-ups','Lifestyle in use','Flat lays','Behind the scenes','Team at work','Short reels'], sports:['Action shots','Team photo','Celebrations','Supporters','Coach and bench','Individual players','Highlight reel'], other:['Group photos','Candids','Details and decor','Highlight reel'] } };
+  var GROUPS = [[/wed/i,'wedding'],[/birth|party/i,'party'],[/corp|event|well/i,'corporate'],[/fam|portrait/i,'family'],[/prod|brand/i,'product'],[/sport|padel/i,'sports']];
+  function list(v, d){ var a = Array.isArray(v) ? v.map(function(x){ return String(x || '').trim(); }).filter(Boolean) : []; return a.length ? a : d; }
+  function normBR(x){
+    x = x && typeof x === 'object' ? x : {}; var st = x.steps || {}, m = x.must || {}, o = { steps:{}, must:{} };
+    Object.keys(DEF_BR.steps).forEach(function(k){ o.steps[k] = typeof st[k] === 'boolean' ? st[k] : DEF_BR.steps[k]; });
+    Object.keys(DEF_BR.must).forEach(function(k){ o.must[k] = list(m[k], DEF_BR.must[k]); });
+    o.photos = x.photos !== false; o.intro = x.intro || DEF_BR.intro; o.thanks = x.thanks || DEF_BR.thanks;
+    ['lengths','guests','uses','vibes'].forEach(function(k){ o[k] = list(x[k], DEF_BR[k]); });
+    return o;
+  }
+  var CFG = normBR(null);
+  var B = BIZ.fom, info = null, photos = [], A = {}, step = 1, sending = false;
+  function steps(){ var s = ['type']; ['pkg','when','must','look','note'].forEach(function(k){ if(CFG.steps[k]) s.push(k); }); return s; }
   var LS = 'fom.brief.' + id;
 
   function card(){ var c = B.cards.filter(function(x){ return x.label === A.type; })[0]; return c || (A.type ? { id:'other', label:A.type } : null); }
-  function mustFor(){ var t = (card() || {}).id + ' ' + (A.type || ''); for(var i = 0; i < MUST.length; i++) if(MUST[i][0].test(t)) return MUST[i][1]; return ['Group photos','Candids','Details and decor','Highlight reel']; }
+  function mustFor(){ var t = (card() || {}).id + ' ' + (A.type || ''); for(var i = 0; i < GROUPS.length; i++) if(GROUPS[i][0].test(t)) return CFG.must[GROUPS[i][1]]; return CFG.must.other; }
   function brandish(){ return /prod|brand|corp|sport|padel|well/i.test((card() || {}).id + ' ' + (A.type || '')); }
   function pkgsFor(){ var c = card(); return B.pkgs.filter(function(p){ return !p.only || !p.only.length || (c && p.only.indexOf(c.id) >= 0); }); }
   function keep(){ try{ localStorage.setItem(LS, JSON.stringify({ A:A, step:step })); }catch(e){} }
@@ -125,42 +132,44 @@ h2{font-size:14px;margin:18px 0 8px;font-weight:700}
       (!last && step > 1 ? '<div style="text-align:center"><button class="skip" data-go="next">Skip this one</button></div>' : '');
   }
   function render(){
+    var S = steps(), TOTAL = S.length; if(step > TOTAL) step = TOTAL; var cur = S[step - 1], last = step === TOTAL;
     document.getElementById('bar').style.width = (A.__done ? 100 : Math.round((step - 1) / TOTAL * 100)) + '%';
     document.getElementById('time').textContent = A.__done ? '' : 'Step ' + step + ' of ' + TOTAL;
     var h = '', first = info && info.name ? esc(info.name) : '';
     if(A.__done){
-      h = '<div class="card done"><div class="ic">🎉</div><h1>Thanks' + (first ? ', ' + first : '') + '!</h1><p class="sub">Got everything. I\'ll send your quote on WhatsApp soon.</p>' +
+      h = '<div class="card done"><div class="ic">🎉</div><h1>Thanks' + (first ? ', ' + first : '') + '!</h1><p class="sub">' + esc(CFG.thanks) + '</p>' +
         '<a class="btn" href="' + B.site + '">Visit our website</a><div><button class="skip" data-go="edit">Change my answers</button></div></div>';
-    } else if(step === 1){
-      h = '<div class="card"><h1>Hi' + (first ? ' ' + first : '') + ' 👋</h1><p class="sub">A few quick taps so I can send you the right quote. Skip anything you\'re not sure about.</p>' +
+    } else if(cur === 'type'){
+      h = '<div class="card"><h1>Hi' + (first ? ' ' + first : '') + ' 👋</h1><p class="sub">' + esc(CFG.intro) + '</p>' +
         '<h2>What are we shooting?</h2><div class="grid">' + B.cards.map(function(c){ return '<button class="opt' + (A.type === c.label ? ' on' : '') + '" data-type="' + esc(c.label) + '"><span class="ic">' + esc(c.icon || '📷') + '</span><b>' + esc(c.label) + '</b></button>'; }).join('') +
-        '<button class="opt' + (A.type && !B.cards.some(function(c){ return c.label === A.type; }) ? ' on' : '') + '" data-type="Something else"><span class="ic">✨</span><b>Something else</b></button></div>' + nav(!!A.type) + '</div>';
-    } else if(step === 2){
+        '<button class="opt' + (A.type && !B.cards.some(function(c){ return c.label === A.type; }) ? ' on' : '') + '" data-type="Something else"><span class="ic">✨</span><b>Something else</b></button></div>' + nav(!!A.type, last) + '</div>';
+    } else if(cur === 'pkg'){
       var P = pkgsFor();
       h = '<div class="card"><h1>What do you have in mind?</h1><p class="sub">' + (P.length ? 'Pick the closest one, or "Not sure" and I\'ll help.' : 'Roughly how long should I be there?') + '</p>' +
         (P.length ? '<div class="grid">' + P.map(function(p){ return '<button class="opt' + (A.pkg === p.name ? ' on' : '') + '" data-pkg="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(p.detail || '') + '</small>' + (B.showPrices && p.price ? '<span class="pr">' + esc(p.price) + '</span>' : '') + '</button>'; }).join('') +
           '<button class="opt' + (A.pkg === 'Not sure' ? ' on' : '') + '" data-pkg="Not sure"><b>Not sure</b><small>Help me choose</small></button></div>'
-          : '<div class="chips">' + LENGTHS.map(function(l){ return '<button class="chip' + (A.length === l ? ' on' : '') + '" data-one="length" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' +
+          : '<div class="chips">' + CFG.lengths.map(function(l){ return '<button class="chip' + (A.length === l ? ' on' : '') + '" data-one="length" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' +
             '<h2>Photos, video or both?</h2><div class="chips">' + ['Photos','Video','Both'].map(function(l){ return '<button class="chip' + (A.cover === l ? ' on' : '') + '" data-one="cover" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>') +
-        nav() + '</div>';
-    } else if(step === 3){
+        nav(true, last) + '</div>';
+    } else if(cur === 'when'){
       h = '<div class="card"><h1>When and where?</h1><p class="sub">Not locked in yet? That\'s fine, skip what you don\'t know.</p>' +
         '<h2>Date</h2><div class="field"><input type="date" id="fDate" value="' + esc(/^\d{4}-/.test(A.date || '') ? A.date : '') + '"></div>' +
         '<div class="chips" style="margin-top:8px"><button class="chip' + (A.date === 'Not sure yet' ? ' on' : '') + '" data-one="date" data-v="Not sure yet">Not sure yet</button></div>' +
         '<h2>Start time</h2><div class="field"><input type="time" id="fTime" value="' + esc(A.time || '') + '"></div>' +
         '<h2>Area or venue</h2><div class="field"><input id="fArea" maxlength="100" placeholder="e.g. Sandton, or the venue name" value="' + esc(A.area || '') + '"></div>' +
-        '<h2>How many people?</h2><div class="chips">' + GUESTS.map(function(l){ return '<button class="chip' + (A.guests === l ? ' on' : '') + '" data-one="guests" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' + nav() + '</div>';
-    } else if(step === 4){
+        '<h2>How many people?</h2><div class="chips">' + CFG.guests.map(function(l){ return '<button class="chip' + (A.guests === l ? ' on' : '') + '" data-one="guests" data-v="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</div>' + nav(true, last) + '</div>';
+    } else if(cur === 'must'){
       h = '<div class="card"><h1>Any must-have shots?</h1><p class="sub">Tap all that matter to you.</p><div class="chips">' +
         mustFor().map(function(l){ return '<button class="chip' + ((A.must || []).indexOf(l) >= 0 ? ' on' : '') + '" data-many="must" data-v="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</div>' +
-        (brandish() ? '<h2>Where will you use it?</h2><div class="chips">' + USES.map(function(l){ return '<button class="chip' + ((A.use || []).indexOf(l) >= 0 ? ' on' : '') + '" data-many="use" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' +
-          '<h2>Vertical videos for phones?</h2><div class="chips">' + ['Yes','No','Not sure'].map(function(l){ return '<button class="chip' + (A.vertical === l ? ' on' : '') + '" data-one="vertical" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' : '') + nav() + '</div>';
-    } else if(step === 5){
-      h = '<div class="card"><h1>What look do you love?</h1><p class="sub">Pick a vibe' + (photos.length ? ', then tap any of our photos you like' : '') + '.</p><div class="chips">' +
-        VIBES.map(function(l){ return '<button class="chip' + ((A.vibe || []).indexOf(l) >= 0 ? ' on' : '') + '" data-many="vibe" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' +
-        (photos.length ? '<h2>Photos you like</h2><div class="photos">' + photos.map(function(p){ return '<button class="ph' + ((A.photos || []).indexOf(p.u) >= 0 ? ' on' : '') + '" data-ph="' + esc(p.u) + '" aria-label="' + esc(p.cap || 'Photo') + '"><img src="' + esc(p.u) + '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><span class="tick">✓</span></button>'; }).join('') + '</div>' : '') + nav() + '</div>';
+        (brandish() ? '<h2>Where will you use it?</h2><div class="chips">' + CFG.uses.map(function(l){ return '<button class="chip' + ((A.use || []).indexOf(l) >= 0 ? ' on' : '') + '" data-many="use" data-v="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</div>' +
+          '<h2>Vertical videos for phones?</h2><div class="chips">' + ['Yes','No','Not sure'].map(function(l){ return '<button class="chip' + (A.vertical === l ? ' on' : '') + '" data-one="vertical" data-v="' + l + '">' + l + '</button>'; }).join('') + '</div>' : '') + nav(true, last) + '</div>';
+    } else if(cur === 'look'){
+      var ph = CFG.photos ? photos : [];
+      h = '<div class="card"><h1>What look do you love?</h1><p class="sub">Pick a vibe' + (ph.length ? ', then tap any of our photos you like' : '') + '.</p><div class="chips">' +
+        CFG.vibes.map(function(l){ return '<button class="chip' + ((A.vibe || []).indexOf(l) >= 0 ? ' on' : '') + '" data-many="vibe" data-v="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</div>' +
+        (ph.length ? '<h2>Photos you like</h2><div class="photos">' + photos.map(function(p){ return '<button class="ph' + ((A.photos || []).indexOf(p.u) >= 0 ? ' on' : '') + '" data-ph="' + esc(p.u) + '" aria-label="' + esc(p.cap || 'Photo') + '"><img src="' + esc(p.u) + '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><span class="tick">✓</span></button>'; }).join('') + '</div>' : '') + nav(true, last) + '</div>';
     } else {
-      h = '<div class="card"><h1>Anything else I should know?</h1><p class="sub">Ideas, timings, the feel you\'re going for. Optional.</p><div class="field"><textarea id="fNote" rows="5" maxlength="800" placeholder="e.g. Surprise party, guests arrive at 2, the speech is at 4">' + esc(A.note || '') + '</textarea></div>' + nav(true, true) + '</div>';
+      h = '<div class="card"><h1>Anything else I should know?</h1><p class="sub">Ideas, timings, the feel you\'re going for. Optional.</p><div class="field"><textarea id="fNote" rows="5" maxlength="800" placeholder="e.g. Surprise party, guests arrive at 2, the speech is at 4">' + esc(A.note || '') + '</textarea></div>' + nav(true, last) + '</div>';
     }
     app.innerHTML = h;
     window.scrollTo(0, 0);
@@ -181,7 +190,7 @@ h2{font-size:14px;margin:18px 0 8px;font-weight:700}
     var g = t.dataset.go; if(!g) return;
     grab();
     if(g === 'back'){ step = Math.max(1, step - 1); keep(); render(); }
-    else if(g === 'next'){ if(step === 1 && !A.type) return; step = Math.min(TOTAL, step + 1); keep(); render(); }
+    else if(g === 'next'){ if(step === 1 && !A.type) return; step = Math.min(steps().length, step + 1); keep(); render(); }
     else if(g === 'edit'){ delete A.__done; step = 1; keep(); render(); }
     else if(g === 'send') send();
   });
@@ -215,6 +224,7 @@ h2{font-size:14px;margin:18px 0 8px;font-weight:700}
     render();
     // the latest cards, packages and photos from the Website and Photos pages
     doc(B.siteDoc).then(function(s){
+      if(s && s.briefForm){ CFG = normBR(s.briefForm); if(!A.__done) render(); }
       var f = s && s.bookingForm; if(!f || typeof f !== 'object') return;
       if(Array.isArray(f.cards)){ var c = f.cards.filter(function(x){ return x && x.label && !x.off; }); if(c.length) B.cards = c; }
       if(Array.isArray(f.pkgs)){ var p = f.pkgs.filter(function(x){ return x && x.name && !x.off; }); if(p.length) B.pkgs = p; }
@@ -228,7 +238,7 @@ h2{font-size:14px;margin:18px 0 8px;font-weight:700}
       var k = (card() || {}).id || '', want = /sport|padel/.test(k) ? 'sports' : k;
       list.sort(function(x, y){ return ((y.cat === want) * 2 + y.home) - ((x.cat === want) * 2 + x.home); });
       photos = list.slice(0, 12);
-      if(step === 5 && !A.__done) render();
+      if(steps()[step - 1] === 'look' && !A.__done) render();
     });
   }).catch(function(e){ fail(e.message || 'Please ask for a new link on WhatsApp.'); });
 })();
