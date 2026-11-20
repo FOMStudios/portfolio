@@ -151,6 +151,19 @@ button.btn{cursor:pointer;}
 .foot a{color:var(--accent);font-weight:600;}
 
 /* ===== states ===== */
+.gp-bar{display:none;background:var(--panel);border:1.5px solid var(--accent);border-radius:16px;padding:14px 16px;margin:0 0 14px;gap:10px;flex-wrap:wrap;align-items:center;}
+.gp-bar.on{display:flex;}
+.gp-bar .tx{flex:1;min-width:220px;font-size:14px;line-height:1.45;}
+.gp-bar .tx b{display:block;font-size:15px;margin-bottom:2px;}
+.gp-bar .st{display:block;font-size:12.5px;color:var(--soft,#666);margin-top:4px;}
+.gp-bar .st.ok{color:#1f8a4c;} .gp-bar .st.warn{color:#b3261e;}
+.gp-bar .bt{display:flex;gap:6px;flex-wrap:wrap;}
+.gp-tick{position:absolute;bottom:8px;left:8px;z-index:3;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:#fff;font-size:17px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.gp-tick.on{background:var(--accent);}
+.gp-mode .card .thumb{cursor:pointer;}
+.gp-mode .gp-bar{position:sticky;top:72px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.12);}
+.gp-mode .card:not(.gp-in) img{opacity:.45;}
+.gp-badge{position:absolute;bottom:8px;left:8px;z-index:2;background:var(--accent);color:#fff;border-radius:99px;font-size:11px;font-weight:800;padding:3px 8px;}
 .gview .dl-mini,.gview [data-dlall],.gview #lbDl{display:none!important;}
 .pin{display:flex;gap:10px;justify-content:center;margin:18px 0 6px;}
 .pin input{width:200px;text-align:center;font-size:28px;letter-spacing:.4em;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font-weight:800;}
@@ -319,6 +332,7 @@ async function groupOpen(pin){
   const r = await fetch(CONFIG.worker + '/group/open', { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ s:GAL.group, pin:pin || '', v:GV }) });
   const j = await r.json().catch(() => ({}));
   if(j.ended || r.status === 410) return groupEnded(j);
+  if(j.soon) return stateBox(1, 'Photos coming soon', 'The photos from ' + esc(j.title || 'the day') + ' are being chosen. Check back soon, the link stays the same.');
   if(j.mode === 'paid'){ if(j.salesUrl) location.replace(j.salesUrl); else stateBox(1, 'Photos coming soon', 'These photos are being prepared. Check back soon.'); return; }
   if(!r.ok){ if(r.status === 403 || r.status === 429) return pinBox(j.error); return renderError(); }
   try{ if(pin) sessionStorage.setItem('fom.gpin.' + GAL.group, pin); }catch(e){}
@@ -344,6 +358,7 @@ async function groupLoad(){
     if(!r.ok) return stateBox(1, 'Link not found', 'Please check the link you were sent.');
     GAL.title = j.title;
     if(j.ended) return groupEnded(j);
+    if(j.soon) return stateBox(1, 'Photos coming soon', 'The photos from ' + esc(j.title) + ' are being chosen. Check back soon, the link stays the same.');
     if(j.mode === 'paid'){ if(j.salesUrl) location.replace(j.salesUrl); else stateBox(1, 'Photos coming soon', 'These photos are being prepared. Check back soon.'); return; }
     let pin = ''; try{ pin = sessionStorage.getItem('fom.gpin.' + GAL.group) || ''; }catch(e){}
     if(j.needPin && !pin) return pinBox('');
@@ -400,6 +415,40 @@ function mergeFavs(list){ (list||[]).forEach(n=>FAV.add(n)); try{ localStorage.s
 window.FOM_FAV={ merge:mergeFavs, setSaver:f=>{ favSave=f; }, status:favStatus, list:()=>[...FAV] };
 
 let FAV_DIRTY=false;
+
+/* ===== group photos: when FOM Studios switches it on, the organiser ticks which photos everyone on the group link can see =====
+   Separate from hearts. Saved through the gallery Worker the moment they tap Done; the group link updates straight away. */
+const GP={ on:false, mode:false, picks:new Set(), saved:'', save:null };
+function gpDraw(){
+  const b=$('gpBar'); if(!b) return; b.classList.toggle('on',GP.on); if(!GP.on) return;
+  const n=GP.picks.size, tot=ITEMS.filter(i=>i.kind==='image'||i.kind==='video').length;
+  b.innerHTML=GP.mode
+    ?`<div class="tx"><b>&#128101; Tap the photos the group can see</b>${n} of ${tot} approved. Untick anything you would rather keep to yourself.<span class="st" id="gpSt"></span></div><div class="bt"><button class="btn ghost sm" type="button" data-gpa="all">Select all</button><button class="btn ghost sm" type="button" data-gpa="none">Select none</button><button class="btn sm" type="button" data-gpa="done">Done &#10003;</button></div>`
+    :`<div class="tx"><b>&#128101; Choose what the group sees</b>${n?`You approved ${n} photo${n===1?'':'s'} for the group link. Everyone on it sees only these.`:'Everyone at the event gets a link to the photos. Tick the ones you are happy for them to see.'}<span class="st ${GP.stCls||''}" id="gpSt">${esc(GP.st||'')}</span></div><div class="bt"><button class="btn sm" type="button" data-gpa="choose">${n?'Change the photos':'Choose photos'}</button></div>`;
+  const gn=$('gpN'); if(gn) gn.textContent=n;
+}
+function gpToggle(it){
+  if(!it) return; if(GP.picks.has(it.name)) GP.picks.delete(it.name); else GP.picks.add(it.name);
+  const gi=ITEMS.indexOf(it);
+  document.querySelectorAll(`.card[data-i="${gi}"]`).forEach(c=>{ const on=GP.picks.has(it.name); c.classList.toggle('gp-in',on); const t=c.querySelector('.gp-tick'); if(t){ t.classList.toggle('on',on); t.innerHTML=on?'&#10003;':''; t.setAttribute('aria-pressed',on); } });
+  gpDraw();
+}
+async function gpDone(){
+  GP.mode=false; document.body.classList.remove('gp-mode');
+  const list=ITEMS.filter(i=>GP.picks.has(i.name)).map(i=>i.name), key=list.join('|');
+  if(key===GP.saved){ GP.st=''; gpDraw(); renderGrid(false); return; }
+  GP.st='Saving...'; GP.stCls=''; gpDraw(); renderGrid(false);
+  try{ await GP.save(list); GP.saved=key; GP.st=list.length?'Saved. The group link now shows these '+list.length+'.':'Saved. The group link shows nothing until you approve some.'; GP.stCls='ok'; }
+  catch(e){ GP.st='Could not save: '+(e.message||'please try again')+'.'; GP.stCls='warn'; }
+  gpDraw();
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-gpa]'); if(!b) return; const a=b.dataset.gpa;
+  if(a==='choose'){ GP.mode=true; GP.st=''; document.body.classList.add('gp-mode'); if(FILTER==='grp'||FILTER==='fav'){ FILTER='all'; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); } renderGrid(false); gpDraw(); }
+  else if(a==='all'){ ITEMS.forEach(i=>{ if(i.kind==='image'||i.kind==='video') GP.picks.add(i.name); }); renderGrid(false); gpDraw(); }
+  else if(a==='none'){ GP.picks.clear(); renderGrid(false); gpDraw(); }
+  else if(a==='done') gpDone();
+});
+window.FOM_GP={ enable:(picks,save)=>{ GP.on=true; GP.picks=new Set(picks||[]); GP.saved=[...GP.picks].join('|'); GP.save=save; if($('grid')){ renderGallery(); } } };
 /* client activity for FOM Studios: gallery opened (first time), downloads, favourites picked when they leave */
 const ev=(t,d)=>{
   if(GAL.group){ if(t==='download'){ const m=/^(?:all |their )?(\d+) /.exec(d||''); fetch(CONFIG.worker+'/group/hit',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({s:GAL.group,k:GAL.k,c:m?+m[1]:1})}).catch(()=>{}); } return; }
@@ -442,10 +491,12 @@ function renderGallery(){
             ${m.photos?`<button class="tab" data-f="image">Photos<span class="n">${m.photos}</span></button>`:''}
             ${m.vids?`<button class="tab" data-f="video">Videos<span class="n">${m.vids}</span></button>`:''}
             <button class="tab" data-f="fav">&#9829; Favourites<span class="n" id="favN">${FAV.size}</span></button>
+            ${GP.on?`<button class="tab" data-f="grp">&#128101; Group<span class="n" id="gpN">${GP.picks.size}</span></button>`:''}
           </div>
           ${dlAllBtn('sm')}
         </div>
       </div>
+      <div class="gp-bar${GP.on?' on':''}" id="gpBar"></div>
       <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}${GAL.group&&GAL.mode!=='view'?', then Download all on the Favourites tab':''}.</span><span class="st" id="favSt"></span></div>
       <div class="grid" id="grid"></div>
 
@@ -478,12 +529,13 @@ function renderGallery(){
     </footer>`;
   applyHeader();
 
+  gpDraw();
   $('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;FILTER=t.dataset.f;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));renderGrid();});
   renderGrid();
 }
 /* first batch is small so the Thank you and review section sits right under it; more only loads when the client asks */
 const PAGE=(innerWidth<600?12:24), STEP=(innerWidth<600?24:48); let SHOWN=PAGE;
-function visible(){return FILTER==='all'?ITEMS:FILTER==='fav'?ITEMS.filter(i=>FAV.has(i.name)):ITEMS.filter(i=>i.kind===FILTER);}
+function visible(){return FILTER==='all'?ITEMS:FILTER==='fav'?ITEMS.filter(i=>FAV.has(i.name)):FILTER==='grp'?ITEMS.filter(i=>GP.picks.has(i.name)):ITEMS.filter(i=>i.kind===FILTER);}
 function renderGrid(reset){
   if(reset!==false) SHOWN=PAGE;
   const g=$('grid'),all=visible(),list=all.slice(0,SHOWN);
@@ -493,7 +545,8 @@ function renderGrid(reset){
       ?(it.poster?`<img src="${esc(it.poster)}" loading="lazy" alt="">`:`<div class="ph">&#127909;</div>`+stillHtml(it))+`<div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>`
       :(it.kind==='image'?`<img src="${esc(it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
     const badge=isVid?`<span class="badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Video</span>`:`<span class="badge">Photo</span>`;
-    return `<article class="card" data-i="${gi}"><div class="thumb">${thumb}${badge}
+    const gIn=GP.on&&GP.picks.has(it.name);
+    return `<article class="card${gIn?' gp-in':''}" data-i="${gi}"><div class="thumb">${thumb}${badge}${GP.mode?`<button class="gp-tick${gIn?' on':''}" data-gp="${gi}" type="button" aria-label="Group can see this" aria-pressed="${gIn}">${gIn?'&#10003;':''}</button>`:(gIn?'<span class="gp-badge">&#128101; Group</span>':'')}
       <button class="fav ${FAV.has(it.name)?'on':''}" data-fav="${gi}" type="button" aria-label="${FAV.has(it.name)?'Remove from':'Add to'} favourites" aria-pressed="${FAV.has(it.name)}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg></button>
       <button class="dl-mini" data-dl="${gi}" title="Download" aria-label="Download ${esc(it.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button></div>
       <div class="cap"><span class="nm">${esc(it.name)}</span><span class="sz">${fmtSize(it.size)}</span></div></article>`;
@@ -511,7 +564,8 @@ function renderGrid(reset){
   }
   watchStills(g);
   if(!list.length&&FILTER==='fav') g.innerHTML='<div class="fav-empty">No favourites yet.<br>Tap the &#9829; on any photo to add it here.</div>';
-  g.onclick=e=>{const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
+  if(!list.length&&FILTER==='grp') g.innerHTML='<div class="fav-empty">Nothing approved for the group yet.<br>Tap Choose photos above.</div>';
+  g.onclick=e=>{if(GP.mode){const c=e.target.closest('.card');if(c&&!e.target.closest('[data-fav],[data-dl]')){e.stopPropagation();gpToggle(ITEMS[+c.dataset.i]);return;}}const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
 
 /* ===== downloads that save straight away (no preview tab) =====
@@ -828,6 +882,12 @@ if(GAL.order){
       try{
         const snap = await getDoc(ref);
         if(snap.exists()) FOM_FAV.merge(snap.data().favourites || []);
+        // group photos: only when FOM Studios switched it on for this booking (Database, Let them choose the group photos)
+        if(snap.exists() && snap.data().groupPicksOn && window.FOM_GP){
+          const W = CONFIG.worker, call = async (opt) => { const r = await fetch(W + '/group/picks' + (opt ? '' : '?order=' + encodeURIComponent(GAL.order)), Object.assign({ headers:{ Authorization:'Bearer ' + await user.getIdToken(), 'Content-Type':'application/json' } }, opt || {})); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || 'error ' + r.status); return j; };
+          let had = []; try{ had = (await call()).picks || []; }catch(e){}
+          FOM_GP.enable(had, list => call({ method:'POST', body:JSON.stringify({ order:GAL.order, picks:list }) }));
+        }
         let t = null;
         const save = list => {
           FOM_FAV.status('Saving...');
