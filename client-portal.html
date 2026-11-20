@@ -446,6 +446,8 @@ const CHAT_ON = false;
    and their gallery opens in preview too (hearts are not saved).
    ============================================================ */
 const PREVIEW = new URLSearchParams(location.search).get('preview') || '';
+// Preview as client: the dashboard sends your admin email so the login card is filled with it (not a saved client login)
+const PV_ADMIN = PREVIEW ? String(new URLSearchParams(location.search).get('ae') || '').trim().toLowerCase().slice(0, 120) : '';
 const DASH = 'https://fomstudios.github.io/dashboard/';
 
 
@@ -884,7 +886,13 @@ function init(){
                 // only admins can preview: anyone else just sees their own portal as normal
                 getDoc(doc(db, 'admins', user.uid)).then(a => {
                     if(a.exists()) stopOrders = startPreview(db, letIn);
-                    else { user.__pvChecked = true; blockMsg = 'Preview needs your admin login. You are signed in as a client.'; signOut(auth); }
+                    else {
+                        user.__pvChecked = true;
+                        const was = String(user.email || '').replace(/</g, '&lt;');
+                        blockMsg = 'Preview needs your admin login' + (PV_ADMIN ? ' (<b>' + PV_ADMIN.replace(/</g, '&lt;') + '</b>)' : '') + '. You were signed in as ' + (was ? '<b>' + was + '</b>, ' : '') + 'a client login' + (PV_ADMIN ? '. Type your admin password below.' : ', so sign in with the email you use for the dashboard.');
+                        if(PV_ADMIN){ $('lgEmail').value = PV_ADMIN; setTimeout(() => { try{ $('lgPass').value = ''; $('lgPass').focus(); }catch(e){} }, 50); }
+                        signOut(auth);
+                    }
                 }).catch(() => { blockMsg = 'Preview needs your admin login. Sign in with it to see this client.'; signOut(auth); });
                 return;
             }
@@ -995,6 +1003,8 @@ function previewBar(o){
 }
 
 if(PREVIEW){ const ls = $('lgSub'); if(ls) ls.textContent = 'Preview: sign in with your admin login to see this client'; }
+// browsers like to autofill a saved client (or test client) login here: put your admin email back in
+if(PV_ADMIN){ [0, 400, 1500].forEach(t => setTimeout(() => { const e = $('lgEmail'); if(e && e.value.trim().toLowerCase() !== PV_ADMIN && document.activeElement !== e){ e.value = PV_ADMIN; const p = $('lgPass'); if(p) p.value = ''; } }, t)); }
 init();
 
 </script>
