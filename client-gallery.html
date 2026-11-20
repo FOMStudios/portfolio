@@ -151,6 +151,11 @@ button.btn{cursor:pointer;}
 .foot a{color:var(--accent);font-weight:600;}
 
 /* ===== states ===== */
+.gview .dl-mini,.gview [data-dlall],.gview #lbDl{display:none!important;}
+.pin{display:flex;gap:10px;justify-content:center;margin:18px 0 6px;}
+.pin input{width:200px;text-align:center;font-size:28px;letter-spacing:.4em;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font-weight:800;}
+.pin-err{color:#b3261e;font-size:13.5px;min-height:1.2em;}
+.grp-cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px;}
 .state{min-height:62vh;display:grid;place-items:center;text-align:center;padding:40px var(--gutter);}
 .state .box{max-width:440px;} .state .box .mascot{width:76px;height:76px;border-radius:50%;object-fit:cover;background:#fff;margin:0 auto 16px;display:block;box-shadow:0 8px 22px -10px rgba(0,0,0,.4);}
 .state h3{font-size:22px;font-weight:800;margin-bottom:8px;} .state p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;}
@@ -243,8 +248,11 @@ const GAL = {
   date:   P.get('date') || '',
   expiry: P.get('expiry') || '',
   dl:     P.get('dl') || '',
-  order:  P.get('o') || ''        // the booking, so favourites can be sent to FOM Studios
+  order:  P.get('o') || '',       // the booking, so favourites can be sent to FOM Studios
+  group:  (P.get('s') || '').replace(/[^a-z0-9]/g, '').slice(0, 12),   // a group link (everyone at an event), made on the Database page
+  mode:   'free', k:'', title:'', expires:''
 };
+if(GAL.group){ GAL.folder = ''; GAL.order = ''; GAL.dl = ''; }
 
 /* ---- header photo: the client's own cover (set on the Database, passed in the link as cover/fx/fy),
    else the business header from the dashboard Website page (siteContent site / site_sba, galleryHeader),
@@ -292,6 +300,7 @@ function niceDate(s){if(!s)return'';try{const d=new Date(s.length<=10?s+'T00:00:
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 
 let ITEMS=[], FILTER='all';
+const GROUP_WA = SBA_G ? '' : 'https://chat.whatsapp.com/EwI9Zg2tjfhGX8gISj1TpA';
 
 function demoItems(){const A=n=>'assets/'+n;return[
   {name:'FOM_Hero_01.jpg',size:9400000,kind:'image',url:A('email-hero.png')},
@@ -304,7 +313,46 @@ function demoItems(){const A=n=>'assets/'+n;return[
   {name:'Highlight_Reel.mp4',size:88000000,kind:'video',url:'',poster:A('email-hero.png')}
 ];}
 
+/* ===== group link: everyone at an event opens the same gallery (no portal, no folder in the link) ===== */
+const GV = (()=>{ try{ let v = localStorage.getItem('fom.gv'); if(!v){ v = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); localStorage.setItem('fom.gv', v); } return v; }catch(e){ return ''; } })();
+async function groupOpen(pin){
+  const r = await fetch(CONFIG.worker + '/group/open', { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ s:GAL.group, pin:pin || '', v:GV }) });
+  const j = await r.json().catch(() => ({}));
+  if(j.ended || r.status === 410) return groupEnded(j);
+  if(j.mode === 'paid'){ if(j.salesUrl) location.replace(j.salesUrl); else stateBox(1, 'Photos coming soon', 'These photos are being prepared. Check back soon.'); return; }
+  if(!r.ok){ if(r.status === 403 || r.status === 429) return pinBox(j.error); return renderError(); }
+  try{ if(pin) sessionStorage.setItem('fom.gpin.' + GAL.group, pin); }catch(e){}
+  Object.assign(GAL, { mode:j.mode, k:j.k, title:j.title, name:j.title, date:j.date || '', expiry:j.expires || '' });
+  if(GAL.mode === 'view') document.body.classList.add('gview');
+  ITEMS = (j.files || []).map(f => ({ name:f.name, size:f.size, url:f.url, kind:f.kind || kindOf(f.name) }));
+  if(!ITEMS.length) return stateBox(1, 'No photos here yet', 'Check back soon.');
+  document.title = GAL.title + ' | ' + (SBA_G ? 'Shot by A' : 'FOM Studios');
+  renderGallery();
+}
+function groupEnded(j){ stateBox(1, 'This gallery has ended', (j && j.title ? esc(j.title) + ' was shared for a limited time. ' : '') + 'Ask ' + (SBA_G ? 'Shot by A' : 'FOM Studios') + ' if you still need a photo.'); }
+function pinBox(err){
+  $('app').innerHTML = `<div class="state"><div class="box"><img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'"><h3>${esc(GAL.title || 'Event photos')}</h3><p>Type the 4-digit PIN you got with the link.</p>
+    <form class="pin" id="pinF"><input id="pinI" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" aria-label="PIN"></form><div class="pin-err">${esc(err || '')}</div>
+    <p style="margin-top:14px"><button class="btn" type="button" id="pinGo">Open the photos</button></p></div></div>`;
+  const i = $('pinI'), go = () => { const v = i.value.replace(/\D/g, ''); if(v.length === 4) groupOpen(v); };
+  i.focus(); i.addEventListener('input', () => { if(i.value.replace(/\D/g, '').length === 4) go(); });
+  $('pinF').onsubmit = e => { e.preventDefault(); go(); }; $('pinGo').onclick = go;
+}
+async function groupLoad(){
+  try{
+    const r = await fetch(CONFIG.worker + '/group/info?s=' + GAL.group), j = await r.json();
+    if(!r.ok) return stateBox(1, 'Link not found', 'Please check the link you were sent.');
+    GAL.title = j.title;
+    if(j.ended) return groupEnded(j);
+    if(j.mode === 'paid'){ if(j.salesUrl) location.replace(j.salesUrl); else stateBox(1, 'Photos coming soon', 'These photos are being prepared. Check back soon.'); return; }
+    let pin = ''; try{ pin = sessionStorage.getItem('fom.gpin.' + GAL.group) || ''; }catch(e){}
+    if(j.needPin && !pin) return pinBox('');
+    groupOpen(pin);
+  }catch(e){ renderError(); }
+}
+
 async function load(){
+  if(GAL.group) return groupLoad();
   if(GAL.expiry){const exp=new Date(GAL.expiry+'T23:59:59');if(new Date()>exp)return renderExpired();}
   if(CONFIG.worker && GAL.folder){
     try{
@@ -328,7 +376,7 @@ function dlAllBtn(cls){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</button>`; }
 
 /* ===== favourites: kept on this device and, when the client is signed in to their portal, saved on their booking ===== */
-const FAV_KEY=(window.FOM_PREVIEW?'fom.pvfav.':'fom.fav.')+GAL.folder;   // preview keeps its hearts apart from the client's
+const FAV_KEY=(window.FOM_PREVIEW?'fom.pvfav.':'fom.fav.')+(GAL.group?'g.'+GAL.group:GAL.folder);   // preview keeps its hearts apart from the client's
 let FAV=new Set(); try{ FAV=new Set(JSON.parse(localStorage.getItem(FAV_KEY)||'[]')); }catch(e){}
 let favSave=null;   // set by the Firebase module below when the client is signed in
 function favStatus(t,cls){ const e=$('favSt'); if(e){ e.textContent=t||''; e.className='st'+(cls?' '+cls:''); } }
@@ -353,7 +401,9 @@ window.FOM_FAV={ merge:mergeFavs, setSaver:f=>{ favSave=f; }, status:favStatus, 
 
 let FAV_DIRTY=false;
 /* client activity for FOM Studios: gallery opened (first time), downloads, favourites picked when they leave */
-const ev=(t,d)=>{ if(window.FOM_EVENT) FOM_EVENT(t, GAL.order, GAL.name, d); };
+const ev=(t,d)=>{
+  if(GAL.group){ if(t==='download'){ const m=/^(?:all |their )?(\d+) /.exec(d||''); fetch(CONFIG.worker+'/group/hit',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({s:GAL.group,k:GAL.k,c:m?+m[1]:1})}).catch(()=>{}); } return; }
+  if(window.FOM_EVENT) FOM_EVENT(t, GAL.order, GAL.name, d); };
 function sendFavs(){ if(FAV_DIRTY){ FAV_DIRTY=false; ev('favs', FAV.size+(FAV.size===1?' photo':' photos')); } }
 addEventListener('pagehide', sendFavs); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendFavs(); });
 function renderGallery(){
@@ -363,16 +413,16 @@ function renderGallery(){
   $('app').innerHTML=`
     <header class="topbar">
       <a class="mark" href="client-portal.html"><img src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">FOM STUDIOS</a>
-      <div class="tb-r"><a class="back" href="client-portal.html" onclick="if(/client-portal\.html/.test(document.referrer)&&history.length>1){history.back();return false;}">&lsaquo; Portal</a>${dlAllBtn('sm')}</div>
+      <div class="tb-r">${GAL.group?'':`<a class="back" href="client-portal.html" onclick="if(/client-portal\.html/.test(document.referrer)&&history.length>1){history.back();return false;}">&lsaquo; Portal</a>`}${dlAllBtn('sm')}</div>
     </header>
 
     <section class="hero">
       <div class="bg" style="opacity:0"></div>
       <div class="scrim"></div>
       <div class="inner">
-        <span class="eyebrow">FOM Studios &middot; Your Gallery</span>
-        <h1>Welcome,<span class="accent">${esc(GAL.name)}</span></h1>
-        <p class="sub">Your edited photos and videos are ready. Tap any file to view or play it full-screen, then download the ones you love or grab them all.</p>
+        <span class="eyebrow">${GAL.group?(SBA_G?'Shot by A':'FOM Studios')+' &middot; Shared gallery':'FOM Studios &middot; Your Gallery'}</span>
+        ${GAL.group?`<h1><span class="accent">${esc(GAL.title)}</span></h1>`:`<h1>Welcome,<span class="accent">${esc(GAL.name)}</span></h1>`}
+        <p class="sub">${GAL.group?(GAL.mode==='view'?'The photos from the day. Tap any one to see it full-screen.':'The photos from the day. Tap any one to see it full-screen, then download the ones you love or grab them all.'):'Your edited photos and videos are ready. Tap any file to view or play it full-screen, then download the ones you love or grab them all.'}</p>
         <div class="rule"></div>
         <div class="meta">
           ${GAL.date?`<div class="m"><div class="k">Shoot Date</div><div class="v">${esc(niceDate(GAL.date))}</div></div>`:''}
@@ -396,10 +446,19 @@ function renderGallery(){
           ${dlAllBtn('sm')}
         </div>
       </div>
-      <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}.</span><span class="st" id="favSt"></span></div>
+      <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}${GAL.group&&GAL.mode!=='view'?', then Download all on the Favourites tab':''}.</span><span class="st" id="favSt"></span></div>
       <div class="grid" id="grid"></div>
 
-      <section class="thanks" id="thanks">
+      ${GAL.group?`<section class="thanks" id="thanks">
+        <img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">
+        <div class="big">Loved these?</div>
+        <p>${SBA_G?'Shot by A captures events, birthdays, families and corporate days around Johannesburg.':'FOM Studios shoots events, sport, brands, families and more around Johannesburg.'} Book your own shoot, and tag <b>${SBA_G?'@shotbya_photography':'@fom_studios_'}</b> when you post these.</p>
+        <div class="grp-cta">
+          <a class="btn" href="https://${esc(CONFIG.site)}${SBA_G?'':'/?book=1'}" target="_blank" rel="noopener">Book your own shoot</a>
+          ${GROUP_WA?`<a class="btn ghost" href="${esc(GROUP_WA)}" target="_blank" rel="noopener">Join our WhatsApp group</a>`:''}
+          <a class="btn ghost" href="${esc(CONFIG.instagram)}" target="_blank" rel="noopener">Follow on Instagram</a>
+        </div>
+      </section>`:`<section class="thanks" id="thanks">
         <img class="mascot" src="${esc(CONFIG.mascot)}" alt="FOM Studios" onerror="this.style.display='none'">
         <div class="big">Thank You</div>
         <p>It was a pleasure capturing this for you, ${esc(GAL.name)}. We hope these bring the day back every time you look at them. If you enjoyed working with us, a quick review means the world and helps other clients find FOM Studios.</p>
@@ -407,7 +466,7 @@ function renderGallery(){
           <a class="btn" href="${esc(reviewHref())}" ${/^https?:/.test(CONFIG.reviewUrl)?'target="_blank" rel="noopener"':''}>&#9733;&nbsp; ${esc(CONFIG.reviewLabel)}</a>
           ${CONFIG.feedbackUrl?`<a class="btn ghost" href="${esc(CONFIG.feedbackUrl)}" target="_blank" rel="noopener">${esc(CONFIG.feedbackLabel)}</a>`:''}
         </div>
-      </section>
+      </section>`}
     </main>
 
     <footer class="foot">
@@ -728,8 +787,8 @@ $('lbStage').addEventListener('click',e=>{if(e.target.id==='lbStage'||e.target.i
 })();
 addEventListener('keydown',e=>{if(!$('lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();else if(e.key==='ArrowRight')stepLb(1);else if(e.key==='ArrowLeft')stepLb(-1);else if(e.key==='f'||e.key==='F')toggleFav(LBL[LBI],$('lbFav'));});
 
-function stateBox(mascot,h,p){$('app').innerHTML=`<div class="state"><div class="box">${mascot?`<img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">`:''}<h3>${h}</h3><p>${p}</p><p style="margin-top:18px"><a class="btn ghost" href="client-portal.html">Back to portal</a></p></div></div>`;}
-function renderExpired(){stateBox(1,'This gallery has expired','To keep your files safe we remove galleries after a set time. Please contact FOM Studios if you still need your deliverables.');}
+function stateBox(mascot,h,p){$('app').innerHTML=`<div class="state"><div class="box">${mascot?`<img class="mascot" src="${esc(CONFIG.mascot)}" alt="" onerror="this.style.display='none'">`:''}<h3>${h}</h3><p>${p}</p><p style="margin-top:18px">${GAL.group?`<a class="btn ghost" href="https://${esc(CONFIG.site)}">Visit our website</a>`:'<a class="btn ghost" href="client-portal.html">Back to portal</a>'}</p></div></div>`;}
+function renderExpired(){if(GAL.group)return groupEnded({title:GAL.title});stateBox(1,'This gallery has expired','To keep your files safe we remove galleries after a set time. Please contact FOM Studios if you still need your deliverables.');}
 function renderEmpty(){stateBox(1,'Your gallery is being prepared','Your files aren\'t ready just yet. You\'ll get an email the moment they are.');}
 function renderError(){stateBox(1,'Couldn\'t load your gallery','Please check your connection and refresh. If it keeps happening, contact FOM Studios.');}
 
