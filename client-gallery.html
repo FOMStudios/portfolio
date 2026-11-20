@@ -438,6 +438,7 @@ async function gpDone(){
   const list=ITEMS.filter(i=>GP.picks.has(i.name)).map(i=>i.name), key=list.join('|');
   if(key===GP.saved){ GP.st=''; gpDraw(); renderGrid(false); return; }
   GP.st='Saving...'; GP.stCls=''; gpDraw(); renderGrid(false);
+  if(!GP.save){ GP.st='Preview: their picks are shown, your changes here are not saved.'; GP.stCls='warn'; gpDraw(); return; }
   try{ await GP.save(list); GP.saved=key; GP.st=list.length?'Saved. The group link now shows these '+list.length+'.':'Saved. The group link shows nothing until you approve some.'; GP.stCls='ok'; }
   catch(e){ GP.st='Could not save: '+(e.message||'please try again')+'.'; GP.stCls='warn'; }
   gpDraw();
@@ -448,7 +449,7 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-gpa]'); i
   else if(a==='none'){ GP.picks.clear(); renderGrid(false); gpDraw(); }
   else if(a==='done') gpDone();
 });
-window.FOM_GP={ enable:(picks,save)=>{ GP.on=true; GP.picks=new Set(picks||[]); GP.saved=[...GP.picks].join('|'); GP.save=save; if($('grid')){ renderGallery(); } } };
+window.FOM_GP={ hint:h=>{ const b=$('gpBar'); if(b){ b.classList.add('on'); b.innerHTML='<div class="tx">'+h+'</div>'; } else setTimeout(()=>window.FOM_GP.hint(h),500); }, enable:(picks,save)=>{ GP.on=true; GP.picks=new Set(picks||[]); GP.saved=[...GP.picks].join('|'); GP.save=save; if($('grid')){ renderGallery(); } } };
 /* client activity for FOM Studios: gallery opened (first time), downloads, favourites picked when they leave */
 const ev=(t,d)=>{
   if(GAL.group){ if(t==='download'){ const m=/^(?:all |their )?(\d+) /.exec(d||''); fetch(CONFIG.worker+'/group/hit',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({s:GAL.group,k:GAL.k,c:m?+m[1]:1})}).catch(()=>{}); } return; }
@@ -873,7 +874,16 @@ if(GAL.order){
       onAuthStateChanged(auth, async user => {
         FOM_FAV.setSaver(null);
         if(!user){ FOM_FAV.status('Preview: hearts are not saved.', 'warn'); return; }
-        try{ const snap = await getDoc(ref); const had = (snap.exists() && snap.data().favourites) || []; FOM_FAV.merge(had); FOM_FAV.status('Preview: showing their ' + had.length + ' pick' + (had.length === 1 ? '' : 's') + '. Hearts you add here are not saved.', 'warn'); }
+        try{
+          const snap = await getDoc(ref); const had = (snap.exists() && snap.data().favourites) || []; FOM_FAV.merge(had); FOM_FAV.status('Preview: showing their ' + had.length + ' pick' + (had.length === 1 ? '' : 's') + '. Hearts you add here are not saved.', 'warn');
+          // group photos box: shown as the client sees it (read-only), or a hint when it is switched off
+          if(window.FOM_GP){
+            if(snap.exists() && snap.data().groupPicksOn){
+              let picks = []; try{ const r = await fetch(CONFIG.worker + '/group/picks?order=' + encodeURIComponent(GAL.order), { headers:{ Authorization:'Bearer ' + await user.getIdToken() } }); picks = ((await r.json()) || {}).picks || []; }catch(e){}
+              FOM_GP.enable(picks, null);
+            } else FOM_GP.hint('Preview: the client does not see a "Choose what the group sees" box yet. On the Database, open this client and set <b>Group photos</b> to <b>They choose</b>.');
+          }
+        }
         catch(e){ FOM_FAV.status('Preview: hearts are not saved.', 'warn'); }
       });
     }
