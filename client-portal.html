@@ -430,7 +430,7 @@ setTimeout(function(){
 <script type="module">
 import { initializeApp, getApp }                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
-         onAuthStateChanged, signOut }                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+         onAuthStateChanged, signOut, signInWithCustomToken }                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, query, where, onSnapshot, orderBy, limitToLast,
          doc, getDoc, updateDoc, setDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -447,6 +447,9 @@ const CHAT_ON = false;
    ============================================================ */
 const PREVIEW = new URLSearchParams(location.search).get('preview') || '';
 // Preview as client: the dashboard sends your admin email so the login card is filled with it (not a saved client login)
+// one-tap preview: the Database sends a one-time code (pv); the gallery Worker swaps it for a sign-in as you (needs FIREBASE_SA)
+const PV_CODE = PREVIEW ? String(new URLSearchParams(location.search).get('pv') || '').replace(/[^a-z0-9]/gi, '').slice(0, 40) : '';
+let PV_PENDING = PV_CODE.length >= 20;
 const PV_ADMIN = PREVIEW ? String(new URLSearchParams(location.search).get('ae') || '').trim().toLowerCase().slice(0, 120) : '';
 const DASH = 'https://fomstudios.github.io/dashboard/';
 
@@ -874,7 +877,26 @@ function init(){
     let blockMsg = '';
     $('lgBtn').addEventListener('click', () => { const e = $('lgErr'); if(e) e.removeAttribute('data-norebrand'); });
     const showBlock = () => { if(blockMsg){ const e = $('lgErr'); if(e){ e.setAttribute('data-norebrand', ''); e.innerHTML = blockMsg; } blockMsg = ''; } };
-    onAuthStateChanged(auth, user => {
+    // one-tap preview: swap the code for a sign-in first (the Database registers it a moment after opening this tab)
+    if(PV_PENDING){
+        try{ const u = new URL(location.href); u.searchParams.delete('pv'); history.replaceState(null, '', u.pathname + u.search); }catch(e){}
+        (async () => {
+            let token = '';
+            for(let i = 0; i < 10 && !token; i++){
+                try{
+                    const r = await fetch('https://fom-gallery.cold-moon-d65c.workers.dev/preview/redeem', { method:'POST', headers:{ 'Content-Type':'text/plain' }, body:JSON.stringify({ code:PV_CODE }) });
+                    const j = await r.json().catch(() => ({}));
+                    if(j.token){ token = j.token; break; }
+                    if(r.status !== 404) break;          // expired or not set up: fall back to the login card
+                }catch(e){}
+                await new Promise(res => setTimeout(res, 600));
+            }
+            if(token){ try{ await signInWithCustomToken(auth, token); PV_PENDING = false; return; }catch(e){ console.warn('one-tap preview', e); } }
+            PV_PENDING = false; onUser(auth.currentUser);
+        })();
+    }
+    onAuthStateChanged(auth, user => { if(PV_PENDING) return; onUser(user); });
+    function onUser(user){
         clearTimeout(splashTimer);
         if(!user) hideSplash();
         if(stopOrders){ stopOrders(); stopOrders = null; }
@@ -932,7 +954,7 @@ function init(){
             $('mainApp').style.display = 'none';
             showBlock();
         }
-    });
+    }
 }
 
 /* ---------- preview as client ---------- */
