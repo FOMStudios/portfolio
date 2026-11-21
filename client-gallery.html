@@ -277,11 +277,12 @@ const SBA_G = !!(window.FOM_CLIENT && FOM_CLIENT.id === 'sba');
 const HDR_KEY = 'fom.gh.' + (SBA_G ? 'sba' : 'fom');
 const pct = (v, d) => { const n = parseFloat(v); return isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : d; };
 const HDR = { url:CONFIG.banner || '', fx:50, fy:50, line:'', ready:false };
+let GHOLD = !!GAL.group, GCOVER = null;   // group links wait for their own header (the client's, from the Database) before showing one
 const ghUrl = src => !src ? '' : String(src).indexOf('r2:') === 0 ? CONFIG.worker + '/file?g=portfolio%2F&n=' + encodeURIComponent(String(src).slice(3)) : src;
 function setBizHeader(g){
   if(!g) return;
   if(g.line) HDR.line = String(g.line).slice(0, 60);
-  if(P.get('cover')) return;                        // the client's own cover wins
+  if(P.get('cover') || GCOVER) return;             // the client's own cover wins
   if(g.src){ HDR.url = ghUrl(g.src); HDR.fx = pct(g.fx, 50); HDR.fy = pct(g.fy, 50); }
 }
 if(P.get('cover') && GAL.folder && CONFIG.worker){
@@ -290,7 +291,8 @@ if(P.get('cover') && GAL.folder && CONFIG.worker){
 try{ const c = JSON.parse(localStorage.getItem(HDR_KEY)); if(c){ setBizHeader(c); HDR.ready = true; } }catch(e){}
 function applyHeader(){
   const bg = document.querySelector('.hero .bg');
-  if(bg){ bg.style.backgroundImage = HDR.url ? 'url("' + HDR.url.replace(/"/g, '%22') + '")' : 'none'; bg.style.backgroundPosition = HDR.fx + '% ' + HDR.fy + '%'; if(HDR.ready) bg.style.opacity = 1; }
+  if(bg && GHOLD) bg.style.opacity = 0;
+  else if(bg){ bg.style.backgroundImage = HDR.url ? 'url("' + HDR.url.replace(/"/g, '%22') + '")' : 'none'; bg.style.backgroundPosition = HDR.fx + '% ' + HDR.fy + '%'; if(HDR.ready) bg.style.opacity = 1; }
   const eb = document.querySelector('.hero .eyebrow'); if(eb && HDR.line) eb.textContent = HDR.line;
 }
 (function loadBizHeader(){
@@ -302,7 +304,7 @@ function applyHeader(){
       const f = j && j.fields && j.fields.galleryHeader && j.fields.galleryHeader.mapValue && j.fields.galleryHeader.mapValue.fields;
       const g = f ? { src:fv(f.src) || '', fx:fv(f.fx), fy:fv(f.fy), line:fv(f.line) || '' } : { src:'', line:'' };
       try{ localStorage.setItem(HDR_KEY, JSON.stringify(g)); }catch(e){}
-      if(!g.src && !P.get('cover')) HDR.url = CONFIG.banner || '';
+      if(!g.src && !P.get('cover') && !GCOVER) HDR.url = CONFIG.banner || '';
       setBizHeader(g);
     }).catch(() => {}).then(() => { clearTimeout(t); done(); });
 })();
@@ -360,13 +362,15 @@ async function groupLoad(){
     const r = await fetch(CONFIG.worker + '/group/info?s=' + GAL.group), j = await r.json();
     if(!r.ok) return stateBox(1, 'Link not found', 'Please check the link you were sent.');
     GAL.title = j.title;
+    if(j.cover){ GCOVER = j.cover; Object.assign(HDR, { url:CONFIG.worker + '/group/cover?s=' + GAL.group, fx:pct(j.cover.fx, 50), fy:pct(j.cover.fy, 40) }); }
+    GHOLD = false; HDR.ready = true; applyHeader();
     if(j.ended) return groupEnded(j);
     if(j.soon) return stateBox(1, 'Photos coming soon', 'The photos from ' + esc(j.title) + ' are being chosen. Check back soon, the link stays the same.');
     if(j.mode === 'paid'){ if(j.salesUrl) location.replace(j.salesUrl); else stateBox(1, 'Photos coming soon', 'These photos are being prepared. Check back soon.'); return; }
     let pin = ''; try{ pin = sessionStorage.getItem('fom.gpin.' + GAL.group) || ''; }catch(e){}
     if(j.needPin && !pin) return pinBox('');
     groupOpen(pin);
-  }catch(e){ renderError(); }
+  }catch(e){ GHOLD = false; renderError(); }
 }
 
 async function load(){
