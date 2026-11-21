@@ -111,7 +111,7 @@ video.vstill.ready{opacity:1;}
 .dl-sub{font-size:13.5px;color:var(--ink-soft);margin:6px 0 12px;min-height:18px;word-break:break-word;}
 .dl-bar{height:8px;border-radius:9px;background:var(--panel-2);overflow:hidden;}
 .dl-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:9px;transition:width .2s;}
-.dl-acts{display:flex;gap:10px;margin-top:16px;} .dl-acts .btn{flex:1;justify-content:center;}
+.dl-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;} .dl-acts .btn{flex:1 1 30%;min-width:96px;justify-content:center;} .dl-acts .btn[hidden]{display:none;}
 .dl-note{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;} .dl-note a{color:var(--accent);font-weight:700;}
 button.btn{cursor:pointer;}
 /* favourites */
@@ -606,23 +606,27 @@ function dlSheet(){
   el = document.createElement('div'); el.id = 'dlSheet'; el.className = 'dl-scrim';
   el.innerHTML = `<div class="dl-box" role="dialog" aria-modal="true" aria-labelledby="dlT"><div class="dl-h" id="dlT">Preparing your files</div>
     <div class="dl-sub" id="dlS"></div><div class="dl-bar"><i id="dlBar"></i></div>
-    <div class="dl-acts"><button class="btn" type="button" id="dlGo" hidden></button><button class="btn ghost" type="button" id="dlX">Cancel</button></div>
+    <div class="dl-acts"><button class="btn" type="button" id="dlGo" hidden></button><button class="btn ghost" type="button" id="dlAlt" hidden></button><button class="btn ghost" type="button" id="dlX">Cancel</button></div>
     <div class="dl-note" id="dlN"></div></div>`;
   document.body.appendChild(el);
-  $('dlX').onclick = () => { if(DLC) DLC.abort(); closeDl(); };
+  $('dlX').onclick = () => { if(DLC) DLC.abort(); jobEnd(false); closeDl(); };
+  el.addEventListener('click', e => { if(e.target.closest('[data-dlzip]')){ e.preventDefault(); DLJOB = null; if(DLC) DLC.abort(); downloadAll({ zip:true }); } });
   return el;
 }
-function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
+function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlAlt').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
 function closeDl(){ const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
 const setDl = (sub, pct) => { $('dlS').textContent = sub; if(pct != null) $('dlBar').style.width = Math.max(2, Math.min(100, pct)) + '%'; };
 /* iPhone needs a fresh tap to open the share sheet, so preparing ends with a "Save" button */
 function waitTap(label){ return new Promise(res => { const b = $('dlGo'); b.textContent = label; b.hidden = false; b.onclick = () => { b.hidden = true; res(); }; }); }
+/* two choices (e.g. Continue / Start again, Try again / Skip): resolves 'go' or 'alt' */
+function choose(go, alt){ return new Promise(res => { const a = $('dlGo'), b = $('dlAlt'); a.textContent = go; b.textContent = alt; a.hidden = b.hidden = false;
+  a.onclick = () => { a.hidden = b.hidden = true; res('go'); }; b.onclick = () => { a.hidden = b.hidden = true; res('alt'); }; }); }
 async function shareFiles(files){
   try{ await navigator.share({ files }); return true; }
   catch(e){ if(e && e.name === 'AbortError') return false; throw e; }
 }
 function failDl(err){
-  console.warn('download', err);
+  console.warn('download', err); jobEnd(false);
   if(err && err.name === 'AbortError') return closeDl();
   $('dlT').textContent = 'Something went wrong';
   setDl('Check your connection and try again. ' + (err && err.message ? '(' + err.message + ')' : ''), null);
@@ -656,69 +660,122 @@ async function download(it){
   }catch(e){ failDl(e); }
 }
 
+/* ---- tracking: you get "Download started", then "Download finished" (Workflow ticks Downloaded) or "Download stopped at X of N" ---- */
+const DEV = IS_IOS ? 'iPhone' : IS_ANDROID ? 'Android' : 'computer';
+let DLJOB = null;   // { n, saved, label, zip, at }
+function jobEnd(ok){
+  if(!DLJOB) return; const j = DLJOB; DLJOB = null;
+  if(ok) return ev('dlok', 'all ' + j.n + ' ' + j.label + ' · ' + DEV);
+  ev('dlstop', (j.zip ? 'zip stopped while preparing, at ' + j.at + ' of ' + j.n : 'saved ' + j.saved + ' of ' + j.n) + ' ' + j.label + ' · ' + DEV);
+}
+addEventListener('pagehide', () => jobEnd(false));   // closed the tab or left mid-way
+/* iPhone remembers which files are already saved, per gallery and tab, so a new visit carries on instead of starting over */
+const dlKey = () => 'fom.dl.' + (GAL.group ? 'g.' + GAL.group : GAL.folder) + '.' + FILTER + (window.FOM_PREVIEW ? '.pv' : '');
+function dlGet(){ try{ return JSON.parse(localStorage.getItem(dlKey()) || 'null'); }catch(e){ return null; } }
+function dlPut(v){ try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : localStorage.removeItem(dlKey()); }catch(e){} }
+
 /* ---- every file (or the current tab: All / Photos / Videos / Favourites) ---- */
-async function downloadAll(){
+async function downloadAll(opts){
+  opts = opts || {};
   const list = visible().filter(i => i.url);
   if(!list.length) return;
-  ev('download', (FILTER === 'fav' ? 'their ' + list.length + ' favourites' : 'all ' + list.length + ' files'));
   const label = FILTER === 'fav' ? 'favourites' : FILTER === 'image' ? 'photos' : FILTER === 'video' ? 'videos' : 'files';
   DLC = new AbortController(); const sig = DLC.signal;
-  const totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
+  let totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
   let doneBytes = 0;
   const pct = extra => (doneBytes + (extra || 0)) / totalBytes * 100;
   try{
-    if(USE_SHARE){
-      /* iPhone: batches of up to 20 files (or about 250 MB) so the share sheet and memory stay happy */
-      const batches = []; let cur = [], sz = 0;
-      list.forEach(i => { if(cur.length && (cur.length >= 20 || sz + (+i.size || 0) > 250e6)){ batches.push(cur); cur = []; sz = 0; } cur.push(i); sz += +i.size || 0; });
-      if(cur.length) batches.push(cur);
+    if(USE_SHARE && !opts.zip){
+      /* iPhone: parts of up to 60 files (or about 400 MB), each saved with one tap on the share sheet */
       showDl('Saving ' + list.length + ' ' + label + ' to your Photos');
-      let n = 0;
+      let saved = new Set(((dlGet() || {}).names || []).filter(nm => list.some(i => i.name === nm)));
+      let todo = list.filter(i => !saved.has(i.name));
+      if(saved.size && todo.length){
+        $('dlT').textContent = 'Welcome back';
+        setDl(saved.size + ' of ' + list.length + ' are already saved on this phone', saved.size / list.length * 100);
+        $('dlN').textContent = 'Carry on with the ' + todo.length + ' still to save, or start again from the first one.';
+        if(await choose('Continue (' + todo.length + ' left)', 'Start again') === 'alt'){ saved = new Set(); todo = list; dlPut(null); }
+        $('dlN').textContent = ''; $('dlT').textContent = 'Saving ' + list.length + ' ' + label + ' to your Photos';
+      } else if(!todo.length){ saved = new Set(); todo = list; dlPut(null); }   // saved everything before: a fresh round
+      ev('download', 'all ' + list.length + ' ' + label + (saved.size ? ' (carrying on from ' + saved.size + ')' : '') + ' · ' + DEV);
+      DLJOB = { n:list.length, saved:saved.size, label };
+      totalBytes = todo.reduce((a, i) => a + (+i.size || 0), 0) || 1;
+      const batches = []; let cur = [], sz = 0;
+      todo.forEach(i => { if(cur.length && (cur.length >= 60 || sz + (+i.size || 0) > 400e6)){ batches.push(cur); cur = []; sz = 0; } cur.push(i); sz += +i.size || 0; });
+      if(cur.length) batches.push(cur);
+      let n = saved.size, skipped = 0;
       for(let b = 0; b < batches.length; b++){
-        const files = [];
+        const files = [], many = batches.length > 1, partTxt = 'part ' + (b + 1) + ' of ' + batches.length;
+        $('dlT').textContent = many ? 'Getting ' + partTxt : 'Getting your ' + label;
         for(const it of batches[b]){
           n++; setDl('Getting ' + n + ' of ' + list.length, pct());
           files.push(await getFile(it, sig, (g) => setDl('Getting ' + n + ' of ' + list.length, pct(g))));
           doneBytes += +it.size || 0;
         }
-        $('dlT').textContent = batches.length > 1 ? 'Part ' + (b + 1) + ' is ready' : 'Your ' + label + ' are ready';
-        setDl(batches.length > 1 ? 'Part ' + (b + 1) + ' of ' + batches.length + ' ready (' + files.length + ' files)' : files.length + ' files ready', pct());
-        $('dlN').textContent = 'Tap below, then choose "Save ' + files.length + ' Items" to put them in your Photos.';
-        await waitTap(batches.length > 1 ? 'Save part ' + (b + 1) + ' of ' + batches.length : 'Save ' + files.length + ' to Photos');
-        await shareFiles(files);
+        for(;;){
+          $('dlT').textContent = many ? 'Part ' + (b + 1) + ' of ' + batches.length + ' is ready' : 'Your ' + label + ' are ready';
+          setDl(files.length + ' files ready' + (many ? ' (' + (saved.size) + ' of ' + list.length + ' saved so far)' : ''), pct());
+          $('dlN').innerHTML = 'Tap below, then choose "Save ' + files.length + ' Items" to put them in your Photos.' + (b === 0 && !saved.size ? ' <br>Prefer one .zip file in Files? <a href="#" data-dlzip>Download a zip instead</a>' : '');
+          await waitTap(many ? 'Save ' + partTxt : 'Save ' + files.length + ' to Photos');
+          if(await shareFiles(files)){
+            batches[b].forEach(i => saved.add(i.name)); DLJOB.saved = saved.size;
+            dlPut({ names:[...saved], at:Date.now() });
+            break;
+          }
+          /* share sheet closed without saving: say so instead of quietly moving on */
+          $('dlT').textContent = (many ? 'Part ' + (b + 1) : 'Your ' + label) + ' did not save';
+          setDl('The share sheet closed before "Save ' + files.length + ' Items" was tapped.', pct());
+          $('dlN').textContent = 'Try again to save these ' + files.length + ', or skip them for now.';
+          if(await choose('Try again', 'Skip these') === 'alt'){ skipped += files.length; break; }
+        }
         $('dlN').textContent = '';
       }
-      $('dlT').textContent = 'All done'; setDl('Everything is in your Photos. Enjoy!', 100); $('dlX').textContent = 'Close';
+      $('dlX').textContent = 'Close';
+      if(saved.size >= list.length){
+        dlPut(null); jobEnd(true);
+        $('dlT').textContent = 'All done'; setDl('All ' + list.length + ' are in your Photos. Enjoy!', 100);
+      } else {
+        jobEnd(false);
+        $('dlT').textContent = saved.size + ' of ' + list.length + ' saved';
+        setDl(skipped + ' were skipped.', saved.size / list.length * 100);
+        $('dlN').textContent = 'Open this gallery on this phone any time and tap Download all: it carries on with the ones still missing.';
+      }
       return;
     }
-    if(IS_ANDROID){
+    ev('download', 'all ' + list.length + ' ' + label + ' · ' + (opts.zip ? DEV + ' (zip)' : DEV));
+    if(IS_ANDROID && !opts.zip){
       /* Android: each file saves straight to the phone (Chrome may ask once to allow several downloads) */
       showDl('Downloading ' + list.length + ' ' + label);
+      DLJOB = { n:list.length, saved:0, label };
       let n = 0;
       for(const it of list){
         n++; setDl('Saving ' + n + ' of ' + list.length, pct());
         saveBlob(await getFile(it, sig, (g) => setDl('Saving ' + n + ' of ' + list.length, pct(g))));
-        doneBytes += +it.size || 0;
+        doneBytes += +it.size || 0; DLJOB.saved = n;
         await new Promise(r => setTimeout(r, 350));
       }
+      jobEnd(true);
       $('dlT').textContent = 'All done'; setDl('Your ' + label + ' are in your Downloads and Gallery.', 100); $('dlX').textContent = 'Close';
       return;
     }
-    /* computer: one .zip (split into parts above 2 GB) */
+    /* computer (or the zip choice on iPhone): one .zip, split into parts above 2 GB (1 GB on a phone) */
     showDl('Preparing your download');
+    DLJOB = { n:list.length, saved:0, at:0, label, zip:true };
+    const cap = IS_IOS || IS_ANDROID ? 1e9 : 2e9;
     const base = (String(GAL.name || 'Gallery').trim() + ' ' + ((window.FOM_CLIENT && FOM_CLIENT.name) || 'FOM Studios')).replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-');
-    let zip = makeZip(), part = 1, n = 0;
+    let zip = makeZip(), n = 0;
     const parts = [];
     for(const it of list){
-      n++; setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct());
+      n++; DLJOB.at = n; setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct());
       const f = await getFile(it, sig, (g) => setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct(g)));
-      if(zip.size && zip.size + f.size > 2e9){ parts.push(zip.finish()); zip = makeZip(); part++; }
+      if(zip.size && zip.size + f.size > cap){ parts.push(zip.finish()); zip = makeZip(); }
       await zip.add(f);
       doneBytes += +it.size || 0;
     }
     parts.push(zip.finish());
     parts.forEach((b, k) => saveBlob(b, base + (parts.length > 1 ? '-part' + (k + 1) : '') + '.zip'));
-    $('dlT').textContent = 'Download started'; setDl(list.length + ' ' + label + ' in ' + (parts.length > 1 ? parts.length + ' zip files' : 'one zip file') + '. Check your Downloads folder.', 100); $('dlX').textContent = 'Close';
+    jobEnd(true);
+    $('dlT').textContent = 'Download started'; setDl(list.length + ' ' + label + ' in ' + (parts.length > 1 ? parts.length + ' zip files' : 'one zip file') + '. Check your ' + (IS_IOS ? 'Files app (Downloads)' : 'Downloads folder') + '.', 100); $('dlX').textContent = 'Close';
   }catch(e){ failDl(e); }
 }
 
