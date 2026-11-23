@@ -425,6 +425,18 @@ function selToggle(it){
   document.querySelectorAll(`.card[data-i="${gi}"]`).forEach(c=>{ c.classList.toggle('sel-in',on); const t=c.querySelector('.sel-tick'); if(t){ t.classList.toggle('on',on); t.innerHTML=on?'&#10003;':''; t.setAttribute('aria-pressed',on); } });
   selDraw();
 }
+/* a big selection on iPhone that did not finish: offer to carry on next visit */
+function resDraw(){
+  const b=$('selRes'); if(!b) return; let r=null;
+  if(USE_SHARE){ try{ r=JSON.parse(localStorage.getItem(dlKey(true))||'null'); }catch(e){} }
+  const pick=r&&Array.isArray(r.pick)?ITEMS.filter(i=>i.url&&r.pick.includes(i.name)):[], done=new Set(r&&r.names||[]), left=pick.filter(i=>!done.has(i.name)).length;
+  if(!pick.length||!left){ b.classList.remove('on'); b.innerHTML=''; return; }
+  b.classList.add('on');
+  b.innerHTML=`<div class="tx"><b>Carry on saving your selection</b>${pick.length-left} of the ${pick.length} you picked are saved on this phone. ${left} still to save.</div><div class="bt"><button class="btn sm" type="button" data-res="go">Carry on (${left} left)</button><button class="btn ghost sm" type="button" data-res="no">Forget it</button></div>`;
+  b.onclick=e=>{ const x=e.target.closest('[data-res]'); if(!x) return;
+    if(x.dataset.res==='no'){ try{ localStorage.removeItem(dlKey(true)); }catch(e){} resDraw(); return; }
+    downloadAll({ list:pick, resume:true }); };
+}
 function selEnd(){ SEL.on=false; SEL.set.clear(); document.body.classList.remove('sel-mode'); renderGrid(false); selDraw(); }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-sela]'); if(!b) return; const a=b.dataset.sela;
@@ -549,6 +561,7 @@ function renderGallery(){
       </div>
       <div class="gp-bar${GP.on?' on':''}" id="gpBar"></div>
       <div class="sel-bar" id="selBar"></div>
+      <div class="gp-bar sel-res" id="selRes"></div>
       <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}${GAL.group&&GAL.mode!=='view'?', then Download all on the Favourites tab':''}.</span><span class="st" id="favSt"></span></div>
       <div class="grid" id="grid"></div>
 
@@ -581,7 +594,7 @@ function renderGallery(){
     </footer>`;
   applyHeader();
 
-  gpDraw();
+  gpDraw(); resDraw();
   $('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;FILTER=t.dataset.f;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));renderGrid();});
   renderGrid();
 }
@@ -662,7 +675,7 @@ function dlSheet(){
   return el;
 }
 function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlAlt').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
-function closeDl(){ const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
+function closeDl(){ setTimeout(resDraw,0); const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
 const setDl = (sub, pct) => { $('dlS').textContent = sub; if(pct != null) $('dlBar').style.width = Math.max(2, Math.min(100, pct)) + '%'; };
 /* iPhone needs a fresh tap to open the share sheet, so preparing ends with a "Save" button */
 function waitTap(label){ return new Promise(res => { const b = $('dlGo'); b.textContent = label; b.hidden = false; b.onclick = () => { b.hidden = true; res(); }; }); }
@@ -718,10 +731,10 @@ function jobEnd(ok){
 }
 addEventListener('pagehide', () => jobEnd(false));   // closed the tab or left mid-way
 /* iPhone remembers which files are already saved, per gallery and tab, so a new visit carries on instead of starting over */
-const dlKey = () => 'fom.dl.' + (GAL.group ? 'g.' + GAL.group : GAL.folder) + '.' + FILTER + (window.FOM_PREVIEW ? '.pv' : '');
-let DLSEL = false;   // downloading a hand-picked selection: no resume memory, no finished/stopped events
-function dlGet(){ if(DLSEL) return null; try{ return JSON.parse(localStorage.getItem(dlKey()) || 'null'); }catch(e){ return null; } }
-function dlPut(v){ if(DLSEL) return; try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : localStorage.removeItem(dlKey()); }catch(e){} }
+const dlKey = sel => 'fom.dl.' + (GAL.group ? 'g.' + GAL.group : GAL.folder) + '.' + ((sel === undefined ? DLSEL : sel) ? 'sel' : FILTER) + (window.FOM_PREVIEW ? '.pv' : '');
+let DLSEL = false;   // downloading a hand-picked selection: its own resume memory (key .sel, with the picked names), no finished/stopped events
+function dlGet(){ try{ return JSON.parse(localStorage.getItem(dlKey()) || 'null'); }catch(e){ return null; } }
+function dlPut(v){ try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : localStorage.removeItem(dlKey()); }catch(e){} }
 
 /* ---- every file (or the current tab: All / Photos / Videos / Favourites) ---- */
 let LASTDL = {};
@@ -740,9 +753,12 @@ async function downloadAll(opts){
     if(USE_SHARE && !opts.zip){
       /* iPhone: parts of up to 60 files (or about 400 MB), each saved with one tap on the share sheet */
       showDl('Saving ' + list.length + ' ' + label + ' to your Photos');
-      let saved = new Set(((dlGet() || {}).names || []).filter(nm => list.some(i => i.name === nm)));
+      const was = dlGet() || {}, pickNow = list.map(i => i.name).sort().join('|');
+      const same = !DLSEL || (Array.isArray(was.pick) && was.pick.slice().sort().join('|') === pickNow);   // a different selection starts fresh
+      let saved = new Set(same ? (was.names || []).filter(nm => list.some(i => i.name === nm)) : []);
       let todo = list.filter(i => !saved.has(i.name));
-      if(saved.size && todo.length){
+      if(saved.size && todo.length && opts.resume){ /* came from "Carry on": no second question */ }
+      else if(saved.size && todo.length){
         $('dlT').textContent = 'Welcome back';
         setDl(saved.size + ' of ' + list.length + ' are already saved on this phone', saved.size / list.length * 100);
         $('dlN').textContent = 'Carry on with the ' + todo.length + ' still to save, or start again from the first one.';
@@ -771,7 +787,7 @@ async function downloadAll(opts){
           await waitTap(many ? 'Save ' + partTxt : 'Save ' + files.length + ' to Photos');
           if(await shareFiles(files)){
             batches[b].forEach(i => saved.add(i.name)); DLJOB.saved = saved.size;
-            dlPut({ names:[...saved], at:Date.now() });
+            dlPut(Object.assign({ names:[...saved], at:Date.now() }, DLSEL ? { pick:list.map(i => i.name) } : {}));
             break;
           }
           /* share sheet closed without saving: say so instead of quietly moving on */
@@ -790,7 +806,7 @@ async function downloadAll(opts){
         jobEnd(false);
         $('dlT').textContent = saved.size + ' of ' + list.length + ' saved';
         setDl(skipped + ' were skipped.', saved.size / list.length * 100);
-        $('dlN').textContent = 'Open this gallery on this phone any time and tap Download all: it carries on with the ones still missing.';
+        $('dlN').textContent = DLSEL ? 'Open this gallery on this phone any time: it offers to carry on with the selected ones still missing.' : 'Open this gallery on this phone any time and tap Download all: it carries on with the ones still missing.';
       }
       return;
     }
