@@ -164,7 +164,22 @@ button.btn{cursor:pointer;}
 .gp-mode .gp-bar{position:sticky;top:72px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.12);}
 .gp-mode .card:not(.gp-in) img{opacity:.45;}
 .gp-badge{position:absolute;bottom:8px;left:8px;z-index:2;background:var(--accent);color:#fff;border-radius:99px;font-size:11px;font-weight:800;padding:3px 8px;}
-.gview .dl-mini,.gview [data-dlall],.gview #lbDl{display:none!important;}
+.gview .dl-mini,.gview [data-dlall],.gview #lbDl,.gview .sel-btn{display:none!important;}
+.dl-pair{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.sel-bar{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(720px,calc(100% - 24px));box-sizing:border-box;z-index:45;background:var(--panel);border:1.5px solid var(--accent);border-radius:18px;padding:12px 14px;margin:0;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.12);}
+.sel-bar.on{display:flex;}
+.sel-bar .tx{flex:1;min-width:150px;font-size:13px;line-height:1.4;color:var(--soft,#666);}
+.sel-bar .tx b{display:block;font-size:15.5px;color:var(--ink,inherit);}
+.sel-bar .bt{display:flex;gap:6px;flex-wrap:wrap;}
+.sel-bar .btn[disabled]{opacity:.45;pointer-events:none;}
+.sel-tick{position:absolute;top:8px;left:8px;z-index:3;width:30px;height:30px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.3);color:#fff;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);padding:0;}
+.sel-tick.on{background:var(--accent);}
+.sel-mode .card .thumb{cursor:pointer;}
+.sel-mode .card .dl-mini,.sel-mode .card .badge{display:none;}
+.sel-mode .card.sel-in .thumb{outline:3px solid var(--accent);outline-offset:-3px;}
+.sel-mode .card.sel-in img{transform:scale(.94);transition:transform .15s;}
+body.sel-mode{padding-bottom:150px;}
+@media(max-width:560px){.sel-bar .tx{min-width:100%;}.sel-bar .bt{width:100%;}.sel-bar .bt .btn{flex:1;justify-content:center;}}
 .pin{display:flex;gap:10px;justify-content:center;margin:18px 0 6px;}
 .pin input{width:200px;text-align:center;font-size:28px;letter-spacing:.4em;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font-weight:800;}
 .pin-err{color:#b3261e;font-size:13.5px;min-height:1.2em;}
@@ -393,6 +408,34 @@ function meta(){const photos=ITEMS.filter(i=>i.kind==='image').length,vids=ITEMS
 
 function reviewHref(){ var u=CONFIG.reviewUrl; if(/^https?:/.test(u)) return u;
   return u+(u.indexOf('?')>=0?'&':'?')+'name='+encodeURIComponent(GAL.name)+'&order='+encodeURIComponent(GAL.folder)+(GAL.order?'&o='+encodeURIComponent(GAL.order):'')+(window.FOM_PREVIEW?'&preview=1':''); }
+/* ===== Select: tick the photos and videos you want, then download just those ===== */
+const SEL={ on:false, set:new Set() };
+function selBtn(){ return `<button class="btn ghost sm sel-btn" type="button" data-sela="start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>Select</button>`; }
+function selDraw(){
+  const b=$('selBar'); if(!b) return; b.classList.toggle('on',SEL.on); if(!SEL.on) return;
+  const n=SEL.set.size, vis=visible().filter(i=>i.url).length, size=ITEMS.filter(i=>SEL.set.has(i.name)).reduce((a,i)=>a+(+i.size||0),0);
+  b.innerHTML=`<div class="tx"><b>${n?n+' selected':'Tap the ones you want'}</b>${n?fmtSize(size):'Then download just those'}</div>
+    <div class="bt"><button class="btn ghost sm" type="button" data-sela="${n&&n>=vis?'none':'all'}">${n&&n>=vis?'Clear':'Select all'}</button>
+    <button class="btn sm" type="button" data-sela="dl"${n?'':' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download${n?' '+n:''}</button>
+    <button class="btn ghost sm" type="button" data-sela="done" aria-label="Done selecting">Done</button></div>`;
+}
+function selToggle(it){
+  if(!it||!it.url) return; if(SEL.set.has(it.name)) SEL.set.delete(it.name); else SEL.set.add(it.name);
+  const gi=ITEMS.indexOf(it), on=SEL.set.has(it.name);
+  document.querySelectorAll(`.card[data-i="${gi}"]`).forEach(c=>{ c.classList.toggle('sel-in',on); const t=c.querySelector('.sel-tick'); if(t){ t.classList.toggle('on',on); t.innerHTML=on?'&#10003;':''; t.setAttribute('aria-pressed',on); } });
+  selDraw();
+}
+function selEnd(){ SEL.on=false; SEL.set.clear(); document.body.classList.remove('sel-mode'); renderGrid(false); selDraw(); }
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-sela]'); if(!b) return; const a=b.dataset.sela;
+  if(a==='start'){ if(GP.mode) return; SEL.on=true; SEL.set.clear(); document.body.classList.add('sel-mode'); renderGrid(false); selDraw(); }
+  else if(a==='all'){ visible().forEach(i=>{ if(i.url) SEL.set.add(i.name); }); renderGrid(false); selDraw(); }
+  else if(a==='none'){ SEL.set.clear(); renderGrid(false); selDraw(); }
+  else if(a==='done') selEnd();
+  else if(a==='dl'){ const list=ITEMS.filter(i=>SEL.set.has(i.name)&&i.url); if(!list.length) return; if(list.length===1){ download(list[0]); return; } downloadAll({ list }); }
+});
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&SEL.on&&!$('lb').classList.contains('on')&&!document.querySelector('.dl-scrim.on')) selEnd(); });
+
 function dlAllBtn(cls){
   return `<button class="btn ${cls}" type="button" data-dlall>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download all</button>`; }
@@ -451,7 +494,7 @@ async function gpDone(){
   gpDraw();
 }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-gpa]'); if(!b) return; const a=b.dataset.gpa;
-  if(a==='choose'){ GP.mode=true; GP.st=''; document.body.classList.add('gp-mode'); if(FILTER==='grp'||FILTER==='fav'){ FILTER='all'; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); } renderGrid(false); gpDraw(); }
+  if(a==='choose'){ if(SEL.on){ SEL.on=false; SEL.set.clear(); document.body.classList.remove('sel-mode'); selDraw(); } GP.mode=true; GP.st=''; document.body.classList.add('gp-mode'); if(FILTER==='grp'||FILTER==='fav'){ FILTER='all'; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); } renderGrid(false); gpDraw(); }
   else if(a==='all'){ ITEMS.forEach(i=>{ if(i.kind==='image'||i.kind==='video') GP.picks.add(i.name); }); renderGrid(false); gpDraw(); }
   else if(a==='none'){ GP.picks.clear(); renderGrid(false); gpDraw(); }
   else if(a==='done') gpDone();
@@ -501,10 +544,11 @@ function renderGallery(){
             <button class="tab" data-f="fav">&#9829; Favourites<span class="n" id="favN">${FAV.size}</span></button>
             ${GP.on?`<button class="tab" data-f="grp">&#128101; Group<span class="n" id="gpN">${GP.picks.size}</span></button>`:''}
           </div>
-          ${dlAllBtn('sm')}
+          <div class="dl-pair">${selBtn()}${dlAllBtn('sm')}</div>
         </div>
       </div>
       <div class="gp-bar${GP.on?' on':''}" id="gpBar"></div>
+      <div class="sel-bar" id="selBar"></div>
       <div class="fav-bar" id="favBar"><span class="heart">&#9829;</span><span>Tap the heart on the photos you love most${GAL.order?' and we will see your picks':' to keep a list of them'}${GAL.group&&GAL.mode!=='view'?', then Download all on the Favourites tab':''}.</span><span class="st" id="favSt"></span></div>
       <div class="grid" id="grid"></div>
 
@@ -553,8 +597,8 @@ function renderGrid(reset){
       ?(it.poster?`<img src="${esc(it.poster)}" loading="lazy" alt="">`:`<div class="ph">&#127909;</div>`+stillHtml(it))+`<div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>`
       :(it.kind==='image'?`<img src="${esc(it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
     const badge=isVid?`<span class="badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Video</span>`:`<span class="badge">Photo</span>`;
-    const gIn=GP.on&&GP.picks.has(it.name);
-    return `<article class="card${gIn?' gp-in':''}" data-i="${gi}"><div class="thumb">${thumb}${badge}${GP.mode?`<button class="gp-tick${gIn?' on':''}" data-gp="${gi}" type="button" aria-label="Group can see this" aria-pressed="${gIn}">${gIn?'&#10003;':''}</button>`:(gIn?'<span class="gp-badge">&#128101; Group</span>':'')}
+    const gIn=GP.on&&GP.picks.has(it.name), sIn=SEL.on&&SEL.set.has(it.name);
+    return `<article class="card${gIn?' gp-in':''}${sIn?' sel-in':''}" data-i="${gi}"><div class="thumb">${thumb}${badge}${SEL.on&&it.url?`<button class="sel-tick${sIn?' on':''}" type="button" aria-label="Select ${esc(it.name)}" aria-pressed="${sIn}">${sIn?'&#10003;':''}</button>`:''}${GP.mode?`<button class="gp-tick${gIn?' on':''}" data-gp="${gi}" type="button" aria-label="Group can see this" aria-pressed="${gIn}">${gIn?'&#10003;':''}</button>`:(gIn?'<span class="gp-badge">&#128101; Group</span>':'')}
       <button class="fav ${FAV.has(it.name)?'on':''}" data-fav="${gi}" type="button" aria-label="${FAV.has(it.name)?'Remove from':'Add to'} favourites" aria-pressed="${FAV.has(it.name)}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.4 5c2.1 0 3.6 1.2 4.6 2.6C12 6.2 13.5 5 15.6 5 19.1 5 21 8.6 19.6 11.8 17.5 16.4 12 21 12 21z"/></svg></button>
       <button class="dl-mini" data-dl="${gi}" title="Download" aria-label="Download ${esc(it.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button></div>
       <div class="cap"><span class="nm">${esc(it.name)}</span><span class="sz">${fmtSize(it.size)}</span></div></article>`;
@@ -573,7 +617,7 @@ function renderGrid(reset){
   watchStills(g);
   if(!list.length&&FILTER==='fav') g.innerHTML='<div class="fav-empty">No favourites yet.<br>Tap the &#9829; on any photo to add it here.</div>';
   if(!list.length&&FILTER==='grp') g.innerHTML='<div class="fav-empty">Nothing approved for the group yet.<br>Tap Choose photos above.</div>';
-  g.onclick=e=>{if(GP.mode){const c=e.target.closest('.card');if(c&&!e.target.closest('[data-fav],[data-dl]')){e.stopPropagation();gpToggle(ITEMS[+c.dataset.i]);return;}}const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
+  g.onclick=e=>{if(SEL.on){const c=e.target.closest('.card');if(c&&!e.target.closest('[data-fav]')){e.stopPropagation();e.preventDefault();selToggle(ITEMS[+c.dataset.i]);return;}}if(GP.mode){const c=e.target.closest('.card');if(c&&!e.target.closest('[data-fav],[data-dl]')){e.stopPropagation();gpToggle(ITEMS[+c.dataset.i]);return;}}const fv=e.target.closest('[data-fav]');if(fv){e.stopPropagation();toggleFav(ITEMS[+fv.dataset.fav],fv);return;}const dl=e.target.closest('[data-dl]');if(dl){e.stopPropagation();download(ITEMS[+dl.dataset.dl]);return;}const c=e.target.closest('.card');if(c)openLb(+c.dataset.i);};
 }
 
 /* ===== downloads that save straight away (no preview tab) =====
@@ -614,7 +658,7 @@ function dlSheet(){
     <div class="dl-note" id="dlN"></div></div>`;
   document.body.appendChild(el);
   $('dlX').onclick = () => { if(DLC) DLC.abort(); jobEnd(false); closeDl(); };
-  el.addEventListener('click', e => { if(e.target.closest('[data-dlzip]')){ e.preventDefault(); DLJOB = null; if(DLC) DLC.abort(); downloadAll({ zip:true }); } });
+  el.addEventListener('click', e => { if(e.target.closest('[data-dlzip]')){ e.preventDefault(); DLJOB = null; if(DLC) DLC.abort(); downloadAll(Object.assign({}, LASTDL, { zip:true })); } });
   return el;
 }
 function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlAlt').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
@@ -668,22 +712,26 @@ async function download(it){
 const DEV = IS_IOS ? 'iPhone' : IS_ANDROID ? 'Android' : 'computer';
 let DLJOB = null;   // { n, saved, label, zip, at }
 function jobEnd(ok){
-  if(!DLJOB) return; const j = DLJOB; DLJOB = null;
+  if(!DLJOB) return; const j = DLJOB; DLJOB = null; if(j.sel) return;
   if(ok) return ev('dlok', 'all ' + j.n + ' ' + j.label + ' · ' + DEV);
   ev('dlstop', (j.zip ? 'zip stopped while preparing, at ' + j.at + ' of ' + j.n : 'saved ' + j.saved + ' of ' + j.n) + ' ' + j.label + ' · ' + DEV);
 }
 addEventListener('pagehide', () => jobEnd(false));   // closed the tab or left mid-way
 /* iPhone remembers which files are already saved, per gallery and tab, so a new visit carries on instead of starting over */
 const dlKey = () => 'fom.dl.' + (GAL.group ? 'g.' + GAL.group : GAL.folder) + '.' + FILTER + (window.FOM_PREVIEW ? '.pv' : '');
-function dlGet(){ try{ return JSON.parse(localStorage.getItem(dlKey()) || 'null'); }catch(e){ return null; } }
-function dlPut(v){ try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : localStorage.removeItem(dlKey()); }catch(e){} }
+let DLSEL = false;   // downloading a hand-picked selection: no resume memory, no finished/stopped events
+function dlGet(){ if(DLSEL) return null; try{ return JSON.parse(localStorage.getItem(dlKey()) || 'null'); }catch(e){ return null; } }
+function dlPut(v){ if(DLSEL) return; try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : localStorage.removeItem(dlKey()); }catch(e){} }
 
 /* ---- every file (or the current tab: All / Photos / Videos / Favourites) ---- */
+let LASTDL = {};
 async function downloadAll(opts){
-  opts = opts || {};
-  const list = visible().filter(i => i.url);
+  opts = opts || {}; LASTDL = opts;
+  const list = (opts.list || visible()).filter(i => i.url);
   if(!list.length) return;
-  const label = FILTER === 'fav' ? 'favourites' : FILTER === 'image' ? 'photos' : FILTER === 'video' ? 'videos' : 'files';
+  DLSEL = !!opts.list;
+  const label = DLSEL ? (list.every(i => i.kind === 'video') ? 'videos' : list.every(i => i.kind === 'image') ? 'photos' : 'files') : FILTER === 'fav' ? 'favourites' : FILTER === 'image' ? 'photos' : FILTER === 'video' ? 'videos' : 'files';
+  const what = (DLSEL ? list.length + ' selected ' : 'all ' + list.length + ' ') + label;
   DLC = new AbortController(); const sig = DLC.signal;
   let totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
   let doneBytes = 0;
@@ -701,8 +749,8 @@ async function downloadAll(opts){
         if(await choose('Continue (' + todo.length + ' left)', 'Start again') === 'alt'){ saved = new Set(); todo = list; dlPut(null); }
         $('dlN').textContent = ''; $('dlT').textContent = 'Saving ' + list.length + ' ' + label + ' to your Photos';
       } else if(!todo.length){ saved = new Set(); todo = list; dlPut(null); }   // saved everything before: a fresh round
-      ev('download', 'all ' + list.length + ' ' + label + (saved.size ? ' (carrying on from ' + saved.size + ')' : '') + ' · ' + DEV);
-      DLJOB = { n:list.length, saved:saved.size, label };
+      ev('download', what + (saved.size ? ' (carrying on from ' + saved.size + ')' : '') + ' · ' + DEV);
+      DLJOB = { n:list.length, saved:saved.size, label, sel:DLSEL };
       totalBytes = todo.reduce((a, i) => a + (+i.size || 0), 0) || 1;
       const batches = []; let cur = [], sz = 0;
       todo.forEach(i => { if(cur.length && (cur.length >= 60 || sz + (+i.size || 0) > 400e6)){ batches.push(cur); cur = []; sz = 0; } cur.push(i); sz += +i.size || 0; });
@@ -746,11 +794,11 @@ async function downloadAll(opts){
       }
       return;
     }
-    ev('download', 'all ' + list.length + ' ' + label + ' · ' + (opts.zip ? DEV + ' (zip)' : DEV));
+    ev('download', what + ' · ' + (opts.zip ? DEV + ' (zip)' : DEV));
     if(IS_ANDROID && !opts.zip){
       /* Android: each file saves straight to the phone (Chrome may ask once to allow several downloads) */
       showDl('Downloading ' + list.length + ' ' + label);
-      DLJOB = { n:list.length, saved:0, label };
+      DLJOB = { n:list.length, saved:0, label, sel:DLSEL };
       let n = 0;
       for(const it of list){
         n++; setDl('Saving ' + n + ' of ' + list.length, pct());
@@ -764,7 +812,7 @@ async function downloadAll(opts){
     }
     /* computer (or the zip choice on iPhone): one .zip, split into parts above 2 GB (1 GB on a phone) */
     showDl('Preparing your download');
-    DLJOB = { n:list.length, saved:0, at:0, label, zip:true };
+    DLJOB = { n:list.length, saved:0, at:0, label, zip:true, sel:DLSEL };
     const cap = IS_IOS || IS_ANDROID ? 1e9 : 2e9;
     const base = (String(GAL.name || 'Gallery').trim() + ' ' + ((window.FOM_CLIENT && FOM_CLIENT.name) || 'FOM Studios')).replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-');
     let zip = makeZip(), n = 0;
