@@ -446,7 +446,7 @@ const CHAT_ON = false;
    and their gallery opens in preview too (hearts are not saved).
    ============================================================ */
 const PREVIEW = new URLSearchParams(location.search).get('preview') || '';
-const GALLERY_V = 'gp8';   // bump when client-gallery.html changes
+const GALLERY_V = 'gp9';   // bump when client-gallery.html changes
 // Preview as client: the dashboard sends your admin email so the login card is filled with it (not a saved client login)
 // one-tap preview: the Database sends a one-time code (pv); the gallery Worker swaps it for a sign-in as you (needs FIREBASE_SA)
 const PV_CODE = PREVIEW ? String(new URLSearchParams(location.search).get('pv') || '').replace(/[^a-z0-9]/gi, '').slice(0, 40) : '';

@@ -414,13 +414,15 @@ function selBtn(){ return `<button class="btn ghost sm sel-btn" type="button" da
 function selDraw(){
   const b=$('selBar'); if(!b) return; b.classList.toggle('on',SEL.on); if(!SEL.on) return;
   const n=SEL.set.size, vis=visible().filter(i=>i.url).length, size=ITEMS.filter(i=>SEL.set.has(i.name)).reduce((a,i)=>a+(+i.size||0),0);
-  b.innerHTML=`<div class="tx"><b>${n?n+' selected':'Tap the ones you want'}</b>${n?fmtSize(size):'Then download just those'}</div>
+  let rd=0, pre=0; SEL.set.forEach(nm=>{ const e=PRE.get(nm); if(e){ pre++; if(e.done) rd++; } });
+  const prep=n?(rd>=n?' · all ready':pre?' · '+rd+' of '+n+' ready':''):'';
+  b.innerHTML=`<div class="tx"><b>${n?n+' selected':'Tap the ones you want'}</b>${n?fmtSize(size)+prep:'Then download just those'}</div>
     <div class="bt"><button class="btn ghost sm" type="button" data-sela="${n&&n>=vis?'none':'all'}">${n&&n>=vis?'Clear':'Select all'}</button>
     <button class="btn sm" type="button" data-sela="dl"${n?'':' disabled'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download${n?' '+n:''}</button>
     <button class="btn ghost sm" type="button" data-sela="done" aria-label="Done selecting">Done</button></div>`;
 }
 function selToggle(it){
-  if(!it||!it.url) return; if(SEL.set.has(it.name)) SEL.set.delete(it.name); else SEL.set.add(it.name);
+  if(!it||!it.url) return; if(SEL.set.has(it.name)){ SEL.set.delete(it.name); preStop(it.name); } else { SEL.set.add(it.name); preStart(it); }
   const gi=ITEMS.indexOf(it), on=SEL.set.has(it.name);
   document.querySelectorAll(`.card[data-i="${gi}"]`).forEach(c=>{ c.classList.toggle('sel-in',on); const t=c.querySelector('.sel-tick'); if(t){ t.classList.toggle('on',on); t.innerHTML=on?'&#10003;':''; t.setAttribute('aria-pressed',on); } });
   selDraw();
@@ -437,12 +439,12 @@ function resDraw(){
     if(x.dataset.res==='no'){ try{ localStorage.removeItem(dlKey(true)); }catch(e){} resDraw(); return; }
     downloadAll({ list:pick, resume:true }); };
 }
-function selEnd(){ SEL.on=false; SEL.set.clear(); document.body.classList.remove('sel-mode'); renderGrid(false); selDraw(); }
+function selEnd(){ SEL.on=false; SEL.set.clear(); if(!DLC) preClear(); document.body.classList.remove('sel-mode'); renderGrid(false); selDraw(); }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-sela]'); if(!b) return; const a=b.dataset.sela;
   if(a==='start'){ if(GP.mode) return; SEL.on=true; SEL.set.clear(); document.body.classList.add('sel-mode'); renderGrid(false); selDraw(); }
-  else if(a==='all'){ visible().forEach(i=>{ if(i.url) SEL.set.add(i.name); }); renderGrid(false); selDraw(); }
-  else if(a==='none'){ SEL.set.clear(); renderGrid(false); selDraw(); }
+  else if(a==='all'){ visible().forEach(i=>{ if(i.url){ SEL.set.add(i.name); preStart(i); } }); renderGrid(false); selDraw(); }
+  else if(a==='none'){ SEL.set.clear(); preClear(); renderGrid(false); selDraw(); }
   else if(a==='done') selEnd();
   else if(a==='dl'){ const list=ITEMS.filter(i=>SEL.set.has(i.name)&&i.url); if(!list.length) return; if(list.length===1){ download(list[0]); return; } downloadAll({ list }); }
 });
@@ -645,7 +647,71 @@ const MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', webp:'image
 const fileUrl = it => it.url + (it.url.includes('?') ? '&' : '?') + 'dl=1';
 function canShareFiles(){ try{ return !!(navigator.canShare && navigator.canShare({ files:[ new File(['x'], 'x.jpg', { type:'image/jpeg' }) ] })); }catch(e){ return false; } }
 const USE_SHARE = IS_IOS && canShareFiles();
+/* ---- head start: a ticked photo starts coming down in the background (3 at a time, up to a memory cap) ---- */
+const PRE = new Map();   // name -> { p:Promise<File>, ac, got, total, subs:Set, done }
+const PRE_CAP = IS_IOS ? 400e6 : 900e6;
+let PREQ = [];
+function preBytes(){ let b = 0; PRE.forEach(e => b += e.total || 0); return b; }
+function prePump(){
+  let busy = 0; PRE.forEach(e => { if(!e.done && e.started) busy++; });
+  while(busy < 3 && PREQ.length){
+    const it = PREQ.shift(), e = PRE.get(it.name); if(!e || e.started) continue;
+    e.started = true; busy++;
+    e.p = getFileRaw(it, e.ac.signal, (g, t) => { e.got = g; e.total = t || e.total; e.subs.forEach(f => { try{ f(g, t); }catch(x){} }); selProg(); });
+    e.p.then(() => { e.done = true; selProg(); }, () => { PRE.delete(it.name); }).then(prePump);
+  }
+}
+function preStart(it){
+  if(!it || !it.url || PRE.has(it.name)) return;
+  if(preBytes() + (+it.size || 0) > PRE_CAP) return;   // big selections: the rest comes down when they tap Download
+  PRE.set(it.name, { ac:new AbortController(), got:0, total:+it.size || 0, subs:new Set(), done:false, started:false });
+  PREQ.push(it); prePump();
+}
+function preStop(name){ const e = PRE.get(name); if(!e) return; try{ e.ac.abort(); }catch(x){} PRE.delete(name); PREQ = PREQ.filter(i => i.name !== name); prePump(); }
+function preClear(){ [...PRE.keys()].forEach(preStop); }
+let SELPT = 0;
+function selProg(){ if(SELPT) return; SELPT = setTimeout(() => { SELPT = 0; if(SEL.on) selDraw(); }, 400); }
+
+/* ---- speed and time left ---- */
+function meter(total){
+  const t0 = Date.now(); let last = '';
+  return got => {
+    const sec = (Date.now() - t0) / 1000; if(sec < 1.5 || got <= 0) return last;
+    const bps = got / sec, left = Math.max(0, total - got) / bps;
+    const lt = left < 8 ? 'A few seconds left' : left < 90 ? 'About ' + Math.round(left / 5) * 5 + ' seconds left' : 'About ' + Math.round(left / 60) + ' min left';
+    return last = lt + ' · ' + (bps / 1e6).toFixed(1) + ' MB/s';
+  };
+}
+const KEEP = 'Keep this page open until it says done. Big photos take a moment on mobile data.';
+
+/* ---- several files at once (4 by default): resolves in list order, onDone(file, item) as each one lands ---- */
+async function getMany(items, signal, onProg, onDone, at){
+  const out = new Array(items.length), got = new Array(items.length).fill(0); let next = 0, chain = Promise.resolve();
+  const report = () => onProg(got.reduce((a, b) => a + b, 0));
+  async function worker(){
+    while(next < items.length){
+      const k = next++, it = items[k];
+      out[k] = await getFile(it, signal, g => { got[k] = g; report(); });
+      got[k] = +it.size || out[k].size; report();
+      if(onDone){ const c = chain.then(() => onDone(out[k], it, k)); chain = c.catch(() => {}); await c; }   // one at a time (the zip writer is not shared-safe)
+    }
+  }
+  await Promise.all(Array.from({ length:Math.min(at || 4, items.length) }, worker));
+  return out;
+}
+
 async function getFile(it, signal, onProgress){
+  const e = PRE.get(it.name);
+  if(e && e.started){   // already coming down (or done) from the tick
+    if(onProgress){ onProgress(e.got, e.total); e.subs.add(onProgress); }
+    try{
+      return await new Promise((res, rej) => { e.p.then(res, rej); if(signal){ const no = () => rej(new DOMException('Cancelled', 'AbortError')); if(signal.aborted) no(); else signal.addEventListener('abort', no); } });
+    } catch(x){ if(x && x.name === 'AbortError' && signal && signal.aborted) throw x; PRE.delete(it.name); }
+    finally { if(onProgress) e.subs.delete(onProgress); }
+  } else if(e){ preStop(it.name); }
+  return getFileRaw(it, signal, onProgress);
+}
+async function getFileRaw(it, signal, onProgress){
   const r = await fetch(fileUrl(it), { signal });
   if(!r.ok) throw new Error('Could not get ' + it.name + ' (' + r.status + ')');
   const total = +r.headers.get('content-length') || +it.size || 0;
@@ -675,7 +741,7 @@ function dlSheet(){
   return el;
 }
 function showDl(title){ dlSheet().classList.add('on'); $('dlT').textContent = title; $('dlS').textContent = ''; $('dlBar').style.width = '0%'; $('dlGo').hidden = true; $('dlAlt').hidden = true; $('dlX').textContent = 'Cancel'; $('dlN').textContent = ''; }
-function closeDl(){ setTimeout(resDraw,0); const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
+function closeDl(){ setTimeout(resDraw,0); if(!SEL.on) setTimeout(preClear,0); const e = $('dlSheet'); if(e) e.classList.remove('on'); DLC = null; }
 const setDl = (sub, pct) => { $('dlS').textContent = sub; if(pct != null) $('dlBar').style.width = Math.max(2, Math.min(100, pct)) + '%'; };
 /* iPhone needs a fresh tap to open the share sheet, so preparing ends with a "Save" button */
 function waitTap(label){ return new Promise(res => { const b = $('dlGo'); b.textContent = label; b.hidden = false; b.onclick = () => { b.hidden = true; res(); }; }); }
@@ -699,10 +765,11 @@ function failDl(err){
 async function download(it){
   if(!it || !it.url) return;
   ev('download', it.name);
+  const M1 = meter(+it.size || 1);
   if(!USE_SHARE && !IS_ANDROID && !IS_IOS){   // computer: quick direct download
     DLC = new AbortController();
     try{ showDl('Downloading'); setDl(it.name, 3);
-      const f = await getFile(it, DLC.signal, (g, t) => setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : ''), t ? g / t * 100 : null));
+      const f = await getFile(it, DLC.signal, (g, t) => { const m = M1(g); setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : '') + (m ? ' · ' + m : ''), t ? g / t * 100 : null); });
       saveBlob(f); closeDl(); }
     catch(e){ failDl(e); }
     return;
@@ -710,7 +777,7 @@ async function download(it){
   DLC = new AbortController();
   try{
     showDl(USE_SHARE ? 'Getting your ' + (it.kind === 'video' ? 'video' : 'photo') : 'Downloading'); setDl(it.name, 3);
-    const f = await getFile(it, DLC.signal, (g, t) => setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : ''), t ? g / t * 100 : null));
+    const f = await getFile(it, DLC.signal, (g, t) => { const m = M1(g); setDl(it.name + (t ? ' · ' + Math.round(g / t * 100) + '%' : '') + (m ? ' · ' + m : ''), t ? g / t * 100 : null); });
     if(USE_SHARE){
       $('dlT').textContent = 'Your ' + (it.kind === 'video' ? 'video' : 'photo') + ' is ready'; setDl(it.name, 100);
       $('dlN').textContent = 'Tap below, then choose "' + (it.kind === 'video' ? 'Save Video' : 'Save Image') + '" to put it in your Photos.';
@@ -749,6 +816,7 @@ async function downloadAll(opts){
   let totalBytes = list.reduce((a, i) => a + (+i.size || 0), 0) || 1;
   let doneBytes = 0;
   const pct = extra => (doneBytes + (extra || 0)) / totalBytes * 100;
+  let mt = meter(totalBytes);
   try{
     if(USE_SHARE && !opts.zip){
       /* iPhone: parts of up to 60 files (or about 400 MB), each saved with one tap on the share sheet */
@@ -768,6 +836,7 @@ async function downloadAll(opts){
       ev('download', what + (saved.size ? ' (carrying on from ' + saved.size + ')' : '') + ' · ' + DEV);
       DLJOB = { n:list.length, saved:saved.size, label, sel:DLSEL };
       totalBytes = todo.reduce((a, i) => a + (+i.size || 0), 0) || 1;
+      mt = meter(totalBytes);
       const batches = []; let cur = [], sz = 0;
       todo.forEach(i => { if(cur.length && (cur.length >= 60 || sz + (+i.size || 0) > 400e6)){ batches.push(cur); cur = []; sz = 0; } cur.push(i); sz += +i.size || 0; });
       if(cur.length) batches.push(cur);
@@ -775,11 +844,11 @@ async function downloadAll(opts){
       for(let b = 0; b < batches.length; b++){
         const files = [], many = batches.length > 1, partTxt = 'part ' + (b + 1) + ' of ' + batches.length;
         $('dlT').textContent = many ? 'Getting ' + partTxt : 'Getting your ' + label;
-        for(const it of batches[b]){
-          n++; setDl('Getting ' + n + ' of ' + list.length, pct());
-          files.push(await getFile(it, sig, (g) => setDl('Getting ' + n + ' of ' + list.length, pct(g))));
-          doneBytes += +it.size || 0;
-        }
+        $('dlN').textContent = KEEP;
+        let landed = 0; const base0 = n;
+        const fl = await getMany(batches[b], sig, g => setDl('Getting ' + Math.min(list.length, base0 + landed + 1) + ' of ' + list.length + ' · ' + mt(doneBytes + g), pct(g)), () => { landed++; });
+        files.push(...fl); n += fl.length;
+        doneBytes += batches[b].reduce((a, i) => a + (+i.size || 0), 0);
         for(;;){
           $('dlT').textContent = many ? 'Part ' + (b + 1) + ' of ' + batches.length + ' is ready' : 'Your ' + label + ' are ready';
           setDl(files.length + ' files ready' + (many ? ' (' + (saved.size) + ' of ' + list.length + ' saved so far)' : ''), pct());
@@ -815,13 +884,11 @@ async function downloadAll(opts){
       /* Android: each file saves straight to the phone (Chrome may ask once to allow several downloads) */
       showDl('Downloading ' + list.length + ' ' + label);
       DLJOB = { n:list.length, saved:0, label, sel:DLSEL };
+      $('dlN').textContent = KEEP;
       let n = 0;
-      for(const it of list){
-        n++; setDl('Saving ' + n + ' of ' + list.length, pct());
-        saveBlob(await getFile(it, sig, (g) => setDl('Saving ' + n + ' of ' + list.length, pct(g))));
-        doneBytes += +it.size || 0; DLJOB.saved = n;
-        await new Promise(r => setTimeout(r, 350));
-      }
+      await getMany(list, sig, g => setDl('Saving ' + Math.min(list.length, n + 1) + ' of ' + list.length + ' · ' + mt(g), pct(g)), async f => {
+        saveBlob(f); n++; DLJOB.saved = n; await new Promise(r => setTimeout(r, 250));
+      }, 3);
       jobEnd(true);
       $('dlT').textContent = 'All done'; setDl('Your ' + label + ' are in your Downloads and Gallery.', 100); $('dlX').textContent = 'Close';
       return;
@@ -833,13 +900,12 @@ async function downloadAll(opts){
     const base = (String(GAL.name || 'Gallery').trim() + ' ' + ((window.FOM_CLIENT && FOM_CLIENT.name) || 'FOM Studios')).replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-');
     let zip = makeZip(), n = 0;
     const parts = [];
-    for(const it of list){
-      n++; DLJOB.at = n; setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct());
-      const f = await getFile(it, sig, (g) => setDl('Adding ' + n + ' of ' + list.length + ': ' + it.name, pct(g)));
+    $('dlN').textContent = KEEP;
+    await getMany(list, sig, g => setDl('Getting ' + Math.min(list.length, n + 1) + ' of ' + list.length + ' · ' + mt(g), pct(g)), async f => {
+      n++; DLJOB.at = n;
       if(zip.size && zip.size + f.size > cap){ parts.push(zip.finish()); zip = makeZip(); }
       await zip.add(f);
-      doneBytes += +it.size || 0;
-    }
+    });
     parts.push(zip.finish());
     parts.forEach((b, k) => saveBlob(b, base + (parts.length > 1 ? '-part' + (k + 1) : '') + '.zip'));
     jobEnd(true);
