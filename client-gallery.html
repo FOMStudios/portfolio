@@ -362,7 +362,7 @@ async function groupOpen(pin){
   try{ if(pin) sessionStorage.setItem('fom.gpin.' + GAL.group, pin); }catch(e){}
   Object.assign(GAL, { mode:j.mode, k:j.k, title:j.title, name:j.title, date:j.date || '', expiry:j.expires || '' });
   if(GAL.mode === 'view') document.body.classList.add('gview');
-  ITEMS = (j.files || []).map(f => ({ name:f.name, size:f.size, url:f.url, kind:f.kind || kindOf(f.name) }));
+  ITEMS = (j.files || []).map(f => ({ name:f.name, size:f.size, url:f.url, th:f.th, web:f.web, kind:f.kind || kindOf(f.name) }));
   if(!ITEMS.length) return stateBox(1, 'No photos here yet', 'Check back soon.');
   document.title = GAL.title + ' | ' + (SBA_G ? 'Shot by A' : 'FOM Studios');
   renderGallery();
@@ -400,7 +400,7 @@ async function load(){
       const r=await fetch(CONFIG.worker.replace(/\/$/,'')+'/list?g='+encodeURIComponent(GAL.folder));
       if(!r.ok)throw 0;
       const data=await r.json();
-      ITEMS=(data.files||data||[]).map(f=>({name:f.name,size:f.size,url:f.url,poster:f.poster,kind:f.kind||kindOf(f.name)}))
+      ITEMS=(data.files||data||[]).map(f=>({name:f.name,size:f.size,url:f.url,th:f.th,web:f.web,poster:f.poster,kind:f.kind||kindOf(f.name)}))
         .filter(f=>f.kind==='image'||f.kind==='video');   // only show photos/videos, never contracts, invoices or zips in the same folder
       if(!ITEMS.length)return renderEmpty();
     }catch(e){return renderError();}
@@ -614,7 +614,7 @@ function renderGrid(reset){
     const gi=ITEMS.indexOf(it),isVid=it.kind==='video';
     const thumb=isVid
       ?(it.poster?`<img src="${esc(it.poster)}" loading="lazy" alt="">`:`<div class="ph">&#127909;</div>`+stillHtml(it))+`<div class="play"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>`
-      :(it.kind==='image'?`<img src="${esc(it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
+      :(it.kind==='image'?`<img src="${esc(it.th||it.url)}" loading="lazy" decoding="async" alt="${esc(it.name)}" onerror="this.parentElement.innerHTML='&lt;div class=\\'ph\\'&gt;&#128247;&lt;/div&gt;'">`:`<div class="ph">&#128196;</div>`);
     const badge=isVid?`<span class="badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Video</span>`:`<span class="badge">Photo</span>`;
     const gIn=GP.on&&GP.picks.has(it.name), sIn=SEL.on&&SEL.set.has(it.name);
     return `<article class="card${gIn?' gp-in':''}${sIn?' sel-in':''}" data-i="${gi}"><div class="thumb">${thumb}${badge}${SEL.on&&it.url?`<button class="sel-tick${sIn?' on':''}" type="button" aria-label="Select ${esc(it.name)}" aria-pressed="${sIn}">${sIn?'&#10003;':''}</button>`:''}${GP.mode?`<button class="gp-tick${gIn?' on':''}" data-gp="${gi}" type="button" aria-label="Group can see this" aria-pressed="${gIn}">${gIn?'&#10003;':''}</button>`:(gIn?'<span class="gp-badge">&#128101; Group</span>':'')}
@@ -773,7 +773,7 @@ function guestOk(){
   return new Promise(res => {
     const el = document.createElement('div'); el.className = 'dl-scrim on';
     el.innerHTML = `<form class="dl-box gq" role="dialog" aria-modal="true" aria-labelledby="gqT"><div class="dl-h" id="gqT">Before you download</div>
-      <div class="dl-sub">Just your name, so the photographer knows who saved the photos. Asked once on this phone.</div>
+      <div class="dl-sub">This helps us know who is enjoying the photos.</div>
       <label>Your name<input name="n" required maxlength="60" autocomplete="name" placeholder="First and last name"></label>
       <label>WhatsApp number <small>(optional)</small><input name="p" type="tel" maxlength="20" autocomplete="tel" placeholder="e.g. 082 123 4567"></label>
       <div class="dl-acts"><button class="btn" type="submit">Continue to download</button><button class="btn ghost" type="button" data-x>Cancel</button></div></form>`;
@@ -999,7 +999,7 @@ function watchStills(root){ root.querySelectorAll('video.vstill:not([data-on])')
 
 /* ===== viewer: swipe left/right with the photo following your finger, thumbnail strip underneath ===== */
 let LBI=0, LBL=[];                       // LBL = the files in the tab you opened from (All / Photos / Videos)
-const thumbOf=it=>it.kind==='video'?(it.poster||''):it.url;
+const thumbOf=it=>it.kind==='video'?(it.poster||''):(it.th||it.url);
 function openLb(gi){
   LBL=visible(); LBI=Math.max(0,LBL.indexOf(ITEMS[gi]));
   $('lbStrip').innerHTML=LBL.map((it,i)=>{const t=thumbOf(it);
@@ -1032,11 +1032,17 @@ function paintLb(){
     v.addEventListener('loadedmetadata',()=>{ if(!v.videoWidth) fail(); },{once:true});   // sound but no picture means the video codec is not supported
   }
   else if(it.kind==='video') m.innerHTML=noVid();
-  else if(it.kind==='image'&&it.url) m.innerHTML=`<img src="${esc(it.url)}" alt="${esc(it.name)}" draggable="false">`;
+  else if(it.kind==='image'&&it.url){
+    /* fast previews: the small copy shows at once, the 2048 px copy swaps in when it lands (the original is only for downloads) */
+    const hi=it.web||it.url, lo=it.th&&it.th!==hi?it.th:'';
+    m.innerHTML=`<img src="${esc(lo||hi)}" alt="${esc(it.name)}" draggable="false"${lo?' class="lb-lo"':''}>`;
+    if(lo){ const im=new Image(); im.onload=()=>{ const cur=m.querySelector('img'); if(cur&&cur.getAttribute('src')===lo){ cur.src=hi; cur.classList.remove('lb-lo'); } }; im.src=hi; }
+    [1,-1].forEach(d=>{ const nb=LBL&&LBL[(LBI+d+LBL.length)%LBL.length]; if(nb&&nb.kind==='image'&&nb.web){ const p=new Image(); p.src=nb.web; } });   // next and previous ready before the swipe
+  }
   else m.innerHTML=`<div class="novid"><p>No preview. Use <b>Download</b> to save this file.</p></div>`;
   $('lbDl').onclick=()=>download(it);
   // order a print or frame of this photo (print-cart.js, FOM only)
-  const pb=$('lbPrint'); if(pb){ pb.hidden=!(window.FOM_PRINT&&FOM_PRINT.live()&&it.kind==='image'); pb.onclick=()=>FOM_PRINT.open({src:'gallery',g:GAL.folder,n:it.name,thumb:it.url,preview:it.url,title:'Your photo'}); }
+  const pb=$('lbPrint'); if(pb){ pb.hidden=!(window.FOM_PRINT&&FOM_PRINT.live()&&it.kind==='image'); pb.onclick=()=>FOM_PRINT.open({src:'gallery',g:GAL.folder,n:it.name,thumb:it.th||it.url,preview:it.web||it.url,title:'Your photo'}); }
   paintLbFav();
   // highlight the thumbnail and keep it centred in the strip
   const st=$('lbStrip'), on=st.querySelector('.lb-th.on'); if(on) on.classList.remove('on');
