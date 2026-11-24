@@ -5,6 +5,5 @@ Disallow: /client-portal.html
 Disallow: /paid.html
 Disallow: /blog/_
 Disallow: /shotbya/blog/_
-Disallow: /shotbya/
 
 Sitemap: https://www.fomstudios.co.za/sitemap.xml
