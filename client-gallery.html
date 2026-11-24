@@ -105,6 +105,9 @@ video.vstill.ready{opacity:1;}
 /* download progress sheet */
 .dl-scrim{position:fixed;inset:0;z-index:300;background:rgba(10,10,12,.55);display:none;align-items:flex-end;justify-content:center;}
 .dl-scrim.on{display:flex;}
+.gq label{display:block;font-size:13px;font-weight:700;margin:12px 0 0;} .gq label small{font-weight:400;color:var(--ink-soft);}
+.gq input{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg,#fff);color:var(--ink);font:inherit;font-size:16px;}
+.gq input:focus{outline:none;border-color:var(--accent);}
 .dl-box{background:var(--panel);color:var(--ink);width:100%;max-width:440px;border-radius:22px 22px 0 0;padding:22px 20px calc(18px + var(--safe-b));box-shadow:0 -10px 40px rgba(0,0,0,.25);}
 @media(min-width:600px){.dl-scrim{align-items:center;}.dl-box{border-radius:22px;}}
 .dl-h{font-size:18px;font-weight:800;}
@@ -516,7 +519,7 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-gpa]'); i
 window.FOM_GP={ hint:h=>{ const b=$('gpBar'); if(b){ b.classList.add('on'); b.innerHTML='<div class="tx">'+h+'</div>'; } else setTimeout(()=>window.FOM_GP.hint(h),500); }, enable:(picks,save)=>{ GP.on=true; GP.picks=new Set(picks||[]); GP.saved=[...GP.picks].join('|'); GP.save=save; if($('grid')){ renderGallery(); } } };
 /* client activity for FOM Studios: gallery opened (first time), downloads, favourites picked when they leave */
 const ev=(t,d)=>{
-  if(GAL.group){ if(t==='download'){ const m=/^(?:all |their )?(\d+) /.exec(d||''); fetch(CONFIG.worker+'/group/hit',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({s:GAL.group,k:GAL.k,c:m?+m[1]:1})}).catch(()=>{}); } return; }
+  if(GAL.group){ if(t==='download'){ const m=/^(?:all |their )?(\d+) /.exec(d||''); fetch(CONFIG.worker+'/group/hit',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({s:GAL.group,k:GAL.k,c:m?+m[1]:1,g:guest()?Object.assign({dev:typeof DEV==='string'?DEV:''},guest()):null})}).catch(()=>{}); } return; }
   if(window.FOM_EVENT) FOM_EVENT(t, GAL.order, GAL.name, d); };
 function sendFavs(){ if(FAV_DIRTY){ FAV_DIRTY=false; ev('favs', FAV.size+(FAV.size===1?' photo':' photos')); } }
 addEventListener('pagehide', sendFavs); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendFavs(); });
@@ -762,8 +765,32 @@ function failDl(err){
 }
 
 /* ---- one file ---- */
+/* ---- group links: name (and optional WhatsApp) once per phone before the first download, so Ishaaq sees who saved what ---- */
+function guest(){ try{ const g = JSON.parse(localStorage.getItem('fom.guest') || 'null'); return g && g.n ? g : null; }catch(e){ return null; } }
+function guestOk(){
+  if(!GAL.group || guest()) return Promise.resolve(true);
+  return new Promise(res => {
+    const el = document.createElement('div'); el.className = 'dl-scrim on';
+    el.innerHTML = `<form class="dl-box gq" role="dialog" aria-modal="true" aria-labelledby="gqT"><div class="dl-h" id="gqT">Before you download</div>
+      <div class="dl-sub">Just your name, so the photographer knows who saved the photos. Asked once on this phone.</div>
+      <label>Your name<input name="n" required maxlength="60" autocomplete="name" placeholder="First and last name"></label>
+      <label>WhatsApp number <small>(optional)</small><input name="p" type="tel" maxlength="20" autocomplete="tel" placeholder="e.g. 082 123 4567"></label>
+      <div class="dl-acts"><button class="btn" type="submit">Continue to download</button><button class="btn ghost" type="button" data-x>Cancel</button></div></form>`;
+    document.body.appendChild(el);
+    const f = el.querySelector('form'), done = ok => { el.remove(); res(ok); };
+    setTimeout(() => f.n.focus(), 50);
+    el.querySelector('[data-x]').onclick = () => done(false);
+    el.onclick = e => { if(e.target === el) done(false); };
+    f.onsubmit = e => { e.preventDefault(); const n = f.n.value.trim(); if(n.length < 2) return f.n.focus();
+      let id = ''; try{ id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '').slice(0, 20); }catch(x){ id = String(Date.now()); }
+      try{ localStorage.setItem('fom.guest', JSON.stringify({ id, n, p:f.p.value.trim() })); }catch(x){}
+      done(true); };
+  });
+}
+
 async function download(it){
   if(!it || !it.url) return;
+  if(!(await guestOk())) return;
   ev('download', it.name);
   const M1 = meter(+it.size || 1);
   if(!USE_SHARE && !IS_ANDROID && !IS_IOS){   // computer: quick direct download
@@ -806,7 +833,9 @@ function dlPut(v){ try{ v ? localStorage.setItem(dlKey(), JSON.stringify(v)) : l
 /* ---- every file (or the current tab: All / Photos / Videos / Favourites) ---- */
 let LASTDL = {};
 async function downloadAll(opts){
-  opts = opts || {}; LASTDL = opts;
+  opts = opts || {};
+  if(!(await guestOk())) return;
+  LASTDL = opts;
   const list = (opts.list || visible()).filter(i => i.url);
   if(!list.length) return;
   DLSEL = !!opts.list;
